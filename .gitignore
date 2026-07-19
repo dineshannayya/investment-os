@@ -55,18 +55,9 @@ cover/
 *.mo
 *.pot
 
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
-
 # Flask stuff:
 instance/
 .webassets-cache
-
-# Scrapy stuff:
-.scrapy
 
 # Sphinx documentation
 docs/_build/
@@ -127,10 +118,6 @@ ipython_config.py
 # PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
 __pypackages__/
 
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
-
 # Redis
 *.rdb
 *.aof
@@ -143,9 +130,6 @@ rabbitmq-data/
 
 # ActiveMQ
 activemq-data/
-
-# SageMath parsed files
-*.sage.py
 
 # Environments
 .env
@@ -188,18 +172,66 @@ cython_debug/
 #   option (not recommended) you can uncomment the following to ignore the entire idea folder.
 # .idea/
 
-# Abstra
-#   Abstra is an AI-powered process automation framework.
-#   Ignore directories containing user credentials, local state, and settings.
-#   Learn more at https://abstra.io/docs
-.abstra/
-
 # Visual Studio Code
 #   Visual Studio Code specific template is maintained in a separate VisualStudioCode.gitignore 
 #   that can be found at https://github.com/github/gitignore/blob/main/Global/VisualStudioCode.gitignore
 #   and can be added to the global gitignore or merged into this file. However, if you prefer, 
 #   you could uncomment the following to ignore the entire vscode folder
-# .vscode/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+
+# Docker
+docker-data/
+postgres-data/
+redis-data/
+
+# Alembic
+*.pyc
+alembic/versions/__pycache__/
+
+# Local Development Files
+# Keep only .env.example in Git.
+.env.local
+.env.dev
+.env.test
+.env.prod.local
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Local Database Files
+*.sqlite3
+*.db
+
+# AI/LLM Assets
+models/
+checkpoints/
+embeddings/
+vector_db/
+chroma/
+faiss/
+qdrant/
+*.gguf
+*.safetensors
+*.bin
+
+# Generated Reports
+reports/
+artifacts/
+tmp/
+
+# Benchmark Outputs
+benchmark/
+profiling/
+
 # Temporary file for partial code execution
 tempCodeRunnerFile.py
 
@@ -208,11 +240,3 @@ tempCodeRunnerFile.py
 
 # PyPI configuration file
 .pypirc
-
-# Marimo
-marimo/_static/
-marimo/_lsp/
-__marimo__/
-
-# Streamlit
-.streamlit/secrets.toml

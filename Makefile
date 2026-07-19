@@ -1,28 +1,161 @@
 
+#------------------------------------------------------------------------------
+# Investment OS Backend Makefile
+#------------------------------------------------------------------------------
+# | Target        | Purpose                                          |
+# | ------------- | ------------------------------------------------ |
+# | `make sync`   | Install/synchronize dependencies from `uv.lock`  |
+# | `make update` | Upgrade dependencies and regenerate the lockfile |
+# | `make check`  | Run all quality checks                           |
+# | `make run`    | Start the application                            |
+#-------------------------------------------------------------------------------
+# At every commit, the following should succeed:
+# make format
+# make lint
+# make typecheck
+# make test
+# -----------------------------------------------------------------------------
+# Docker command
+#   If there is any change in Dockerfile, then rebuild using: docker-build
+# -----------------------------------------------------------------------------
 
-up:
-	docker compose up -d
 
-down:
-	docker compose down
+PYTHON := 3.12
+DOCKER := docker compose exec backend
+#UV := uv
+UV ?= $(DOCKER) uv
 
-build:
-	docker compose build
+.PHONY: help bootstrap sync update run test cov lint fix format typecheck \
+        quality check ci clean shell freeze precommit db-up db-down \
+        docker-up docker-down docker-build docker-logs docker-ps \
+        backend-shell frontend-shell db-shell docker-rebuild docker-status docker-clean
 
-logs:
-	docker compose logs -f
+help:
+	@echo "Available targets:"
+	@echo "  install     Install project dependencies"
+	@echo "  sync        Sync environment using uv"
+	@echo "  update      Update dependencies"
+	@echo "  run         Start FastAPI development server"
+	@echo "  test        Run unit tests"
+	@echo "  cov         Run tests with coverage"
+	@echo "  lint        Run Ruff"
+	@echo "  format      Format using Black"
+	@echo "  typecheck   Run MyPy"
+	@echo "  check       Run lint + typecheck + tests"
+	@echo "  clean       Remove caches"
+	@echo "  shell       Open uv shell"
 
-ps:
-	docker compose ps
 
-backend:
-	docker compose exec backend bash
+# This needed for git repo which does not have prebit uv.lock file
+bootstrap:
+	@echo "Generating uv.lock..."
+	docker run --rm \
+		-v $(PWD)/backend:/workspace \
+		-w /workspace \
+		python:3.12-slim \
+		bash -c "pip install -q uv && uv lock"
+	@echo "Bootstrap complete."
 
-frontend:
-	docker compose exec frontend bash
+sync:
+	$(UV) sync
 
-db:
-	docker compose exec postgres psql -U investment investment_os
+update:
+	$(UV) lock --upgrade
+	$(UV) sync
+
+run:
+	$(UV) run uvicorn app.main:app --reload
+
+test:
+	$(UV) run pytest
+
+cov:
+	$(UV) run pytest --cov=app --cov-report=term-missing
+
+lint:
+	$(UV) run ruff check .
+
+fix:
+	$(UV) run ruff check . --fix
+	$(UV) run black .
+
+format:
+	$(UV) run black .
+
+format-check:
+	$(UV) run black --check .
+
+typecheck:
+	$(UV) run mypy app tests
+
+quality:
+	$(MAKE) format
+	$(MAKE) lint
+	$(MAKE) typecheck
+	$(MAKE) test
+
+check: format-check lint typecheck test
+
+ci: check cov
 
 clean:
+	find . -type d -name "__pycache__" -exec rm -rf {} +
+	find . -type d -name ".pytest_cache" -exec rm -rf {} +
+	find . -type d -name ".ruff_cache" -exec rm -rf {} +
+	find . -type d -name ".mypy_cache" -exec rm -rf {} +
+	find . -type f -name "*.pyc" -delete
+	rm -rf htmlcov
+	rm -rf .coverage.*
+
+shell:
+	$(UV) run python
+
+
+# Database
+
+db-revision:
+	$(UV) run alembic revision --autogenerate -m "$(MSG)"
+
+db-upgrade:
+	$(UV) run alembic upgrade head
+
+db-downgrade:
+	$(UV) run alembic downgrade -1
+
+# Docker
+
+docker-up:
+	docker compose up -d
+
+docker-down:
+	docker compose down
+
+docker-build:
+	docker compose build
+
+docker-logs:
+	docker compose logs -f
+
+docker-ps:
+	docker compose ps
+
+backend-shell:
+	docker compose exec backend bash
+
+frontend-shell:
+	docker compose exec frontend bash
+
+db-shell:
+	docker compose exec postgres psql -U investment investment_os
+
+
+docker-rebuild:
+	docker compose down -v
+	docker compose build --no-cache
+	docker compose up -d
+
+docker-status:
+	docker compose ps
+
+docker-clean:
 	docker compose down -v

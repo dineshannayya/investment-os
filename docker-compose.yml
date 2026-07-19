@@ -74,6 +74,7 @@ services:
 
     build:
       context: ./backend
+      dockerfile: Dockerfile.dev
 
     container_name: investment-backend
 
@@ -84,6 +85,7 @@ services:
 
     volumes:
       - ./backend:/opt/investment-os
+      - backend_venv:/opt/investment-os/.venv
 
     ports:
       - "8000:8000"
@@ -152,6 +154,7 @@ volumes:
   postgres_data:
   redis_data:
   frontend_node_modules:
+  backend_venv:
 
 
 ###########################################################
