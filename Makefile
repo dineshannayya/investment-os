@@ -28,7 +28,8 @@ UV ?= $(DOCKER) uv
 .PHONY: help bootstrap sync update run test cov lint fix format typecheck \
         quality check ci clean shell freeze precommit db-up db-down \
         docker-up docker-down docker-build docker-logs docker-ps \
-        backend-shell frontend-shell db-shell docker-rebuild docker-status docker-clean
+        backend-shell frontend-shell db-shell docker-rebuild docker-status docker-clean \
+        test test-config
 
 help:
 	@echo "Available targets:"
@@ -110,6 +111,15 @@ clean:
 shell:
 	$(UV) run python
 
+
+
+# make test-config → quick configuration tests
+test-config:
+	$(DOCKER) pytest tests -v
+
+# make test → full backend test suite with coverage
+test:
+	$(DOCKER) pytest tests -v --cov=app --cov-report=term-missing
 
 # Database
 

@@ -1,40 +1,61 @@
 """Investment OS backend application."""
 
 from fastapi import FastAPI
-from dataclasses import dataclass
+from app.core.config import settings
 
 
-@dataclass(frozen=True, slots=True)
-class AppMetadata:
-    name: str
-    version: str
+from app.config.logging import configure_logging
+from app.core.logger import get_logger
 
+configure_logging()
 
-APP_METADATA = AppMetadata(
-    name="Investment OS",
-    version="0.1.0",
-)
+logger = get_logger(__name__)
 
 def create_app() -> FastAPI:
-    """Create and configure the FastAPI application."""
+    """
+    Create and configure the FastAPI application.
+    """
+
+    logger.info("Creating FastAPI application")
 
     app = FastAPI(
-        title=APP_NAME,
-        version=APP_VERSION,
+        title=settings.app_name,
+        version=settings.app_version,
+        debug=settings.debug,
+        docs_url="/docs",
+        redoc_url="/redoc",
+        openapi_url="/openapi.json",
     )
 
+    logger.info(
+        "Application initialized: %s v%s",
+        settings.app_name,
+        settings.app_version,
+    )
+
+    # ------------------------------------------------------------------
+    # Root Endpoint
+    # ------------------------------------------------------------------
     @app.get("/", tags=["System"])
     async def root() -> dict[str, str]:
-        """Return basic application information."""
+        """
+        Return basic application information.
+        """
         return {
-            "name": APP_NAME,
-            "version": APP_VERSION,
+            "application": settings.app_name,
+            "version": settings.app_version,
+            "environment": settings.app_env,
             "status": "running",
         }
 
+    # ------------------------------------------------------------------
+    # Health Check
+    # ------------------------------------------------------------------
     @app.get("/health", tags=["System"])
     async def health() -> dict[str, str]:
-        """Return application health status."""
+        """
+        Basic health endpoint.
+        """
         return {
             "status": "healthy",
         }
