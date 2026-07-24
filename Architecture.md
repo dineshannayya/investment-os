@@ -149,3 +149,83 @@ Coding Standards
 | Coverage        | **pytest-cov** |
 | Pre-commit      | **pre-commit** |
 
+# ---------------------------------------------------
+Stage 1 (Today)
+───────────────
+CLI / Scripts
+        │
+        ▼
+Investment OS Core
+        │
+        ▼
+AI Analysis
+
+        ↓
+
+Stage 2
+───────────────
+Local Web UI (Next.js)
+        │
+        ▼
+Same Service Layer
+
+        ↓
+
+Stage 3
+───────────────
+Remote Access
+Docker
+HTTPS
+Reverse Proxy
+Authentication
+
+        ↓
+
+Stage 4
+───────────────
+Cloud Deployment
+Multi-user
+RBAC
+Organizations
+# ------------------------------------------------
+
+                 Core Business Logic
+               (Services + Domain Models)
+              /          |           \
+             /           |            \
+            /            |             \
+         CLI         REST API       AI Agents
+            \            |             /
+             \           |            /
+              \          |           /
+                 Future Next.js UI
+
+
+# ----------------------------------------------------------------
+                +----------------------+
+                |   Next.js (Future)   |
+                +----------+-----------+
+                           |
+                    REST / WebSocket
+                           |
++------------+    +--------+--------+    +--------------+
+| CLI        |--->| FastAPI Adapters |<---| AI Agents    |
++------------+    +--------+--------+    +--------------+
+                           |
+                    Service Layer
+                           |
+               Repository / Domain
+                           |
+       PostgreSQL + MinIO + Vector DB
+                           |
+                  Local LLM (Ollama)
+
+# -------------------------------------------
+
+Is this startup investable?
+What are the hidden risks?
+What questions should I ask the founders?
+How does this compare with similar startups?
+Should I invest ₹2L or ₹20L?
+What changed since my last review?
+# ------------------------------------------

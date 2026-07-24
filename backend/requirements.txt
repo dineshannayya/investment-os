@@ -1,0 +1,5 @@
+mammoth>=1.8.0
+markdownify
+beautifulsoup4
+lxml
+PyYAML

@@ -19,6 +19,7 @@ WORKDIR /opt/investment-os
 # Install Python tools
 RUN pip install --upgrade pip setuptools wheel
 RUN pip install uv
+RUN pip install mammoth
 
 # Copy dependency files
 COPY pyproject.toml ./

@@ -169,3 +169,10 @@ docker-status:
 
 docker-clean:
 	docker compose down -v
+
+
+# -------------------
+docx2md:
+	python3 scripts/convert_docs.py \
+	    --input docs-word \
+	    --output docs
