@@ -1,15 +1,13 @@
-from fastapi import FastAPI
+"""
+Middleware package exports.
+"""
 
-from .request_id import request_id_middleware
-from .request_logging import request_logging_middleware
-from .timing import timing_middleware
+from .registration import (
+    MIDDLEWARE_PIPELINE,
+    register_middlewares,
+)
 
-
-def register_middlewares(app: FastAPI) -> None:
-    """
-    Register application middleware.
-    """
-
-    app.middleware("http")(request_logging_middleware)
-    app.middleware("http")(timing_middleware)
-    app.middleware("http")(request_id_middleware)
+__all__ = [
+    "MIDDLEWARE_PIPELINE",
+    "register_middlewares",
+]

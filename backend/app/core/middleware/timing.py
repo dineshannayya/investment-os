@@ -7,6 +7,9 @@ from time import perf_counter
 from fastapi import Request
 from starlette.responses import Response
 
+from app.core.logger import get_logger
+
+logger = get_logger(__name__)
 
 async def timing_middleware(
     request: Request,
@@ -16,6 +19,9 @@ async def timing_middleware(
     Measure request execution time.
     """
 
+    # timing_middleware requires RequestContext created by
+    # request_id_middleware. If the context is absent,
+    # timing collection is skipped.
     context = getattr(request.state, "context", None)
 
     if context is None:
@@ -23,8 +29,10 @@ async def timing_middleware(
 
     response = None
 
+    logger.info(">>> TIMING ENTER")
     try:
         response = await call_next(request)
+        logger.info(">>> TIMING EXIT")
         return response
 
     except Exception as exc:

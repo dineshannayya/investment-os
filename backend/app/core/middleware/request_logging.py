@@ -18,30 +18,49 @@ async def request_logging_middleware(
     Log every request.
     """
 
+    logger.debug(">>> REQUEST_LOGGING ENTER")
+
+    context = getattr(request.state, "context", None)
+
     try:
         response = await call_next(request)
+
+        logger.debug(">>> REQUEST_LOGGING EXIT")
+
         return response
 
-    finally:
-        context = getattr(request.state, "context", None)
+    except Exception as exc:
+        #
+        # Record the exception locally so the logging middleware
+        # always has complete information regardless of middleware
+        # unwinding order.
+        #
+        if context is not None and context.exception is None:
+            context.exception = exc
 
-        if context is not None:
-            if context.exception is None:
-                logger.info(
-                    "%s %s status=%s duration=%.3fms request_id=%s",
-                    context.method,
-                    context.path,
-                    context.status_code,
-                    context.duration_ms or 0.0,
-                    context.request_id,
-                )
-            else:
-                logger.exception(
-                    "%s %s status=%s duration=%.3fms request_id=%s",
-                    context.method,
-                    context.path,
-                    context.status_code or 500,
-                    context.duration_ms or 0.0,
-                    context.request_id,
-                    exc_info=context.exception,
-                )
+        raise
+
+    finally:
+
+        if context is None:
+            return
+
+        if context.exception is None:
+            logger.info(
+                "%s %s status=%s duration=%.3fms request_id=%s",
+                context.method,
+                context.path,
+                context.status_code,
+                context.duration_ms or 0.0,
+                context.request_id,
+            )
+        else:
+            logger.exception(
+                "%s %s status=%s duration=%.3fms request_id=%s",
+                context.method,
+                context.path,
+                context.status_code or 500,
+                context.duration_ms or 0.0,
+                context.request_id,
+                exc_info=context.exception,
+            )

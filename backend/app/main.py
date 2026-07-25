@@ -26,11 +26,11 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
+    register_middlewares(app)
+
     app.include_router(api_router)
 
     return app
 
 
 app = create_app()
-
-register_middlewares(app)

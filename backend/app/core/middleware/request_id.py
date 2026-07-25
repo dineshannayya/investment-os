@@ -10,6 +10,9 @@ from fastapi import Request
 from starlette.responses import Response
 
 from app.core.middleware.request_context import RequestContext
+from app.core.logger import get_logger
+
+logger = get_logger(__name__)
 
 REQUEST_ID_HEADER = "X-Request-ID"
 
@@ -22,6 +25,8 @@ async def request_id_middleware(
     Create RequestContext for every request.
     """
 
+    logger.debug(">>> REQUEST_ID ENTER")
+
     context = RequestContext(
         request_id=uuid4(),
         method=request.method,
@@ -31,6 +36,8 @@ async def request_id_middleware(
     request.state.context = context
 
     response = await call_next(request)
+
+    logger.debug(">>> REQUEST_ID EXIT")
 
     response.headers[REQUEST_ID_HEADER] = str(context.request_id)
 
