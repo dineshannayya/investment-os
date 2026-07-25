@@ -48,10 +48,7 @@ class TestRequestIdMiddleware:
 
         client = TestClient(create_app())
 
-        ids = {
-            client.get("/health").headers["X-Request-ID"]
-            for _ in range(20)
-        }
+        ids = {client.get("/health").headers["X-Request-ID"] for _ in range(20)}
 
         assert len(ids) == 20
 
@@ -62,10 +59,7 @@ class TestRequestIdMiddleware:
         first = client.get("/health")
         second = client.get("/health")
 
-        assert (
-            first.headers["X-Request-ID"]
-            != second.headers["X-Request-ID"]
-        )
+        assert first.headers["X-Request-ID"] != second.headers["X-Request-ID"]
 
     def test_request_id_exists_even_for_multiple_requests(self):
 

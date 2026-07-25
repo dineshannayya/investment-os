@@ -11,6 +11,7 @@ from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 
+
 async def timing_middleware(
     request: Request,
     call_next,

@@ -3,12 +3,12 @@ Tests for Request Logging middleware.
 """
 
 import logging
+from contextlib import suppress
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from app.core.middleware import register_middlewares
-
 
 
 def create_app() -> FastAPI:
@@ -74,8 +74,7 @@ class TestRequestLoggingMiddleware:
         client = TestClient(create_app())
 
         with caplog.at_level(logging.INFO):
-            response = client.get("/health")
-
+            client.get("/health")
 
     def test_duration_logged(self, caplog):
 
@@ -93,10 +92,7 @@ class TestRequestLoggingMiddleware:
 
         client = TestClient(create_app())
 
-        with caplog.at_level(logging.ERROR):
-            try:
-                client.get("/error")
-            except RuntimeError:
-                pass
+        with caplog.at_level(logging.ERROR), suppress(RuntimeError):
+            client.get("/error")
 
         assert len(caplog.records) > 0

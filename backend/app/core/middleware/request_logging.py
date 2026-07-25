@@ -42,25 +42,23 @@ async def request_logging_middleware(
 
     finally:
 
-        if context is None:
-            return
-
-        if context.exception is None:
-            logger.info(
-                "%s %s status=%s duration=%.3fms request_id=%s",
-                context.method,
-                context.path,
-                context.status_code,
-                context.duration_ms or 0.0,
-                context.request_id,
-            )
-        else:
-            logger.exception(
-                "%s %s status=%s duration=%.3fms request_id=%s",
-                context.method,
-                context.path,
-                context.status_code or 500,
-                context.duration_ms or 0.0,
-                context.request_id,
-                exc_info=context.exception,
-            )
+        if context is not None:
+            if context.exception is None:
+                logger.info(
+                    "%s %s status=%s duration=%.3fms request_id=%s",
+                    context.method,
+                    context.path,
+                    context.status_code,
+                    context.duration_ms or 0.0,
+                    context.request_id,
+                )
+            else:
+                logger.exception(
+                    "%s %s status=%s duration=%.3fms request_id=%s",
+                    context.method,
+                    context.path,
+                    context.status_code or 500,
+                    context.duration_ms or 0.0,
+                    context.request_id,
+                    exc_info=context.exception,
+                )

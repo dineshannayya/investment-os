@@ -15,7 +15,6 @@ See:
 """
 
 from collections.abc import Awaitable, Callable
-from typing import TypeAlias
 
 from fastapi import FastAPI, Request
 from starlette.responses import Response
@@ -28,8 +27,8 @@ from app.core.middleware.timing import timing_middleware
 # Type aliases
 # ---------------------------------------------------------------------------
 
-CallNext: TypeAlias = Callable[[Request], Awaitable[Response]]
-MiddlewareFunc: TypeAlias = Callable[[Request, CallNext], Awaitable[Response]]
+type CallNext = Callable[[Request], Awaitable[Response]]
+type MiddlewareFunc = Callable[[Request, CallNext], Awaitable[Response]]
 
 # ---------------------------------------------------------------------------
 # Logical middleware pipeline

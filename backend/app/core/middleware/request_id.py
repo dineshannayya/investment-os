@@ -9,8 +9,8 @@ from uuid import uuid4
 from fastapi import Request
 from starlette.responses import Response
 
-from app.core.middleware.request_context import RequestContext
 from app.core.logger import get_logger
+from app.core.middleware.request_context import RequestContext
 
 logger = get_logger(__name__)
 

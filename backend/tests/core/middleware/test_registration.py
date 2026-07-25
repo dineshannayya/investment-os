@@ -15,6 +15,7 @@ def test_registered_middlewares(app):
     for middleware in app.user_middleware:
         print(middleware)
 
+
 def create_test_app() -> FastAPI:
     """Create a minimal FastAPI application."""
 
@@ -45,7 +46,6 @@ class TestMiddlewareRegistration:
         #
         assert len(app.user_middleware) == len(MIDDLEWARE_PIPELINE)
 
-
     def test_pipeline_adds_required_headers(self):
         client = TestClient(create_test_app())
 
@@ -61,10 +61,7 @@ class TestMiddlewareRegistration:
         first = client.get("/health")
         second = client.get("/health")
 
-        assert (
-            first.headers["X-Request-ID"]
-            != second.headers["X-Request-ID"]
-        )
+        assert first.headers["X-Request-ID"] != second.headers["X-Request-ID"]
 
     def test_pipeline_survives_multiple_requests(self):
         client = TestClient(create_test_app())
@@ -78,23 +75,22 @@ class TestMiddlewareRegistration:
 
     def test_pipeline_handles_exception(self):
         app = FastAPI()
-    
+
         @app.get("/boom")
         async def boom():
             raise RuntimeError("boom")
-    
+
         register_middlewares(app)
-    
+
         client = TestClient(
             app,
             raise_server_exceptions=False,
         )
-    
+
         response = client.get("/boom")
-    
+
         #
         # Update expected status after ADR-0103
         # exception handling is implemented.
         #
         assert response.status_code == 500
-

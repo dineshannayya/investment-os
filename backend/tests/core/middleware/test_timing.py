@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 
 from app.core.middleware import register_middlewares
 
+
 def create_app(delay: float = 0.0) -> FastAPI:
 
     app = FastAPI()
@@ -23,6 +24,7 @@ def create_app(delay: float = 0.0) -> FastAPI:
         return {"status": "ok"}
 
     return app
+
 
 class TestTimingMiddleware:
     """Tests for timing middleware."""
@@ -43,13 +45,12 @@ class TestTimingMiddleware:
         response = client.get("/health")
 
         duration = response.headers["X-Response-Time"]
-        
-        assert duration.endswith(" ms")
-        
-        value = float(duration.removesuffix(" ms"))
-        
-        assert value >= 0.0
 
+        assert duration.endswith(" ms")
+
+        value = float(duration.removesuffix(" ms"))
+
+        assert value >= 0.0
 
     def test_response_time_is_positive(self):
 
@@ -57,11 +58,7 @@ class TestTimingMiddleware:
 
         response = client.get("/health")
 
-
-        duration = float(
-            response.headers["X-Response-Time"].removesuffix(" ms")
-        )
-
+        duration = float(response.headers["X-Response-Time"].removesuffix(" ms"))
 
         assert duration >= 0.0
 
@@ -70,20 +67,9 @@ class TestTimingMiddleware:
         fast_client = TestClient(create_app())
         slow_client = TestClient(create_app(delay=0.05))
 
-        fast = float(
-            fast_client
-            .get("/health")
-            .headers["X-Response-Time"]
-            .removesuffix(" ms")
-        )
-        
-        slow = float(
-            slow_client
-            .get("/health")
-            .headers["X-Response-Time"]
-            .removesuffix(" ms")
-        )
+        fast = float(fast_client.get("/health").headers["X-Response-Time"].removesuffix(" ms"))
 
+        slow = float(slow_client.get("/health").headers["X-Response-Time"].removesuffix(" ms"))
 
         assert slow > fast
 
