@@ -1,8 +1,9 @@
-from app.config.constants import (
+from app.core.config.constants import (
     API_PREFIX,
     DEFAULT_PAGE_SIZE,
     MAX_PAGE_SIZE,
 )
+
 
 def test_constants():
     assert API_PREFIX == "/api/v1"

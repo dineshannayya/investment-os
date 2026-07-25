@@ -1,12 +1,13 @@
-
 import logging
-from app.config.logging import configure_logging
+
 from app.core.config import settings
+from app.core.logging import configure_logging
 
 
 # Test 1 - Configuration Does Not Raise
 def test_configure_logging():
     configure_logging()
+
 
 # Test 2 - Root Logger Level
 def test_root_logger_level():
@@ -18,13 +19,15 @@ def test_root_logger_level():
 
     assert root.level == expected
 
-#Test 3 - Console Handler Exists
+
+# Test 3 - Console Handler Exists
 def test_console_handler_exists():
     configure_logging()
 
     root = logging.getLogger()
 
     assert len(root.handlers) > 0
+
 
 # Test 4 - Formatter Exists
 def test_formatter_exists():

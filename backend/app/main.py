@@ -3,9 +3,10 @@
 from fastapi import FastAPI
 
 from app.api.router import api_router
-from app.config.logging import configure_logging
 from app.core.config import settings
 from app.core.lifespan import lifespan
+from app.core.logging import configure_logging
+from app.core.middleware import register_middlewares
 
 configure_logging()
 
@@ -31,3 +32,5 @@ def create_app() -> FastAPI:
 
 
 app = create_app()
+
+register_middlewares(app)

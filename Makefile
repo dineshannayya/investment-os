@@ -25,7 +25,7 @@ DOCKER := docker compose exec backend
 #UV := uv
 UV ?= $(DOCKER) uv
 
-.PHONY: help bootstrap sync update run test cov lint fix format typecheck \
+.PHONY: help bootstrap sync update run cov lint fix format typecheck \
         quality check ci clean shell freeze precommit db-up db-down \
         docker-up docker-down docker-build docker-logs docker-ps \
         backend-shell frontend-shell db-shell docker-rebuild docker-status docker-clean \
@@ -66,9 +66,6 @@ update:
 
 run:
 	$(UV) run uvicorn app.main:app --reload
-
-test:
-	$(UV) run pytest
 
 cov:
 	$(UV) run pytest --cov=app --cov-report=term-missing
