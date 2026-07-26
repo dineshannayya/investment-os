@@ -27,6 +27,7 @@ from app.models import Base
 # Engine
 # =============================================================================
 
+
 @pytest.fixture(scope="session")
 def engine() -> Generator[Engine, None, None]:
     """
@@ -50,6 +51,7 @@ def engine() -> Generator[Engine, None, None]:
 # Schema
 # =============================================================================
 
+
 @pytest.fixture(scope="session", autouse=True)
 def create_schema(engine: Engine):
     """
@@ -68,6 +70,7 @@ def create_schema(engine: Engine):
 # =============================================================================
 # Connection
 # =============================================================================
+
 
 @pytest.fixture
 def connection(engine: Engine) -> Generator[Connection, None, None]:
@@ -88,6 +91,7 @@ def connection(engine: Engine) -> Generator[Connection, None, None]:
 # Transaction
 # =============================================================================
 
+
 @pytest.fixture
 def transaction(connection: Connection):
     """
@@ -106,6 +110,7 @@ def transaction(connection: Connection):
 # =============================================================================
 # Session
 # =============================================================================
+
 
 @pytest.fixture
 def db_session(

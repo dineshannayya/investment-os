@@ -1,4 +1,4 @@
-# ------------------------------------------------  
+# ------------------------------------------------
 #  | Area                    | Coverage |
 #  | ----------------------- | -------: |
 #  | StartupStage            |     100% |
@@ -41,6 +41,7 @@ from app.models.enums import (
 # StartupStage
 # =============================================================================
 
+
 def test_startup_stage_values():
     assert StartupStage.IDEA.value == "idea"
     assert StartupStage.MVP.value == "mvp"
@@ -57,6 +58,7 @@ def test_startup_stage_count():
 # StartupStatus
 # =============================================================================
 
+
 def test_startup_status_values():
     assert StartupStatus.ACTIVE.value == "active"
     assert StartupStatus.INACTIVE.value == "inactive"
@@ -70,6 +72,7 @@ def test_startup_status_count():
 # =============================================================================
 # FounderRole
 # =============================================================================
+
 
 def test_founder_role_values():
     assert FounderRole.CEO.value == "CEO"
@@ -87,9 +90,11 @@ def test_founder_role_values():
 def test_founder_role_count():
     assert len(FounderRole) == 10
 
+
 # =============================================================================
 # InvestmentInstrument
 # =============================================================================
+
 
 def test_investment_instrument_values():
     assert InvestmentInstrument.EQUITY.value == "EQUITY"
@@ -107,6 +112,7 @@ def test_investment_instrument_count():
 # OpportunityStatus
 # =============================================================================
 
+
 def test_opportunity_status_values():
     assert OpportunityStatus.OPEN.value == "OPEN"
     assert OpportunityStatus.CLOSED.value == "CLOSED"
@@ -117,9 +123,11 @@ def test_opportunity_status_values():
 def test_opportunity_status_count():
     assert len(OpportunityStatus) == 4
 
+
 # =============================================================================
 # InvestmentDecision
 # =============================================================================
+
 
 def test_investment_decision_values():
     assert InvestmentDecision.PENDING.value == "pending"
@@ -136,6 +144,7 @@ def test_investment_decision_count():
 # InvestmentStatus
 # =============================================================================
 
+
 def test_investment_status_values():
     assert InvestmentStatus.DRAFT.value == "DRAFT"
     assert InvestmentStatus.UNDER_REVIEW.value == "UNDER_REVIEW"
@@ -148,9 +157,11 @@ def test_investment_status_values():
 def test_investment_status_count():
     assert len(InvestmentStatus) == 6
 
+
 # =============================================================================
 # DocumentType
 # =============================================================================
+
 
 def test_document_type_values():
     assert DocumentType.PITCH_DECK.value == "PITCH_DECK"
@@ -174,6 +185,7 @@ def test_document_type_count():
 # =============================================================================
 # DocumentStatus
 # =============================================================================
+
 
 def test_document_status_values():
     assert DocumentStatus.UPLOADED.value == "UPLOADED"
@@ -221,5 +233,3 @@ def test_all_enum_names_are_unique():
     for enum_cls in enums:
         names = [member.name for member in enum_cls]
         assert len(names) == len(set(names))
-
-

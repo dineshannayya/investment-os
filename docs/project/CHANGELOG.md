@@ -2,282 +2,149 @@
 
 All notable changes to **Investment OS** are documented in this file.
 
-This project follows:
-
-* [Semantic Versioning (SemVer)](https://semver.org/)
-* The principles of **Keep a Changelog**
+This project follows **Semantic Versioning (SemVer)**.
 
 ---
 
-# Release Lifecycle
+# Release History
 
-```
-Development
-      │
-      ▼
-Feature Complete
-      │
-      ▼
-Testing
-      │
-      ▼
-Documentation
-      │
-      ▼
-Release Candidate
-      │
-      ▼
-Production Release
-```
-
----
-
-# Changelog Categories
-
-Each release should be organized using the following sections:
-
-* Added
-* Changed
-* Improved
-* Fixed
-* Deprecated
-* Removed
-* Security
-* Performance
-* Documentation
-* Testing
-* Known Issues
-* Breaking Changes (if applicable)
-
-Only include sections that contain changes for that release.
+| Version | Release                   | Status   | Date       |
+| ------- | ------------------------- | -------- | ---------- |
+| 0.1.0   | Backend Foundation        | Released | 2026-07-25 |
+| 0.2.0   | API Infrastructure        | Planned  | TBD        |
+| 0.3.0   | Database & Persistence    | Planned  | TBD        |
+| 0.4.0   | Investment Domain         | Planned  | TBD        |
+| 0.5.0   | AI Intelligence Platform  | Planned  | TBD        |
+| 0.6.0   | Frontend Application      | Planned  | TBD        |
+| 0.7.0   | Production & Operations   | Planned  | TBD        |
+| 1.0.0   | General Availability (GA) | Planned  | TBD        |
 
 ---
 
 # [Unreleased]
 
-## Planned
-
-### Added
-
-* API Infrastructure
-* Exception framework
-* JWT authentication
-* Pagination
-* Filtering
-* Response envelope
+Changes currently under active development.
 
 ---
 
-# [0.1.0] - 2026-07-25
+# [0.1.0] – 2026-07-25
 
-## Release Name
-
-**Backend Foundation**
-
----
+**Release:** Backend Foundation
 
 ## Summary
 
-This release establishes the initial backend foundation for Investment OS.
-
-The focus of this milestone was to create a maintainable, testable, and production-ready FastAPI backend that serves as the base for future investment workflows and AI capabilities.
+Established the production-ready backend foundation for Investment OS.
 
 ---
 
 ## Added
 
-### Backend Framework
-
-* FastAPI application bootstrap
-* Application lifespan management
-* Modular router registration
-
-### Configuration
-
-* Environment-based configuration
-* Centralized settings management
-* Configuration validation
-* Constants package
-
-### Middleware
-
-* Request ID middleware
-* Request timing middleware
-* Request logging middleware
-* Request context middleware
-
-### API
-
-* Health endpoint
-* Readiness endpoint
-* Version endpoint
-
-### Testing
-
-* Automated unit testing framework
-* Middleware tests
-* Configuration tests
-* API endpoint tests
-* Lifespan tests
-
-### Development
-
-* Docker support
-* Makefile automation
-* Ruff integration
-* Black formatting
+* FastAPI application framework
+* Configuration management
+* Middleware framework
+* Health APIs
+* Core ORM models
+* Logging infrastructure
+* Testing framework
+* Development tooling
 
 ---
 
 ## Changed
 
-* Adopted modular package structure.
-* Standardized configuration loading.
-* Unified logging strategy across the application.
-
----
-
-## Improved
-
-* Project maintainability through clear package organization.
-* Developer onboarding with consistent tooling.
-* Code readability using shared conventions.
+* Standardized project structure
+* Unified configuration loading
+* Improved logging architecture
 
 ---
 
 ## Fixed
 
-* Test configuration issues.
-* Middleware initialization order.
-* Configuration loading edge cases.
-* Request timing implementation refinements.
+* Middleware initialization issues
+* Configuration edge cases
+* Test infrastructure improvements
 
 ---
 
 ## Documentation
 
-Added:
-
 * Project README
-* Backend setup guide
+* Backend documentation
 * Development workflow
 * Coding standards
-* Initial architecture documentation
+* Initial architecture documents
 
 ---
 
-## Testing
+## Quality Metrics
 
-| Metric     |  Value |
-| ---------- | -----: |
-| Unit Tests |     44 |
-| Coverage   |    95% |
-| Lint       | Passed |
+| Metric     | Result |
+| ---------- | ------ |
+| Unit Tests | 44     |
+| Coverage   | 95%    |
+| Ruff       | Passed |
 | Formatter  | Passed |
 
 ---
 
 ## Known Issues
 
-* Starlette `TestClient` deprecation warning caused by upstream dependency compatibility.
-* Planned for future dependency upgrade.
+* Upstream Starlette TestClient deprecation warning.
 
 ---
 
-## Breaking Changes
+# Release Template
 
-None.
+## [x.y.z] – YYYY-MM-DD
 
----
+**Release:** <Release Name>
 
-# Upcoming Release
+### Summary
 
-## v0.2.0
-
-Planned capabilities:
+...
 
 ### Added
 
-* Exception framework
-* API response envelope
-* JWT authentication
-* Pagination
-* Filtering
-* OpenAPI enhancements
+...
 
----
+### Changed
 
-# Changelog Guidelines
+...
 
-## What SHOULD be included
+### Improved
 
-* New functionality
-* User-visible improvements
-* Architectural improvements
-* Performance improvements
-* Security updates
-* Bug fixes
-* Breaking changes
-* Migration notes
+...
 
----
+### Fixed
 
-## What SHOULD NOT be included
+...
 
-* Individual commits
-* Refactoring without behavioral impact
-* Variable renames
-* Formatting-only changes
-* Minor documentation wording updates
-* Temporary debugging changes
+### Security
 
----
+...
 
-# Versioning Policy
+### Performance
 
-The project follows Semantic Versioning.
+...
 
-```
-MAJOR.MINOR.PATCH
-```
+### Documentation
 
-Examples:
+...
 
-| Version | Meaning                  |
-| ------- | ------------------------ |
-| 0.1.0   | Backend Foundation       |
-| 0.2.0   | API Infrastructure       |
-| 0.3.0   | Database Platform        |
-| 0.4.0   | Investment Domain        |
-| 0.5.0   | AI Intelligence          |
-| 1.0.0   | First Production Release |
+### Quality Metrics
 
----
+| Metric     | Result |
+| ---------- | ------ |
+| Unit Tests |        |
+| Coverage   |        |
+| Ruff       |        |
+| Formatter  |        |
 
-# Release Checklist
+### Known Issues
 
-Before publishing a release:
+...
 
-* All planned features completed
-* Tests passing
-* Coverage target achieved
-* Documentation updated
-* Changelog updated
-* ADRs updated (if required)
-* Milestones updated
-* Roadmap updated
-* Git tag created
+### Breaking Changes
 
----
-
-# Release History
-
-| Version | Status   | Date       |
-| ------- | -------- | ---------- |
-| 0.1.0   | Released | 2026-07-25 |
-| 0.2.0   | Planned  | TBD        |
-| 0.3.0   | Planned  | TBD        |
-| 0.4.0   | Planned  | TBD        |
-| 0.5.0   | Planned  | TBD        |
-| 1.0.0   | Planned  | TBD        |
+None.
 

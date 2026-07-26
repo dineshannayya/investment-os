@@ -2,13 +2,14 @@
 Shared ORM enums.
 """
 
-from enum import Enum
+from enum import StrEnum
 
 # ============================================================================
 # Startup
 # ============================================================================
 
-class StartupStage(str, Enum):
+
+class StartupStage(StrEnum):
     """Startup lifecycle stage."""
 
     IDEA = "idea"
@@ -18,7 +19,7 @@ class StartupStage(str, Enum):
     SCALE = "scale"
 
 
-class StartupStatus(str, Enum):
+class StartupStatus(StrEnum):
     """Startup operational status."""
 
     ACTIVE = "active"
@@ -30,7 +31,8 @@ class StartupStatus(str, Enum):
 # Founder
 # ============================================================================
 
-class FounderRole(str, Enum):
+
+class FounderRole(StrEnum):
     """Founder designation."""
 
     CEO = "CEO"
@@ -49,7 +51,8 @@ class FounderRole(str, Enum):
 # Opportunity
 # ============================================================================
 
-class InvestmentInstrument(str, Enum):
+
+class InvestmentInstrument(StrEnum):
     """Fundraising instrument."""
 
     EQUITY = "EQUITY"
@@ -59,7 +62,7 @@ class InvestmentInstrument(str, Enum):
     CONVERTIBLE_NOTE = "CONVERTIBLE_NOTE"
 
 
-class OpportunityStatus(str, Enum):
+class OpportunityStatus(StrEnum):
     """Fundraising opportunity status."""
 
     OPEN = "OPEN"
@@ -72,7 +75,8 @@ class OpportunityStatus(str, Enum):
 # Investment
 # ============================================================================
 
-class InvestmentDecision(str, Enum):
+
+class InvestmentDecision(StrEnum):
     """Investment committee decision."""
 
     PENDING = "pending"
@@ -81,7 +85,7 @@ class InvestmentDecision(str, Enum):
     WATCHLIST = "watchlist"
 
 
-class InvestmentStatus(str, Enum):
+class InvestmentStatus(StrEnum):
     """Investment workflow status."""
 
     DRAFT = "DRAFT"
@@ -96,7 +100,8 @@ class InvestmentStatus(str, Enum):
 # Documents
 # ============================================================================
 
-class DocumentType(str, Enum):
+
+class DocumentType(StrEnum):
     """Supported startup documents."""
 
     PITCH_DECK = "PITCH_DECK"
@@ -113,7 +118,7 @@ class DocumentType(str, Enum):
     OTHER = "OTHER"
 
 
-class DocumentStatus(str, Enum):
+class DocumentStatus(StrEnum):
     """Document processing status."""
 
     UPLOADED = "UPLOADED"

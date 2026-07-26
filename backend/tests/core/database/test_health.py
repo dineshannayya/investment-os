@@ -33,6 +33,7 @@ def test_database_alive_returns_true() -> None:
 
         mock_session.close.assert_called_once()
 
+
 def test_database_alive_returns_false_on_database_error() -> None:
     """
     Verify SQLAlchemyError returns False.
@@ -58,6 +59,7 @@ def test_database_alive_returns_false_on_database_error() -> None:
 
         mock_session.close.assert_called_once()
 
+
 def test_database_alive_executes_select_one_query() -> None:
     """
     Verify expected SQL health check is executed.
@@ -78,7 +80,3 @@ def test_database_alive_executes_select_one_query() -> None:
         statement = mock_session.execute.call_args.args[0]
 
         assert str(statement) == "SELECT 1"
-
-
-
-

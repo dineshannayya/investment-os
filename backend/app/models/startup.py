@@ -96,7 +96,6 @@ class Startup(
         index=True,
     )
 
-
     #
     # Relationships
     #
@@ -116,9 +115,4 @@ class Startup(
     )
 
     def __repr__(self) -> str:
-        return (
-            f"Startup("
-            f"id={self.id}, "
-            f"name='{self.name}', "
-            f"stage='{self.stage.value}')"
-        )
+        return f"Startup(" f"id={self.id}, " f"name='{self.name}', " f"stage='{self.stage.value}')"

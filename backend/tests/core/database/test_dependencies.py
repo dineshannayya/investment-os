@@ -62,6 +62,7 @@ def test_get_db_closes_session_after_iteration() -> None:
         # Assert
         mock_session.close.assert_called_once()
 
+
 def test_get_db_closes_session_on_exception() -> None:
     """
     Verify Session.close() is called when an exception is thrown
@@ -85,6 +86,3 @@ def test_get_db_closes_session_on_exception() -> None:
             generator.throw(RuntimeError("boom"))
 
         mock_session.close.assert_called_once()
-
-
-

@@ -87,12 +87,11 @@ class Settings(BaseSettings):
     # =========================================================================
     database_url: str
     database_echo: bool = False
-    
+
     database_pool_size: int = 10
     database_max_overflow: int = 20
     database_pool_timeout: int = 30
     database_pool_recycle: int = 1800
-
 
 
 @lru_cache

@@ -22,6 +22,7 @@ def test_package_exports_expected_objects() -> None:
 
     assert callable(database.is_database_alive)
 
+
 def test_package_all_contains_expected_exports() -> None:
     """
     Verify __all__ exports remain stable.
@@ -37,5 +38,3 @@ def test_package_all_contains_expected_exports() -> None:
     }
 
     assert set(database.__all__) == expected
-
-

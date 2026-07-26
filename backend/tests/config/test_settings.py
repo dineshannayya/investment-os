@@ -42,6 +42,7 @@ def test_missing_database_url(monkeypatch):
     with pytest.raises(ValidationError):
         Settings()
 
+
 # ============================================================
 # Singleton
 # ============================================================

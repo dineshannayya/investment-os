@@ -49,6 +49,7 @@ def semiconductor_startup(
 
     return create
 
+
 @pytest.fixture
 def healthcare_startup(
     startup_factory,
@@ -71,6 +72,7 @@ def healthcare_startup(
         return startup
 
     return create
+
 
 @pytest.fixture
 def ai_startup(
@@ -95,6 +97,7 @@ def ai_startup(
 
     return create
 
+
 @pytest.fixture
 def seed_round(
     semiconductor_startup,
@@ -117,6 +120,7 @@ def seed_round(
 
     return create
 
+
 # This represents a startup preparing for institutional funding.
 @pytest.fixture
 def pre_series_a_round(
@@ -134,10 +138,10 @@ def pre_series_a_round(
             startup=startup,
             round_name="Pre-Series A",
             instrument=InvestmentInstrument.CCPS,
-            target_raise=Decimal("500000000"),          # ₹50 Cr
-            minimum_ticket=Decimal("5000000"),          # ₹50 L
-            valuation_cap=Decimal("2000000000"),        # ₹200 Cr
-            committed_amount=Decimal("300000000"),      # ₹30 Cr
+            target_raise=Decimal("500000000"),  # ₹50 Cr
+            minimum_ticket=Decimal("5000000"),  # ₹50 L
+            valuation_cap=Decimal("2000000000"),  # ₹200 Cr
+            committed_amount=Decimal("300000000"),  # ₹30 Cr
             status=OpportunityStatus.OPEN,
         )
 
@@ -165,6 +169,7 @@ def series_a_round(
         )
 
     return create
+
 
 # Represents a healthy founder ownership structure.
 @pytest.fixture
@@ -196,6 +201,7 @@ def founder_friendly_cap_table(
 
     return create
 
+
 # This models one of the scenarios you've repeatedly highlighted in your startup reviews.
 @pytest.fixture
 def founder_concentrated_cap_table(
@@ -219,7 +225,8 @@ def founder_concentrated_cap_table(
 
     return create
 
-#Represents incomplete due diligence.
+
+# Represents incomplete due diligence.
 @pytest.fixture
 def missing_sha_documents(
     semiconductor_startup,
@@ -249,6 +256,7 @@ def missing_sha_documents(
         return startup
 
     return create
+
 
 # Represents an ideal investment opportunity.
 @pytest.fixture
@@ -294,6 +302,7 @@ def complete_due_diligence(
 
     return create
 
+
 @pytest.fixture
 def watchlist_investment(
     seed_round,
@@ -313,6 +322,7 @@ def watchlist_investment(
         )
 
     return create
+
 
 @pytest.fixture
 def approved_investment(

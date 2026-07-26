@@ -25,7 +25,7 @@ def create_db_engine(database_url: str | None = None) -> Engine:
     }
 
     dialect = make_url(url).get_backend_name()
-    
+
     if dialect != "sqlite":
         kwargs.update(
             {

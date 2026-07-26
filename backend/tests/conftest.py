@@ -33,6 +33,7 @@ pytest_plugins = [
 # FastAPI Application
 # =============================================================================
 
+
 @pytest.fixture(scope="session")
 def app() -> FastAPI:
     """
@@ -46,6 +47,7 @@ def app() -> FastAPI:
 # =============================================================================
 # Test Client
 # =============================================================================
+
 
 @pytest.fixture(scope="session")
 def client(app: FastAPI) -> Generator[TestClient, None, None]:
@@ -62,6 +64,7 @@ def client(app: FastAPI) -> Generator[TestClient, None, None]:
 # Application Settings
 # =============================================================================
 
+
 @pytest.fixture(scope="session")
 def app_settings():
     """
@@ -75,6 +78,7 @@ def app_settings():
 # =============================================================================
 # Common API Responses
 # =============================================================================
+
 
 @pytest.fixture
 def root_response(client: TestClient):

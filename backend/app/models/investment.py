@@ -147,4 +147,3 @@ class Investment(
             f"decision='{self.decision.value}', "
             f"status='{self.status.value}')"
         )
-

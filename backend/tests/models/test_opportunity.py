@@ -35,6 +35,9 @@ Coverage
 - Investment business rules
 """
 
+from decimal import Decimal
+from uuid import UUID
+
 from app.models import Opportunity
 from app.models.enums import InvestmentInstrument, OpportunityStatus
 
@@ -43,17 +46,22 @@ from app.models.enums import InvestmentInstrument, OpportunityStatus
 def test_tablename():
     assert Opportunity.__tablename__ == "opportunities"
 
+
 def test_primary_key():
     assert Opportunity.__table__.c.id.primary_key
+
 
 def test_startup_fk_exists():
     assert "startup_id" in Opportunity.__table__.columns
 
+
 def test_created_at_exists():
     assert "created_at" in Opportunity.__table__.columns
 
+
 def test_updated_at_exists():
     assert "updated_at" in Opportunity.__table__.columns
+
 
 # 2 — Factory
 def test_factory(opportunity_factory):
@@ -62,17 +70,20 @@ def test_factory(opportunity_factory):
 
     assert opportunity is not None
 
+
 def test_factory_creates_startup(opportunity_factory):
 
     opportunity = opportunity_factory()
 
     assert opportunity.startup is not None
 
+
 def test_factory_generates_uuid(opportunity_factory):
 
     opportunity = opportunity_factory()
 
     assert opportunity.id is not None
+
 
 # 3 — Required Fields
 def test_round_name(opportunity_factory):
@@ -81,11 +92,13 @@ def test_round_name(opportunity_factory):
 
     assert opportunity.round_name
 
+
 def test_currency_default(opportunity_factory):
 
     opportunity = opportunity_factory()
 
     assert opportunity.currency == "INR"
+
 
 def test_target_raise_exists(opportunity_factory):
 
@@ -93,11 +106,13 @@ def test_target_raise_exists(opportunity_factory):
 
     assert opportunity.target_raise is not None
 
+
 def test_minimum_ticket_exists(opportunity_factory):
 
     opportunity = opportunity_factory()
 
     assert opportunity.minimum_ticket is not None
+
 
 # 4 — Foreign Key
 def test_has_startup(opportunity_factory):
@@ -106,11 +121,13 @@ def test_has_startup(opportunity_factory):
 
     assert opportunity.startup is not None
 
+
 def test_startup_id_matches(opportunity_factory):
 
     opportunity = opportunity_factory()
 
     assert opportunity.startup.id == opportunity.startup_id
+
 
 # 5 — Relationships
 def test_startup_relationship(opportunity_factory):
@@ -119,6 +136,7 @@ def test_startup_relationship(opportunity_factory):
 
     assert opportunity in opportunity.startup.opportunities
 
+
 # 6 — Instrument Enum
 def test_default_instrument(opportunity_factory):
 
@@ -126,21 +144,20 @@ def test_default_instrument(opportunity_factory):
 
     assert opportunity.instrument == InvestmentInstrument.CCPS
 
+
 def test_ccd(opportunity_factory):
 
-    opportunity = opportunity_factory(
-        instrument=InvestmentInstrument.CCD
-    )
+    opportunity = opportunity_factory(instrument=InvestmentInstrument.CCD)
 
     assert opportunity.instrument == InvestmentInstrument.CCD
 
+
 def test_safe(opportunity_factory):
 
-    opportunity = opportunity_factory(
-        instrument=InvestmentInstrument.SAFE
-    )
+    opportunity = opportunity_factory(instrument=InvestmentInstrument.SAFE)
 
     assert opportunity.instrument == InvestmentInstrument.SAFE
+
 
 # 7 — Status Enum
 def test_default_status(opportunity_factory):
@@ -149,16 +166,15 @@ def test_default_status(opportunity_factory):
 
     assert opportunity.status == OpportunityStatus.OPEN
 
+
 def test_closed_status(opportunity_factory):
 
-    opportunity = opportunity_factory(
-        status=OpportunityStatus.CLOSED
-    )
+    opportunity = opportunity_factory(status=OpportunityStatus.CLOSED)
 
     assert opportunity.status == OpportunityStatus.CLOSED
 
+
 # 8 — Decimal Fields
-from decimal import Decimal
 
 
 def test_target_raise(opportunity_factory):
@@ -167,22 +183,22 @@ def test_target_raise(opportunity_factory):
 
     assert opportunity.target_raise == Decimal("50000000")
 
+
 def test_minimum_ticket(opportunity_factory):
 
     opportunity = opportunity_factory()
 
     assert opportunity.minimum_ticket == Decimal("500000")
 
+
 def test_custom_raise(opportunity_factory):
 
-    opportunity = opportunity_factory(
-        target_raise=Decimal("100000000")
-    )
+    opportunity = opportunity_factory(target_raise=Decimal("100000000"))
 
     assert opportunity.target_raise == Decimal("100000000")
 
+
 # 9 — UUID / Timestamp
-from uuid import UUID
 
 
 def test_uuid(opportunity_factory):
@@ -191,11 +207,13 @@ def test_uuid(opportunity_factory):
 
     assert isinstance(opportunity.id, UUID)
 
+
 def test_created_at(opportunity_factory):
 
     opportunity = opportunity_factory()
 
     assert opportunity.created_at is not None
+
 
 def test_updated_at(opportunity_factory):
 
@@ -203,7 +221,9 @@ def test_updated_at(opportunity_factory):
 
     assert opportunity.updated_at is not None
 
+
 # 10 — Persistence
+
 
 def test_insert(
     db_session,
@@ -215,6 +235,7 @@ def test_insert(
     db_session.flush()
 
     assert opportunity.id is not None
+
 
 def test_query(
     db_session,
@@ -230,6 +251,7 @@ def test_query(
 
     assert found == opportunity
 
+
 # 11 — Updates
 def test_update_round_name(
     db_session,
@@ -244,7 +266,8 @@ def test_update_round_name(
 
     assert opportunity.round_name == "Series A"
 
-#12 — Business Scenarios
+
+# 12 — Business Scenarios
 def test_seed_round(seed_round):
 
     opportunity = seed_round()
@@ -258,20 +281,20 @@ def test_series_a(series_a_round):
 
     assert opportunity.round_name == "Series A"
 
+
 def test_pre_series_a(pre_series_a_round):
 
     opportunity = pre_series_a_round()
 
     assert opportunity.round_name == "Pre-Series A"
 
+
 def test_ticket_less_than_raise(opportunity_factory):
 
     opportunity = opportunity_factory()
 
-    assert (
-        opportunity.minimum_ticket
-        < opportunity.target_raise
-    )
+    assert opportunity.minimum_ticket < opportunity.target_raise
+
 
 def test_currency_inr(opportunity_factory):
 
@@ -279,13 +302,16 @@ def test_currency_inr(opportunity_factory):
 
     assert opportunity.currency == "INR"
 
+
 def test_default_open(opportunity_factory):
 
     opportunity = opportunity_factory()
 
     assert opportunity.status is OpportunityStatus.OPEN
 
+
 # Section 13 — Representation
+
 
 def test_repr(opportunity_factory):
 

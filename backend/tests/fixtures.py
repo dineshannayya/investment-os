@@ -41,8 +41,9 @@ from app.models.enums import (
     StartupStatus,
 )
 
-#Shared Helper
+# Shared Helper
 # This removes duplication.
+
 
 def _persist(session, obj):
     session.add(obj)
@@ -51,6 +52,7 @@ def _persist(session, obj):
 
 
 # Startup Factory
+
 
 @pytest.fixture
 def startup_factory(db_session):
@@ -78,7 +80,9 @@ def startup_factory(db_session):
 
     return create
 
-#Founder Factory
+
+# Founder Factory
+
 
 @pytest.fixture
 def founder_factory(
@@ -109,6 +113,7 @@ def founder_factory(
         return _persist(db_session, founder)
 
     return create
+
 
 # Opportunity Factory
 @pytest.fixture
@@ -144,7 +149,8 @@ def opportunity_factory(
 
     return create
 
-#Document Factory
+
+# Document Factory
 @pytest.fixture
 def document_factory(
     db_session,
@@ -179,9 +185,11 @@ def document_factory(
 
     return create
 
-#Investment Factory
+
+# Investment Factory
 
 # Instead of exposing only three fields, expose the complete model.
+
 
 @pytest.fixture
 def investment_factory(

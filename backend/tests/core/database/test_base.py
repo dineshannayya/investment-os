@@ -14,6 +14,7 @@ def test_base_is_declarative_base() -> None:
 
     assert issubclass(Base, DeclarativeBase)
 
+
 def test_models_share_base_metadata() -> None:
     """
     Verify models derived from Base share the same metadata.
@@ -25,6 +26,7 @@ def test_models_share_base_metadata() -> None:
         id: Mapped[int] = mapped_column(primary_key=True)
 
     assert DummyModel.metadata is Base.metadata
+
 
 def test_base_has_metadata() -> None:
     """

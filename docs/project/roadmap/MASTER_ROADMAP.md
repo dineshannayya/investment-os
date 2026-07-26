@@ -60,6 +60,20 @@ Build an AI-native Investment Operating System that enables investors to:
 | Phase 6 | Frontend Application     | ⬜ Planned   |
 | Phase 7 | Production & Operations  | ⬜ Planned   |
 
+| Phase       | Name                     | Current Status  | Comments                                                                                                                                      |
+| ----------- | ------------------------ | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Phase 1** | Backend Foundation       | ✅ **Completed** | Configuration, logging, middleware, database infrastructure, 
+                                                              ORM models, enums, mixins, relationships, testing (291 tests), CI quality gates. |
+| **Phase 2** | API Infrastructure       | 🟡 **Next**     | Build REST API framework around the existing backend foundation.                                                                              |
+| **Phase 3** | Database & Persistence   | ⬜ Planned       | Repository layer, persistence abstraction, migrations, 
+                                                              transactions, query optimization.    |
+| **Phase 4** | Investment Domain        | ⬜ Planned       | Business services, workflows, scoring engine, document management, 
+                                                              investment lifecycle.  |
+| **Phase 5** | AI Intelligence Platform | ⬜ Planned       | AI agents, RAG, document analysis, founder evaluation, recommendation engine.                                                                 |
+| **Phase 6** | Frontend Application     | ⬜ Planned       | Next.js dashboard, authentication, investment workflow UI.                                                                                    |
+| **Phase 7** | Production & Operations  | ⬜ Planned       | Deployment, monitoring, observability, backups, security, CI/CD.                                                                              |
+
+
 ---
 
 # Current Status
@@ -118,6 +132,18 @@ Completed
 ---
 
 # Phase 2 — API Infrastructure
+
+| Sprint | Name                | Deliverable                                                   | Status |
+| ------ | ------------------- | ------------------------------------------------------------- | ------ |
+| 2.1    | API Foundation      | Router structure, versioning, health endpoints                | ⬜      |
+| 2.2    | API Schemas         | Request/Response Pydantic models                              | ⬜      |
+| 2.3    | CRUD APIs           | Startup, Founder, Opportunity, Investment, Document endpoints | ⬜      |
+| 2.4    | Query APIs          | Pagination, filtering, sorting, search                        | ⬜      |
+| 2.5    | Validation & Errors | Exception handling, validation, API error model               | ⬜      |
+| 2.6    | Authentication      | JWT/Auth framework, permissions                               | ⬜      |
+| 2.7    | API Documentation   | OpenAPI polishing, examples, tags                             | ⬜      |
+| 2.8    | API Test Suite      | End-to-end API regression tests                               | ⬜      |
+
 
 ## Objective
 
