@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from app.core.config import settings
+from app.core.database.session import create_session
 from app.main import app as fastapi_app
 
 
@@ -40,3 +41,11 @@ def health_response(client):
 def openapi_response(client):
     """GET /openapi.json"""
     return client.get("/openapi.json")
+
+@pytest.fixture
+def db_session():
+    session = create_session()
+    try:
+        yield session
+    finally:
+        session.close()

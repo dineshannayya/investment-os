@@ -1,3 +1,6 @@
+import pytest
+from pydantic import ValidationError
+
 from app.core.config.settings import Settings, get_settings
 
 # ============================================================
@@ -34,13 +37,10 @@ def test_env_override(monkeypatch):
 
 
 def test_missing_database_url(monkeypatch):
-
     monkeypatch.delenv("DATABASE_URL", raising=False)
 
-    settings = Settings()
-
-    assert settings.database_url is None
-
+    with pytest.raises(ValidationError):
+        Settings()
 
 # ============================================================
 # Singleton

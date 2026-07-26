@@ -12,7 +12,7 @@
 # At every commit, the following should succeed:
 # make format
 # make lint
-# make typecheck
+# make fix
 # make test
 # -----------------------------------------------------------------------------
 # Docker command
