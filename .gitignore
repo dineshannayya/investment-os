@@ -212,7 +212,7 @@ logs/
 *.db
 
 # AI/LLM Assets
-models/
+backend/app/ai/models/
 checkpoints/
 embeddings/
 vector_db/

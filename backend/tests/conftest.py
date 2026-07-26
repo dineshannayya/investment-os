@@ -1,51 +1,100 @@
+"""
+Global pytest fixtures.
+
+This module contains fixtures shared across the entire test suite.
+
+It intentionally contains only application-level fixtures.
+
+Database fixtures belong in:
+    tests/database.py
+
+Model factories belong in:
+    tests/fixtures.py
+"""
+
+from __future__ import annotations
+
+from collections.abc import Generator
+
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from app.core.config import settings
-from app.core.database.session import create_session
 from app.main import app as fastapi_app
 
+pytest_plugins = [
+    "tests.database",
+    "tests.fixtures",
+    "tests.investment_scenarios",
+]
+
+# =============================================================================
+# FastAPI Application
+# =============================================================================
 
 @pytest.fixture(scope="session")
 def app() -> FastAPI:
-    """Return FastAPI application."""
+    """
+    Return the FastAPI application.
+
+    The application is created once for the entire test session.
+    """
     return fastapi_app
 
 
-@pytest.fixture(scope="session")
-def client(app: FastAPI) -> TestClient:
-    """Return FastAPI TestClient."""
-    return TestClient(app)
-
+# =============================================================================
+# Test Client
+# =============================================================================
 
 @pytest.fixture(scope="session")
-def settings_fixture():
-    """Return application settings."""
+def client(app: FastAPI) -> Generator[TestClient, None, None]:
+    """
+    Return a FastAPI TestClient.
+
+    The client is shared across the entire test session.
+    """
+    with TestClient(app) as test_client:
+        yield test_client
+
+
+# =============================================================================
+# Application Settings
+# =============================================================================
+
+@pytest.fixture(scope="session")
+def app_settings():
+    """
+    Return application settings.
+
+    Useful for configuration validation tests.
+    """
     return settings
 
 
+# =============================================================================
+# Common API Responses
+# =============================================================================
+
 @pytest.fixture
-def root_response(client):
-    """GET /"""
+def root_response(client: TestClient):
+    """
+    Execute GET /
+    """
     return client.get("/")
 
 
 @pytest.fixture
-def health_response(client):
-    """GET /health"""
+def health_response(client: TestClient):
+    """
+    Execute GET /health
+    """
     return client.get("/health")
 
 
 @pytest.fixture
-def openapi_response(client):
-    """GET /openapi.json"""
+def openapi_response(client: TestClient):
+    """
+    Execute GET /openapi.json
+    """
     return client.get("/openapi.json")
-
-@pytest.fixture
-def db_session():
-    session = create_session()
-    try:
-        yield session
-    finally:
-        session.close()
