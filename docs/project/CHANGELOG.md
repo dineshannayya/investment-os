@@ -2,149 +2,113 @@
 
 All notable changes to **Investment OS** are documented in this file.
 
-This project follows **Semantic Versioning (SemVer)**.
+This project follows:
 
----
+* [Keep a Changelog](https://keepachangelog.com/)
+* Semantic Versioning (SemVer)
 
-# Release History
+The purpose of this document is to record **released functionality only**.
 
-| Version | Release                   | Status   | Date       |
-| ------- | ------------------------- | -------- | ---------- |
-| 0.1.0   | Backend Foundation        | Released | 2026-07-25 |
-| 0.2.0   | API Infrastructure        | Planned  | TBD        |
-| 0.3.0   | Database & Persistence    | Planned  | TBD        |
-| 0.4.0   | Investment Domain         | Planned  | TBD        |
-| 0.5.0   | AI Intelligence Platform  | Planned  | TBD        |
-| 0.6.0   | Frontend Application      | Planned  | TBD        |
-| 0.7.0   | Production & Operations   | Planned  | TBD        |
-| 1.0.0   | General Availability (GA) | Planned  | TBD        |
+Project planning, sprint execution, engineering reviews, and milestone details are maintained in the project governance documentation.
 
 ---
 
 # [Unreleased]
 
-Changes currently under active development.
+Changes completed after the most recent release.
 
----
-
-# [0.1.0] – 2026-07-25
-
-**Release:** Backend Foundation
-
-## Summary
-
-Established the production-ready backend foundation for Investment OS.
-
----
+This section is cleared after each official release.
 
 ## Added
 
-* FastAPI application framework
-* Configuration management
-* Middleware framework
-* Health APIs
-* Core ORM models
-* Logging infrastructure
-* Testing framework
-* Development tooling
-
----
+*
 
 ## Changed
 
-* Standardized project structure
-* Unified configuration loading
-* Improved logging architecture
-
----
+*
 
 ## Fixed
 
-* Middleware initialization issues
-* Configuration edge cases
-* Test infrastructure improvements
+*
+
+## Security
+
+*
 
 ---
 
-## Documentation
+# [0.1.0] - 2026-07-25
 
-* Project README
-* Backend documentation
-* Development workflow
-* Coding standards
-* Initial architecture documents
+## Added
 
----
+### Backend Framework
 
-## Quality Metrics
+* Initial FastAPI application framework
+* Configuration management
+* Application lifecycle management
+* Structured logging
 
-| Metric     | Result |
-| ---------- | ------ |
-| Unit Tests | 44     |
-| Coverage   | 95%    |
-| Ruff       | Passed |
-| Formatter  | Passed |
+### Middleware
 
----
+* Request ID middleware
+* Request timing middleware
+* Request logging middleware
+* Middleware registration
 
-## Known Issues
+### API
 
-* Upstream Starlette TestClient deprecation warning.
+* Health endpoint
+* Readiness endpoint
+* Version endpoint
+* OpenAPI documentation
 
----
+### Database
 
-# Release Template
+* SQLAlchemy foundation
+* Database engine management
+* Session management
+* Dependency injection
 
-## [x.y.z] – YYYY-MM-DD
+### Domain Models
 
-**Release:** <Release Name>
+* Startup
+* Founder
+* Investment
+* Opportunity
+* Document
 
-### Summary
+### Development
 
-...
-
-### Added
-
-...
-
-### Changed
-
-...
-
-### Improved
-
-...
-
-### Fixed
-
-...
-
-### Security
-
-...
-
-### Performance
-
-...
+* Docker development environment
+* Makefile automation
+* Ruff linting
+* Code formatting
+* Static type checking
+* Pytest test framework
+* Coverage reporting
 
 ### Documentation
 
-...
+* Project governance documentation
+* Architecture documentation
+* Development standards
+* Engineering process documentation
 
-### Quality Metrics
+## Changed
 
-| Metric     | Result |
-| ---------- | ------ |
-| Unit Tests |        |
-| Coverage   |        |
-| Ruff       |        |
-| Formatter  |        |
+* Adopted layered application architecture.
+* Standardized project structure.
+* Established governance-driven development workflow.
 
-### Known Issues
+## Fixed
 
-...
+* Initial framework stabilization during project setup.
 
-### Breaking Changes
+---
 
-None.
+# Release History
+
+| Version | Release Date |
+| ------- | ------------ |
+| 0.1.0   | 2026-07-25   |
 

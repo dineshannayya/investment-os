@@ -1,53 +1,33 @@
 # Investment OS Milestones
 
-**Document Version:** 1.0
+## Purpose
 
-**Project:** Investment OS
+This document records the major engineering milestones achieved during the development of Investment OS.
 
-**Status:** Active
+Each milestone represents a completed project phase and captures:
 
-**Last Updated:** July 2026
+* Objectives
+* Deliverables
+* Engineering metrics
+* Key architectural decisions
+* Lessons learned
+* Release information
 
----
-
-# Revision History
-
-| Version | Date    | Description               |
-| ------- | ------- | ------------------------- |
-| 1.0     | 2026-07 | Initial milestone tracker |
-
----
-
-# Purpose
-
-This document tracks the delivery milestones for Investment OS.
-
-Each milestone represents a significant engineering or product achievement and serves as a checkpoint for project progress. Milestones are tied to semantic version releases and provide a concise record of objectives, deliverables, quality metrics, and lessons learned.
-
----
-
-# Project Overview
-
-| Item                | Value                        |
-| ------------------- | ---------------------------- |
-| Current Release     | **v0.1.0**                   |
-| Current Phase       | Phase 2 – API Infrastructure |
-| Overall Progress    | ~15%                         |
-| Next Target Release | **v0.2.0**                   |
+Unlike `SPRINT_PLAN.md`, this document is **historical** and should not be modified after milestone approval except to correct factual errors.
 
 ---
 
 # Milestone Timeline
 
-| Version | Milestone                | Status         | Target   |
-| ------- | ------------------------ | -------------- | -------- |
-| v0.1.0  | Backend Foundation       | ✅ Complete     | Jul 2026 |
-| v0.2.0  | API Infrastructure       | 🟡 In Progress | Aug 2026 |
-| v0.3.0  | Database & Persistence   | ⬜ Planned      | Sep 2026 |
-| v0.4.0  | Investment Domain        | ⬜ Planned      | Oct 2026 |
-| v0.5.0  | AI Intelligence Platform | ⬜ Planned      | Dec 2026 |
-| v0.6.0  | Frontend Application     | ⬜ Planned      | Q1 2027  |
-| v1.0.0  | Production Release       | ⬜ Planned      | Q2 2027  |
+| Version | Milestone                | Status     | Completion |
+| ------- | ------------------------ | ---------- | ---------- |
+| v0.1.0  | Backend Foundation       | ✅ Complete | Jul 2026   |
+| v0.2.0  | API Infrastructure       | 🟡 Planned | Aug 2026   |
+| v0.3.0  | Database & Persistence   | ⬜ Planned  | Sep 2026   |
+| v0.4.0  | Investment Domain        | ⬜ Planned  | Oct 2026   |
+| v0.5.0  | AI Intelligence Platform | ⬜ Planned  | Dec 2026   |
+| v0.6.0  | Frontend Application     | ⬜ Planned  | Q1 2027    |
+| v1.0.0  | General Availability     | ⬜ Planned  | Q2 2027    |
 
 ---
 
@@ -55,249 +35,165 @@ Each milestone represents a significant engineering or product achievement and s
 
 ## Objective
 
-Establish a clean, modular, and production-ready backend foundation for Investment OS.
+Establish a clean, modular, production-ready backend foundation for Investment OS.
 
-### Key Deliverables
+---
+
+## Delivered
+
+### Application Framework
 
 * FastAPI application bootstrap
-* Environment configuration
+* Configuration management
+* Application lifecycle management
 * Structured logging
-* Middleware framework
-* Health and readiness endpoints
-* Docker support
-* Automated testing framework
 
-### Quality Metrics
+### Middleware
 
-| Metric          | Target | Achieved |
-| --------------- | ------ | -------- |
-| Test Coverage   | ≥90%   | **95%**  |
-| Automated Tests | ≥40    | **44**   |
-| Lint Errors     | 0      | ✅        |
-| Formatting      | Clean  | ✅        |
+* Request ID middleware
+* Request timing middleware
+* Request logging middleware
+* Middleware registration framework
 
-### Key Decisions
+### API Foundation
 
-* Adopt FastAPI for backend services.
-* Use Pydantic v2 for configuration and validation.
-* Separate runtime configuration from constants.
-* Build middleware as independent, reusable components.
-* Enforce automated testing from the first phase.
+* Health endpoint
+* Readiness endpoint
+* Version endpoint
+* OpenAPI integration
 
-### Exit Criteria
+### Database Foundation
 
-* Architecture established
-* Core infrastructure complete
-* Quality gates passed
-* Documentation updated
+* SQLAlchemy base configuration
+* Engine management
+* Session management
+* Dependency injection
 
-**Status:** Completed
+### Domain Models
 
----
+* Startup
+* Founder
+* Investment
+* Opportunity
+* Document
+* Shared model infrastructure
 
-# Milestone: v0.2.0 – API Infrastructure
+### Development Infrastructure
 
-## Objective
-
-Provide production-ready API capabilities.
-
-### Planned Deliverables
-
-* Global exception handling
-* Standard API response model
-* API versioning
-* Pagination and filtering
-* JWT authentication framework
-* Security middleware
-* Enhanced OpenAPI documentation
-
-### Success Metrics
-
-* 80+ automated tests
-* ≥95% coverage
-* Standardized API contracts
-* Authentication framework operational
-
-**Status:** In Progress
+* Docker development environment
+* Makefile automation
+* Ruff
+* Formatter
+* Type checking
+* Pytest
+* Coverage reporting
 
 ---
 
-# Milestone: v0.3.0 – Database & Persistence
+## Engineering Metrics
 
-## Objective
-
-Introduce durable persistence and repository abstractions.
-
-### Planned Deliverables
-
-* PostgreSQL integration
-* SQLAlchemy ORM
-* Alembic migrations
-* Repository pattern
-* Unit of Work
-* Database integration tests
-
-**Status:** Planned
+| Metric          | Result |
+| --------------- | ------ |
+| Automated Tests | 291    |
+| Test Coverage   | 99%    |
+| Test Failures   | 0      |
+| Lint            | Passed |
+| Formatter       | Passed |
+| Type Checking   | Passed |
 
 ---
 
-# Milestone: v0.4.0 – Investment Domain
+## Key Engineering Decisions
 
-## Objective
-
-Implement the core business capabilities.
-
-### Planned Deliverables
-
-* Startup management
-* Founder management
-* Investment pipeline
-* Due diligence workflow
-* Scoring engine
-* Reporting framework
-
-**Status:** Planned
+* Adopt FastAPI as the backend framework.
+* Use SQLAlchemy as the persistence foundation.
+* Separate middleware into reusable components.
+* Introduce layered application architecture.
+* Adopt test-driven engineering from project inception.
+* Treat documentation as part of the engineering deliverable.
 
 ---
 
-# Milestone: v0.5.0 – AI Intelligence Platform
+## Exit Criteria
 
-## Objective
-
-Deliver AI-assisted investment analysis.
-
-### Planned Deliverables
-
-* Knowledge base
-* RAG pipeline
-* AI agent orchestration
-* Startup evaluation agents
-* Report generation
-* Recommendation engine
-
-**Status:** Planned
+| Item                             | Status |
+| -------------------------------- | :----: |
+| Backend architecture established |    ✅   |
+| Core infrastructure complete     |    ✅   |
+| Middleware complete              |    ✅   |
+| Database foundation complete     |    ✅   |
+| ORM models complete              |    ✅   |
+| Automated testing complete       |    ✅   |
+| Documentation complete           |    ✅   |
+| Architecture review complete     |    ✅   |
 
 ---
 
-# Milestone: v0.6.0 – Frontend Application
+## Known Issues
 
-## Objective
-
-Deliver a complete web application.
-
-### Planned Deliverables
-
-* Authentication
-* Dashboard
-* Startup workspace
-* Investment pipeline
-* Reporting
-* AI assistant interface
-
-**Status:** Planned
+* Upstream Starlette TestClient deprecation warning.
+* Dependency upgrades deferred to a future phase.
 
 ---
 
-# Milestone: v1.0.0 – Production Release
+## Lessons Learned
 
-## Objective
-
-Deliver the first production-ready version of Investment OS.
-
-### Planned Deliverables
-
-* Complete investment workflow
-* AI-assisted analysis
-* Portfolio management
-* Monitoring and observability
-* Deployment automation
-* Production documentation
-
-### Exit Criteria
-
-* All planned features complete
-* Production deployment validated
-* Documentation finalized
-* Release candidate approved
-
-**Status:** Planned
+* Infrastructure-first development reduced later implementation complexity.
+* Consistent project structure simplified testing and maintenance.
+* High automated test coverage enabled confident refactoring.
+* Governance documentation improved engineering traceability.
 
 ---
 
-# Quality Dashboard
+## Release Information
 
-| Metric                        | Target            | Current          |
-| ----------------------------- | ----------------- | ---------------- |
-| Test Coverage                 | ≥90%              | 95%              |
-| Lint Errors                   | 0                 | 0                |
-| Formatter Errors              | 0                 | 0                |
-| Critical Defects              | 0                 | 0                |
-| Architecture Decision Records | Updated per phase | Phase 1 complete |
-
----
-
-# Major Achievements
-
-* Backend architecture established.
-* Strong automated testing culture adopted.
-* Modular middleware framework implemented.
-* Consistent configuration management introduced.
-* Documentation-first development process established.
-
----
-
-# Risks & Watch Items
-
-| Risk                | Mitigation                                          |
-| ------------------- | --------------------------------------------------- |
-| Dependency changes  | Scheduled dependency reviews                        |
-| Documentation drift | Update milestone after each phase                   |
-| AI model evolution  | Provider abstraction layer                          |
-| Scope expansion     | Prioritize roadmap and defer non-essential features |
-
----
-
-# Definition of Milestone Completion
-
-A milestone is complete only when all of the following conditions are met:
-
-* Planned functionality implemented.
-* Automated tests passing.
-* Coverage target achieved.
-* Documentation updated.
-* ADRs updated (if applicable).
-* Changelog updated.
-* Code reviewed and merged.
-* Release tag created.
+| Item         | Value              |
+| ------------ | ------------------ |
+| Version      | v0.1.0             |
+| Release Name | Backend Foundation |
+| Release Date | 2026-07-25         |
+| Git Tag      | v0.1.0             |
 
 ---
 
 # Future Milestones
 
-The following capabilities are under consideration for releases beyond v1.0.0:
+The following milestones remain planned and will be documented upon completion.
 
-* Multi-tenant deployment
-* Portfolio analytics
-* External data connectors
-* Mobile application
-* Advanced AI copilots
-* Enterprise administration
-* Marketplace integrations
-
-These initiatives require separate planning and approval before being scheduled.
+| Version | Milestone                |
+| ------- | ------------------------ |
+| v0.2.0  | API Infrastructure       |
+| v0.3.0  | Database & Persistence   |
+| v0.4.0  | Investment Domain        |
+| v0.5.0  | AI Intelligence Platform |
+| v0.6.0  | Frontend Application     |
+| v1.0.0  | General Availability     |
 
 ---
 
-# Milestone Review Process
+# Milestone Approval
 
-At the completion of each milestone:
+A milestone is considered complete only when:
 
-1. Verify all exit criteria.
-2. Review engineering quality metrics.
-3. Update `CHANGELOG.md`.
-4. Update `MASTER_ROADMAP.md`.
-5. Update the corresponding phase document.
-6. Record any architectural decisions (ADR).
-7. Tag the release in version control.
-8. Conduct a retrospective and capture lessons learned.
+* All planned sprint objectives have been completed.
+* Sprint reviews have been approved.
+* Engineering quality gates have passed.
+* Documentation has been finalized.
+* Release approval has been granted.
+* The corresponding release has been tagged.
+
+---
+
+# Relationship to Other Governance Documents
+
+| Document         | Responsibility                      |
+| ---------------- | ----------------------------------- |
+| BACKLOG.md       | Future work                         |
+| SPRINT_PLAN.md   | Sprint execution                    |
+| SPRINT_REVIEW.md | Sprint completion reviews           |
+| MILESTONES.md    | Historical engineering achievements |
+| RELEASE_PLAN.md  | Release governance                  |
+| CHANGELOG.md     | Released functionality              |
+
+Milestones represent completed engineering achievements and form the permanent historical record of the project.
 

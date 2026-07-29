@@ -34,6 +34,17 @@ Implementation details, sprint planning, and design decisions are intentionally 
 | 6     | Frontend Application     | Web application and dashboards        | ⬜ Planned      |
 | 7     | Production & Operations  | Deployment, monitoring, security      | ⬜ Planned      |
 
+
+| Phase   | Scope                   | Repository                                            |
+| ------- | ----------------------- | ----------------------------------------------------- |
+| Phase 1 | Backend Foundation      | `main`, `config`, `middleware`, `logging`, `lifespan` |
+| Phase 2 | API Infrastructure      | `api`, `schemas`                                      |
+| Phase 3 | Persistence Layer       | `database`, `models`                                  |
+| Phase 4 | Business Domain         | `repositories`, `services`                            |
+| Phase 5 | AI Platform             | `ai`, `agents`, `rag`, `llm`, `workflows`             |
+| Phase 6 | External Integrations   | `integrations`, `mcp`, CLI                            |
+| Phase 7 | Production & Operations | Deployment, monitoring, CI/CD, security               |
+
 ---
 
 # Phase Completion Criteria

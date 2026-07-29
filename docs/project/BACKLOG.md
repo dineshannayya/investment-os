@@ -1,292 +1,214 @@
 # Investment OS Engineering Backlog
 
-**Document Version:** 1.0
+## Purpose
 
-**Project:** Investment OS
+This document tracks all approved work that has not yet been completed.
 
-**Status:** Active
+The backlog serves as the central planning repository for future development and includes:
 
-**Last Updated:** July 2026
-
----
-
-# Revision History
-
-| Version | Date    | Description                 |
-| ------- | ------- | --------------------------- |
-| 1.0     | 2026-07 | Initial engineering backlog |
-
----
-
-# Purpose
-
-This document captures planned engineering work that has not yet been completed.
-
-The backlog serves as a strategic planning tool and includes:
-
-* Upcoming features
-* Technical debt
+* Product features
 * Architecture improvements
-* Performance enhancements
-* Security improvements
-* Documentation work
+* Technical debt
+* Documentation
+* Infrastructure
+* Security
+* Performance
 * Research initiatives
-* Future product ideas
 
-The backlog is reviewed and reprioritized at the beginning and end of each development phase.
-
----
-
-# Priority Levels
-
-| Priority | Meaning                                  |
-| -------- | ---------------------------------------- |
-| P0       | Critical – Must be completed immediately |
-| P1       | High – Required for the next release     |
-| P2       | Medium – Important but not blocking      |
-| P3       | Low – Nice to have                       |
-| P4       | Research / Future consideration          |
+Items move from the backlog into sprint plans during project planning.
 
 ---
 
-# Status
+# Backlog Workflow
 
-| Status      | Meaning                           |
-| ----------- | --------------------------------- |
-| Proposed    | Newly identified work item        |
-| Approved    | Accepted into the backlog         |
-| Planned     | Scheduled for a future phase      |
-| In Progress | Currently under development       |
-| Blocked     | Waiting on dependency or decision |
-| Completed   | Delivered                         |
-| Deferred    | Postponed                         |
-| Cancelled   | Removed from roadmap              |
+Every backlog item follows the same lifecycle.
 
----
+```text
+Idea
+   │
+   ▼
+Proposed
+   │
+   ▼
+Approved
+   │
+   ▼
+Planned
+   │
+   ▼
+Sprint
+   │
+   ▼
+Completed
+```
 
-# Backlog Categories
+Alternative states:
 
-The backlog is organized into the following categories:
+```text
+Approved
+   ├──► Deferred
+   ├──► Blocked
+   └──► Cancelled
+```
 
-1. Product Features
-2. Architecture
-3. AI Platform
-4. Database
-5. Security
-6. Performance
-7. DevOps
-8. Documentation
-9. Developer Experience
-10. Technical Debt
-11. Research & Innovation
-
----
-
-# Product Features
-
-| ID       | Priority | Status   | Target Phase | Item                |
-| -------- | -------- | -------- | ------------ | ------------------- |
-| FEAT-001 | P1       | Planned  | Phase 4      | Startup Management  |
-| FEAT-002 | P1       | Planned  | Phase 4      | Founder Management  |
-| FEAT-003 | P1       | Planned  | Phase 4      | Investment Workflow |
-| FEAT-004 | P2       | Planned  | Phase 4      | Portfolio Dashboard |
-| FEAT-005 | P2       | Proposed | Phase 6      | Advanced Search     |
+Completed work is removed from this document and recorded in milestone and release documentation.
 
 ---
 
-# Architecture
+# Priority Definitions
 
-| ID       | Priority | Status   | Target Phase | Item                       |
-| -------- | -------- | -------- | ------------ | -------------------------- |
-| ARCH-001 | P1       | Planned  | Phase 2      | Global Exception Framework |
-| ARCH-002 | P1       | Planned  | Phase 2      | Standard Response Envelope |
-| ARCH-003 | P1       | Planned  | Phase 3      | Repository Pattern         |
-| ARCH-004 | P2       | Proposed | Phase 3      | Event Bus Architecture     |
-| ARCH-005 | P4       | Proposed | Future       | Microservice Evaluation    |
-
----
-
-# AI Platform
-
-| ID     | Priority | Status   | Target Phase | Item                         |
-| ------ | -------- | -------- | ------------ | ---------------------------- |
-| AI-001 | P1       | Planned  | Phase 5      | Vector Database              |
-| AI-002 | P1       | Planned  | Phase 5      | RAG Pipeline                 |
-| AI-003 | P1       | Planned  | Phase 5      | AI Agent Orchestrator        |
-| AI-004 | P2       | Planned  | Phase 5      | Prompt Library               |
-| AI-005 | P2       | Proposed | Future       | Multi-model Routing          |
-| AI-006 | P4       | Research | Future       | Autonomous Investment Agents |
+| Priority | Meaning                      |
+| -------- | ---------------------------- |
+| P0       | Critical production issue    |
+| P1       | Required for current release |
+| P2       | Important but not blocking   |
+| P3       | Nice to have                 |
+| P4       | Research / Future            |
 
 ---
 
-# Database
+# Status Definitions
 
-| ID     | Priority | Status   | Target Phase | Item                   |
-| ------ | -------- | -------- | ------------ | ---------------------- |
-| DB-001 | P1       | Planned  | Phase 3      | PostgreSQL Integration |
-| DB-002 | P1       | Planned  | Phase 3      | Alembic Migrations     |
-| DB-003 | P1       | Planned  | Phase 3      | SQLAlchemy ORM         |
-| DB-004 | P2       | Proposed | Future       | Read Replicas          |
-| DB-005 | P3       | Proposed | Future       | Table Partitioning     |
-
----
-
-# Security
-
-| ID      | Priority | Status   | Target Phase | Item                 |
-| ------- | -------- | -------- | ------------ | -------------------- |
-| SEC-001 | P1       | Planned  | Phase 2      | JWT Authentication   |
-| SEC-002 | P1       | Planned  | Phase 2      | API Key Support      |
-| SEC-003 | P2       | Planned  | Phase 5      | Audit Logging        |
-| SEC-004 | P2       | Proposed | Phase 7      | Secrets Management   |
-| SEC-005 | P3       | Proposed | Future       | Single Sign-On (SSO) |
+| Status      | Meaning                   |
+| ----------- | ------------------------- |
+| Proposed    | Awaiting review           |
+| Approved    | Accepted into backlog     |
+| Planned     | Assigned to future sprint |
+| In Progress | Active sprint             |
+| Blocked     | Waiting on dependency     |
+| Deferred    | Delayed intentionally     |
+| Completed   | Delivered                 |
+| Cancelled   | Removed                   |
 
 ---
 
-# Performance
+# Active Release
 
-| ID       | Priority | Status   | Target Phase | Item                        |
-| -------- | -------- | -------- | ------------ | --------------------------- |
-| PERF-001 | P2       | Proposed | Phase 5      | Response Caching            |
-| PERF-002 | P2       | Proposed | Phase 5      | Query Optimization          |
-| PERF-003 | P3       | Proposed | Future       | Background Job Queue        |
-| PERF-004 | P4       | Research | Future       | Horizontal Scaling Strategy |
+| Item           | Value                        |
+| -------------- | ---------------------------- |
+| Current Phase  | Phase 2 – API Infrastructure |
+| Target Release | v0.2.0                       |
 
 ---
 
-# DevOps
+# Release Backlog
 
-| ID         | Priority | Status   | Target Phase | Item                   |
-| ---------- | -------- | -------- | ------------ | ---------------------- |
-| DEVOPS-001 | P1       | Planned  | Phase 7      | CI/CD Pipeline         |
-| DEVOPS-002 | P2       | Planned  | Phase 7      | Infrastructure as Code |
-| DEVOPS-003 | P2       | Proposed | Future       | Kubernetes Deployment  |
-| DEVOPS-004 | P3       | Proposed | Future       | Blue/Green Deployments |
+## Phase 2 – API Infrastructure
 
----
-
-# Documentation
-
-| ID      | Priority | Status      | Target Phase | Item            |
-| ------- | -------- | ----------- | ------------ | --------------- |
-| DOC-001 | P1       | In Progress | Phase 2      | Project Bible   |
-| DOC-002 | P1       | In Progress | Phase 2      | Master Roadmap  |
-| DOC-003 | P1       | Planned     | Phase 2      | API Guidelines  |
-| DOC-004 | P2       | Planned     | Phase 3      | Database Design |
-| DOC-005 | P2       | Planned     | Phase 5      | AI Architecture |
+| ID       | Priority | Sprint | Item                       | Status  |
+| -------- | -------- | ------ | -------------------------- | ------- |
+| ARCH-001 | P1       | 2.1    | Global exception framework | Planned |
+| ARCH-002 | P1       | 2.1    | Standard response envelope | Planned |
+| API-001  | P1       | 2.2    | API versioning             | Planned |
+| API-002  | P1       | 2.2    | Pagination & filtering     | Planned |
+| SEC-001  | P1       | 2.3    | JWT authentication         | Planned |
+| SEC-002  | P1       | 2.3    | API key authentication     | Planned |
+| DOC-001  | P1       | 2.4    | API documentation          | Planned |
 
 ---
 
-# Developer Experience
+# Future Releases
 
-| ID     | Priority | Status   | Target Phase | Item                        |
-| ------ | -------- | -------- | ------------ | --------------------------- |
-| DX-001 | P2       | Proposed | Phase 3      | Pre-commit Hooks            |
-| DX-002 | P2       | Proposed | Phase 3      | Local Development Scripts   |
-| DX-003 | P3       | Proposed | Future       | Automated Project Bootstrap |
-| DX-004 | P3       | Proposed | Future       | Development Container       |
+## Phase 3 – Database & Persistence
+
+| ID     | Priority | Item                   |
+| ------ | -------- | ---------------------- |
+| DB-001 | P1       | PostgreSQL integration |
+| DB-002 | P1       | Alembic migrations     |
+| DB-003 | P1       | Repository pattern     |
+| DB-004 | P2       | Unit of Work           |
+
+---
+
+## Phase 4 – Investment Domain
+
+| ID       | Priority | Item                |
+| -------- | -------- | ------------------- |
+| FEAT-001 | P1       | Startup management  |
+| FEAT-002 | P1       | Founder management  |
+| FEAT-003 | P1       | Investment workflow |
+| FEAT-004 | P2       | Portfolio dashboard |
+
+---
+
+## Phase 5 – AI Intelligence Platform
+
+| ID     | Priority | Item                  |
+| ------ | -------- | --------------------- |
+| AI-001 | P1       | Vector database       |
+| AI-002 | P1       | RAG pipeline          |
+| AI-003 | P1       | AI agent orchestrator |
+| AI-004 | P2       | Prompt library        |
 
 ---
 
 # Technical Debt
 
-| ID       | Priority | Status   | Target Phase | Item                                             |
-| -------- | -------- | -------- | ------------ | ------------------------------------------------ |
-| TECH-001 | P2       | Approved | Phase 2      | Upgrade FastAPI / Starlette / httpx Dependencies |
-| TECH-002 | P2       | Proposed | Phase 3      | Consolidate Configuration Utilities              |
-| TECH-003 | P3       | Proposed | Future       | Reduce Startup Time                              |
-| TECH-004 | P3       | Proposed | Future       | Optimize Logging Configuration                   |
+| ID       | Priority | Target  | Item                                | Status   |
+| -------- | -------- | ------- | ----------------------------------- | -------- |
+| TECH-001 | P2       | Phase 2 | Upgrade FastAPI / Starlette / httpx | Approved |
+| TECH-002 | P2       | Phase 3 | Configuration cleanup               | Proposed |
+| TECH-003 | P3       | Future  | Logging optimization                | Proposed |
+
+Technical debt should be addressed during regular engineering work rather than accumulating indefinitely.
 
 ---
 
-# Research & Innovation
+# Documentation Backlog
 
-| ID      | Priority | Status   | Target Phase | Item                           |
-| ------- | -------- | -------- | ------------ | ------------------------------ |
-| RES-001 | P4       | Research | Future       | Knowledge Graph Integration    |
-| RES-002 | P4       | Research | Future       | Explainable AI Scoring         |
-| RES-003 | P4       | Research | Future       | Investment Simulation Engine   |
-| RES-004 | P4       | Research | Future       | Predictive Portfolio Analytics |
+| ID      | Priority | Target  | Item            |
+| ------- | -------- | ------- | --------------- |
+| DOC-002 | P1       | Phase 2 | Project Bible   |
+| DOC-003 | P1       | Phase 2 | API Guidelines  |
+| DOC-004 | P2       | Phase 3 | Database Design |
+| DOC-005 | P2       | Phase 5 | AI Architecture |
 
 ---
 
-# Backlog Grooming Process
+# Research Backlog
+
+Research items are intentionally separated from committed engineering work.
+
+| ID      | Priority | Item                           |
+| ------- | -------- | ------------------------------ |
+| RES-001 | P4       | Knowledge Graph Integration    |
+| RES-002 | P4       | Explainable AI Scoring         |
+| RES-003 | P4       | Investment Simulation Engine   |
+| RES-004 | P4       | Predictive Portfolio Analytics |
+
+Research work should not enter sprint planning until formally approved.
+
+---
+
+# Backlog Grooming
 
 The backlog should be reviewed:
 
-* At the start of each development phase.
-* At the end of each milestone.
-* After significant architectural decisions.
-* Following production incidents or major retrospectives.
+* Before each sprint planning session
+* At milestone completion
+* After major architectural decisions
+* Following production incidents
+* During release planning
 
 Each review should:
 
-1. Remove completed items.
-2. Reprioritize remaining work.
-3. Add newly identified opportunities.
-4. Update target phases.
-5. Record any deferred or cancelled work.
+1. Remove completed work.
+2. Reprioritize remaining items.
+3. Schedule approved work into future sprints.
+4. Identify new technical debt.
+5. Archive cancelled work.
 
 ---
 
-# Item Lifecycle
+# Backlog Ownership
 
-```text
-Idea
- │
- ▼
-Proposed
- │
- ▼
-Approved
- │
- ▼
-Planned
- │
- ▼
-In Progress
- │
- ▼
-Completed
-```
+| Activity            | Document         |
+| ------------------- | ---------------- |
+| New work identified | BACKLOG.md       |
+| Assigned to sprint  | SPRINT_PLAN.md   |
+| Completed           | SPRINT_REVIEW.md |
+| Phase completed     | MILESTONES.md    |
+| Release published   | CHANGELOG.md     |
 
-Alternative paths:
-
-```text
-Approved
-   │
-   ├──► Deferred
-   │
-   ├──► Blocked
-   │
-   └──► Cancelled
-```
-
----
-
-# Engineering Principles
-
-When adding backlog items:
-
-* Keep each item focused on a single objective.
-* Assign a stable identifier (e.g., `ARCH-001`, `AI-003`).
-* Avoid implementation details; reference design documents or ADRs instead.
-* Link completed work to the corresponding release in `CHANGELOG.md`.
-* Update `MASTER_ROADMAP.md` if priorities or sequencing change.
-
----
-
-# Future Enhancements
-
-Potential capabilities beyond the current roadmap include:
-
-* Mobile application support
-* Multi-tenant SaaS deployment
-* External CRM integrations
-* Financial data provider connectors
-* Advanced portfolio analytics
-* AI-assisted investment committee collaboration
-* Enterprise administration and governance
-
-These items remain under evaluation and require formal approval before entering the active roadmap.
+The backlog contains only unfinished work. Once an item is completed, responsibility transfers to the appropriate historical project documentation.
 

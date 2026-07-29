@@ -26,7 +26,7 @@ DOCKER := docker compose exec backend
 UV ?= $(DOCKER) uv
 
 .PHONY: help bootstrap sync update run cov lint fix format typecheck \
-        quality check ci clean shell freeze precommit db-up db-down \
+        verify  check ci clean shell freeze precommit db-up db-down \
         docker-up docker-down docker-build docker-logs docker-ps \
         backend-shell frontend-shell db-shell docker-rebuild docker-status docker-clean \
         test test-config
@@ -86,7 +86,7 @@ format-check:
 typecheck:
 	$(UV) run mypy app tests
 
-quality:
+verify :
 	$(MAKE) format
 	$(MAKE) lint
 	$(MAKE) typecheck
@@ -110,6 +110,10 @@ shell:
 
 
 
+# -------------------------------------
+# Tests
+# -------------------------------------
+
 # make test-config → quick configuration tests
 test-config:
 	$(DOCKER) pytest tests -v
@@ -118,6 +122,17 @@ test-config:
 test:
 	$(DOCKER) pytest tests -v --cov=app --cov-report=term-missing
 
+
+test-unit:
+	$(DOCKER) pytest tests/models tests/core tests/config -v
+
+test-api:
+	$(DOCKER) pytest tests/api -v
+
+test-all:
+	$(DOCKER) pytest tests -v --cov=app
+
+# --------------------------------
 # Database
 
 db-revision:
@@ -173,3 +188,7 @@ docx2md:
 	python3 scripts/convert_docs.py \
 	    --input docs-word \
 	    --output docs
+
+# coverage
+coverage-html:
+	$(DOCKER) pytest tests --cov=app --cov-report=html
