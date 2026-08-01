@@ -106,6 +106,8 @@ def transaction(connection: Connection):
 
     transaction.rollback()
 
+    assert not connection.in_transaction()
+
 
 # =============================================================================
 # Session
@@ -118,15 +120,12 @@ def db_session(
     transaction,
 ) -> Generator[Session, None, None]:
     """
-    Return SQLAlchemy session.
-
-    Bound to the test transaction.
+    Return a SQLAlchemy session bound to the test transaction.
     """
 
     SessionLocal = sessionmaker(
         bind=connection,
         autoflush=False,
-        autocommit=False,
         expire_on_commit=False,
         future=True,
     )

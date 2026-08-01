@@ -2,9 +2,9 @@
 │   ├── app()
 │   ├── client()
 │   ├── app_settings()
-│   ├── root_response()
-│   ├── health_response()
-│   └── openapi_response()
+│   ├── get_root_response()
+│   ├── get_health_response()
+│   └── get_openapi_response()
 │
 ├── database.py
 │   ├── engine()

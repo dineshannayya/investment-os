@@ -1,4 +1,4 @@
-from app.core.config.constants import (
+from app.core.config import (
     API_PREFIX,
     DEFAULT_PAGE_SIZE,
     MAX_PAGE_SIZE,

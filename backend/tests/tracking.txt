@@ -1,0 +1,199 @@
+My recommendation
+
+I suggest we implement the tests in this order:
+
+    Schemas (3 files)
+    ResponseFactory
+    Exceptions
+    Exception Handlers
+    Middleware
+    API Integration
+
+
+backend/tests/
+├── conftest.py
+│
+├── core/
+│   ├── test_response_factory.py
+│   ├── test_error_codes.py
+│   ├── test_exceptions.py
+│   ├── test_exception_handlers.py
+│   └── test_logging.py
+│
+├── schemas/
+│   ├── test_response.py
+│   ├── test_error.py
+│   └── test_pagination.py
+│
+├── middleware/
+│   ├── test_request_id.py
+│   ├── test_request_context.py
+│   ├── test_request_logging.py
+│   └── test_timing.py
+│
+└── api/
+    └── test_system.py
+
+
+Recommended Implementation Order
+Phase 1 — Schemas (Easiest)
+
+These are pure Pydantic models.
+
+tests/schemas/
+
+Files:
+
+test_response.py
+test_error.py
+test_pagination.py
+
+Coverage:
+
+Default values
+Validation
+Serialization
+model_dump()
+Invalid input
+Generic ApiResponse[T]
+
+Target coverage: 100%
+
+Phase 2 — Response Factory
+tests/core/test_response_factory.py
+
+Test:
+
+success()
+created()
+paginated()
+error()
+
+Verify:
+
+success flag
+message
+data
+meta
+errors
+
+Target coverage: 100%
+
+Phase 3 — Error Codes
+tests/core/test_error_codes.py
+
+Simple but important.
+
+Verify:
+
+uniqueness
+enum values
+string conversion
+Phase 4 — Exception Hierarchy
+tests/core/test_exceptions.py
+
+Verify:
+
+AppException
+ValidationException
+NotFoundException
+ConflictException
+BusinessRuleException
+etc.
+
+Check:
+
+code
+message
+field
+details
+Phase 5 — Exception Handlers
+
+This is the most valuable part.
+
+tests/core/test_exception_handlers.py
+
+Create a small temporary FastAPI app.
+
+Test:
+
+ValidationException
+NotFoundException
+ConflictException
+RequestValidationError
+unexpected Exception
+
+Verify:
+
+status code
+JSON schema
+error code
+request ID
+response format
+Phase 6 — Middleware
+tests/middleware/
+
+Verify:
+
+request_id.py
+header exists
+generated UUID
+propagation
+request_context.py
+context available
+cleanup
+timing.py
+response header
+execution time
+request_logging.py
+no exception
+request ID included
+logger called
+Phase 7 — Integration Tests
+
+Finally:
+
+tests/api/test_system.py
+
+Verify:
+
+/health
+/ready
+/live
+
+Ensure:
+
+response format
+headers
+middleware
+logging
+exception handling
+Common Fixtures
+
+I also recommend enhancing tests/conftest.py with reusable fixtures such as:
+
+@pytest.fixture
+def app():
+    ...
+
+@pytest.fixture
+def client():
+    ...
+
+@pytest.fixture
+def request_id():
+    return "test-request-id"
+
+@pytest.fixture
+def response_meta():
+    ...
+
+@pytest.fixture
+def sample_error():
+    ...
+
+@pytest.fixture
+def sample_data():
+    ...
+
+This keeps the individual test files concise and consistent.

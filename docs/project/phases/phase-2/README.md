@@ -132,6 +132,35 @@ Detailed planning is maintained in `SPRINT_PLAN.md`.
 
 ---
 
+# Folder Structure
+app/
+├── api/
+│   ├── dependencies.py
+│   ├── responses.py
+│   └── v1/
+│       ├── router.py
+│       └── endpoints/
+│
+├── core/
+│   ├── constants.py
+│   ├── exceptions.py
+│   ├── exception_handlers.py
+│   ├── response.py
+│   └── version.py
+│
+├── schemas/
+│   ├── response.py
+│   ├── error.py
+│   ├── pagination.py
+│   └── common.py
+│
+├── services/
+├── repositories/
+└── tests/
+
+
+---
+
 # Dependencies
 
 Phase 2 builds upon the engineering foundation delivered in Phase 1.

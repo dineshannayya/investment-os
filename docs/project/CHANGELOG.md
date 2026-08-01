@@ -15,25 +15,45 @@ Project planning, sprint execution, engineering reviews, and milestone details a
 
 # [Unreleased]
 
-Changes completed after the most recent release.
-
-This section is cleared after each official release.
-
 ## Added
 
-*
+### API Infrastructure
+
+- Standard API response envelope (`ApiResponse`)
+- Response metadata model
+- Standard error model
+- Pagination metadata model
+- Response factory utilities
+- Centralized application exception hierarchy
+- Global exception handling framework
+- Standard HTTP status code definitions
+- Centralized error code definitions
+- API configuration module
+
+### Testing
+
+- Comprehensive schema unit tests
+- Response factory unit tests
+- API integration tests
+- Middleware integration tests
+- Expanded model test coverage
+- Test fixtures and database infrastructure
 
 ## Changed
 
-*
+- Standardized all API responses through a common response factory.
+- Centralized configuration into dedicated configuration modules.
+- Adopted Python 3.12 modern typing syntax where applicable.
+- Standardized API versioning using a centralized API prefix.
+- Improved middleware registration and application startup.
 
 ## Fixed
 
-*
-
-## Security
-
-*
+- Request validation handling.
+- Response serialization consistency.
+- Middleware registration issues.
+- API routing consistency.
+- Test infrastructure and database isolation.
 
 ---
 

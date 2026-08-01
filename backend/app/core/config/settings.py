@@ -16,6 +16,8 @@ from app.core.config.constants import (
     APP_NAME,
     APP_VERSION,
     DEFAULT_ENVIRONMENT,
+)
+from app.core.config.logging import (
     DEFAULT_LOG_LEVEL,
 )
 

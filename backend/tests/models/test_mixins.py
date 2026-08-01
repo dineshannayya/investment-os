@@ -23,9 +23,8 @@ Mixins:
 
 from __future__ import annotations
 
-from datetime import datetime
-from uuid import UUID
 from datetime import UTC, datetime
+from uuid import UUID
 
 
 def test_timestamp_columns_exist(startup_factory):

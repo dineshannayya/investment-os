@@ -1,0 +1,170 @@
+Investment OS Engineering Standard v1.0
+
+Version: 1.0
+Status: Draft
+
+1. Architecture Principles
+
+-   CS-001: Single Responsibility Principle
+-   CS-002: Layered Architecture (Router → Service → Repository →
+    Database)
+-   CS-003: Dependency Injection for shared resources
+
+2. Project Structure
+
+    backend/
+     ├── app/
+     │   ├── api/
+     │   ├── config/
+     │   ├── core/
+     │   ├── db/
+     │   ├── middleware/
+     │   ├── models/
+     │   ├── repositories/
+     │   ├── schemas/
+     │   ├── services/
+     │   └── utils/
+    docs/
+     └── engineering/
+
+3. Coding Standards
+
+-   Files: snake_case.py
+-   Classes: PascalCase
+-   Functions: snake_case()
+-   Variables: snake_case
+-   Constants: UPPER_CASE
+
+4. Module Implementation Pattern
+
+1.  Initialize
+2.  Validate
+3.  Execute
+4.  Handle Errors
+5.  Log
+6.  Return
+
+5. Service Standards
+
+-   Business validation
+-   Transaction management
+-   Workflow orchestration
+-   No SQL or HTTP responses
+
+6. Repository Standards
+
+-   CRUD
+-   Filtering
+-   Pagination
+-   Search
+-   No business logic
+
+7. API Standards
+
+Success:
+
+    {
+      "success": true,
+      "data": {},
+      "message": "",
+      "request_id": ""
+    }
+
+Error:
+
+    {
+      "success": false,
+      "error": {
+        "code": "",
+        "message": ""
+      },
+      "request_id": ""
+    }
+
+8. Database Standards
+
+Mandatory: - id - created_at - updated_at
+
+Recommended: - created_by - updated_by - deleted_at - is_deleted
+
+9. Logging Standards
+
+Log: - Timestamp - Request ID - User - Module - Execution Time - Status
+
+10. Error Handling
+
+Catch → Log → Convert → Return Standard Error
+
+11. Security
+
+-   Password hashing
+-   JWT
+-   RBAC
+-   No secrets in source
+
+12. Testing
+
+-   Unit Tests
+-   Integration Tests
+-   Repository Tests
+-   API Tests
+
+Coverage: - Services >=90% - Overall >=85%
+
+13. Performance
+
+-   Avoid N+1 queries
+-   Pagination
+-   Cache reference data
+-   Log slow requests
+
+14. AI Readiness
+
+Expose AI behind interfaces.
+
+    class AIService:
+        def analyze(self, context):
+            pass
+
+15. Development Checklist
+
+-   ☐ SRP
+-   ☐ Layer Isolation
+-   ☐ Dependency Injection
+-   ☐ Logging
+-   ☐ Error Handling
+-   ☐ Tests
+-   ☐ Documentation
+-   ☐ Security Review
+
+Engineering Manifesto
+
+CS-001 Single Responsibility Principle
+
+CS-002 Layer Isolation
+
+CS-003 Dependency Injection
+
+CS-004 Repository Pattern
+
+CS-005 Service Pattern
+
+CS-006 Standard API Responses
+
+CS-007 Structured Logging
+
+CS-008 Centralized Error Handling
+
+CS-009 Transaction Management
+
+CS-010 Configuration Management
+
+CS-011 Naming Standards
+
+CS-012 Schema Validation
+
+CS-013 Documentation
+
+CS-014 Testing
+
+CS-015 AI Ready Architecture

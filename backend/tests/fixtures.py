@@ -174,7 +174,7 @@ def document_factory(
             "mime_type": "application/pdf",
             "file_size": 12345,
             "file_hash": kwargs.get("file_hash", uuid4().hex),
-            "storage_path": "/tmp/pitch.pdf",
+            "storage_path": f"/test/{uuid4().hex}.pdf",
         }
 
         defaults.update(kwargs)
