@@ -20,6 +20,7 @@ from app.core.config.constants import (
     DEFAULT_JWT_ALGORITHM,
     DEFAULT_JWT_REFRESH_TOKEN_EXPIRE_DAYS,
     DEFAULT_JWT_SECRET_KEY,
+    DEFAULT_JWT_ISSUER
 )
 from app.core.config.logging import (
     DEFAULT_LOG_LEVEL,
@@ -61,12 +62,6 @@ class Settings(BaseSettings):
     port: int = Field(default=8000)
 
     # =========================================================================
-    # Database
-    # =========================================================================
-
-    database_url: str | None = Field(default=None)
-
-    # =========================================================================
     # Redis
     # =========================================================================
 
@@ -91,29 +86,22 @@ class Settings(BaseSettings):
     # =========================================================================
     # Database
     # =========================================================================
-    database_url: str
+    database_url: str 
     database_echo: bool = False
-
     database_pool_size: int = 10
     database_max_overflow: int = 20
     database_pool_timeout: int = 30
     database_pool_recycle: int = 1800
 
-    jwt_secret_key: str = Field(
-        default=DEFAULT_JWT_SECRET_KEY,
-    )
+    jwt_secret_key: str = Field( default=DEFAULT_JWT_SECRET_KEY,)
 
-    jwt_algorithm: str = Field(
-        default=DEFAULT_JWT_ALGORITHM,
-    )
+    jwt_algorithm: str = Field( default=DEFAULT_JWT_ALGORITHM,)
 
-    jwt_access_token_expire_minutes: int = Field(
-        default=DEFAULT_JWT_ACCESS_TOKEN_EXPIRE_MINUTES,
-    )
+    jwt_issuer: str = Field( default=DEFAULT_JWT_ISSUER,)
 
-    jwt_refresh_token_expire_days: int = Field(
-        default=DEFAULT_JWT_REFRESH_TOKEN_EXPIRE_DAYS,
-    )
+    jwt_access_token_expire_minutes: int = Field( default=DEFAULT_JWT_ACCESS_TOKEN_EXPIRE_MINUTES,)
+
+    jwt_refresh_token_expire_days: int = Field( default=DEFAULT_JWT_REFRESH_TOKEN_EXPIRE_DAYS,)
 
 
 @lru_cache

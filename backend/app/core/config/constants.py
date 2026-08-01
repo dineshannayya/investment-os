@@ -39,10 +39,13 @@ SERVICE_LLM: Final[str] = "llm"
 # ===========================================================
 # Security
 # ==========================================================
-DEFAULT_JWT_SECRET_KEY = "development-only-secret-key-change-before-production"
+DEFAULT_JWT_SECRET_KEY: Final[str] = ( "development-only-secret-key-change-before-production")
 
-DEFAULT_JWT_ALGORITHM = "HS256"
+DEFAULT_JWT_ALGORITHM: Final[str] = "HS256"
 
-DEFAULT_JWT_ACCESS_TOKEN_EXPIRE_MINUTES = 30
+DEFAULT_JWT_ACCESS_TOKEN_EXPIRE_MINUTES: Final[int] = 30
 
-DEFAULT_JWT_REFRESH_TOKEN_EXPIRE_DAYS = 30
+DEFAULT_JWT_REFRESH_TOKEN_EXPIRE_DAYS: Final[int] = 30
+
+DEFAULT_JWT_ISSUER: Final[str] = "investment-os"
+
