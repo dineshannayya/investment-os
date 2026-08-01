@@ -57,10 +57,15 @@ The goals of this release are to:
 
 ## Security
 
-* Authentication framework
-* Authorization framework
-* JWT-based authentication
-* Protected API endpoints
+| Feature                  | Status |
+| ------------------------ | :----: |
+| Password hashing         |    ✅   |
+| Password verification    |    ✅   |
+| JWT utilities            |   🚧   |
+| Authentication framework |   🚧   |
+| Authorization framework  |    ⏳   |
+| Protected endpoints      |    ⏳   |
+
 
 ---
 
@@ -100,14 +105,19 @@ The goals of this release are to:
 | Error response model         | ✅      |
 | Global exception handler     | ✅      |
 | Validation exception handler | ✅      |
-| JWT authentication           | ⏳      |
-| Authorization framework      | ⏳      |
 | Pagination                   | ⏳      |
 | Filtering                    | ⏳      |
 | Sorting                      | ⏳      |
 | Search utilities             | ⏳      |
 | Base service layer           | ⏳      |
 | OpenAPI improvements         | ✅      |
+| Password hashing             | ✅      |
+| Password verification        | ✅      |
+| JWT utility                  | 🚧      |
+| JWT authentication           | ⏳      |
+| OAuth2 integration           | ⏳      |
+| Authorization framework      | ⏳      |
+
 
 > **Legend**
 >
@@ -238,13 +248,19 @@ For a summary of released versions across the project, refer to `docs/project/CH
 
 Current implementation includes:
 
-- 354 automated tests
-- 96% code coverage
-- 0 failing tests
-- Standardized API response framework
-- Centralized exception handling
-- Comprehensive middleware testing
-- Complete schema validation
+367 automated tests
+94% code coverage
+0 failing tests
+
+Completed
+
+- API response framework
+- Exception framework
+- Middleware framework
+- Password hashing
+- Password verification
+- Security infrastructure foundation
+
 
 # Release Summary
 
@@ -254,7 +270,8 @@ Upon completion, this release will provide:
 
 * Standardized API contracts
 * Centralized exception handling
-* Authentication and authorization
+* Authentication framework (in progress)
+* Authorization framework (planned)
 * Reusable service-layer components
 * Common API utilities
 * Enhanced API documentation

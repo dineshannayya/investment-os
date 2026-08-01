@@ -18,6 +18,13 @@
 # Docker command
 #   If there is any change in Dockerfile, then rebuild using: docker-build
 # -----------------------------------------------------------------------------
+#
+# After editing pyproject.toml
+# docker compose run --rm backend uv lock
+# 
+# # Update the running venv
+# docker compose exec backend uv sync
+#  ----------------------------------------------------------------------------
 
 
 PYTHON := 3.12

@@ -16,6 +16,10 @@ from app.core.config.constants import (
     APP_NAME,
     APP_VERSION,
     DEFAULT_ENVIRONMENT,
+    DEFAULT_JWT_ACCESS_TOKEN_EXPIRE_MINUTES,
+    DEFAULT_JWT_ALGORITHM,
+    DEFAULT_JWT_REFRESH_TOKEN_EXPIRE_DAYS,
+    DEFAULT_JWT_SECRET_KEY,
 )
 from app.core.config.logging import (
     DEFAULT_LOG_LEVEL,
@@ -94,6 +98,22 @@ class Settings(BaseSettings):
     database_max_overflow: int = 20
     database_pool_timeout: int = 30
     database_pool_recycle: int = 1800
+
+    jwt_secret_key: str = Field(
+        default=DEFAULT_JWT_SECRET_KEY,
+    )
+
+    jwt_algorithm: str = Field(
+        default=DEFAULT_JWT_ALGORITHM,
+    )
+
+    jwt_access_token_expire_minutes: int = Field(
+        default=DEFAULT_JWT_ACCESS_TOKEN_EXPIRE_MINUTES,
+    )
+
+    jwt_refresh_token_expire_days: int = Field(
+        default=DEFAULT_JWT_REFRESH_TOKEN_EXPIRE_DAYS,
+    )
 
 
 @lru_cache

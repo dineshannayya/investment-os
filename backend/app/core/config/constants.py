@@ -35,3 +35,14 @@ STATUS_NOT_CONFIGURED: Final[str] = "not_configured"
 SERVICE_DATABASE: Final[str] = "database"
 SERVICE_REDIS: Final[str] = "redis"
 SERVICE_LLM: Final[str] = "llm"
+
+# ===========================================================
+# Security
+# ==========================================================
+DEFAULT_JWT_SECRET_KEY = "development-only-secret-key-change-before-production"
+
+DEFAULT_JWT_ALGORITHM = "HS256"
+
+DEFAULT_JWT_ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+DEFAULT_JWT_REFRESH_TOKEN_EXPIRE_DAYS = 30
