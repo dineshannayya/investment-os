@@ -13,6 +13,8 @@ from app.models.mixins import (
 )
 from app.models.opportunity import Opportunity
 from app.models.startup import Startup
+from app.models.user import User
+
 
 __all__ = [
     # Base
@@ -27,4 +29,5 @@ __all__ = [
     "Opportunity",
     "Document",
     "Investment",
+    "User",
 ]

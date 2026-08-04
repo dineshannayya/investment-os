@@ -24,6 +24,8 @@
 # 
 # # Update the running venv
 # docker compose exec backend uv sync
+# docker compose build --no-cache backend
+# docker compose up -d backend
 #  ----------------------------------------------------------------------------
 
 

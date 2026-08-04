@@ -14,6 +14,9 @@ from pydantic import Field
 from app.schemas.base import BaseSchema
 from app.schemas.error import ErrorDetail
 from app.schemas.pagination import PaginationMeta
+from typing import Generic, TypeVar
+
+T = TypeVar("T")
 
 
 class ResponseMeta(BaseSchema):
@@ -37,10 +40,44 @@ class ResponseMeta(BaseSchema):
     )
 
 
-class ApiResponse[T](BaseSchema):
+class ApiResponse(BaseSchema, Generic[T]):
     """
     Standard API response envelope.
     """
+
+    @classmethod
+    def ok(
+        cls,
+        *,
+        data=None,
+        message: str = "Success",
+        meta=None,
+    ):
+        return cls(
+            success=True,
+            message=message,
+            data=data,
+            meta=meta,
+            errors=[],
+        )
+    
+    
+    @classmethod
+    def fail(
+        cls,
+        *,
+        message: str,
+        errors=None,
+        meta=None,
+    ):
+        return cls(
+            success=False,
+            message=message,
+            data=None,
+            meta=meta,
+            errors=errors or [],
+        )
+
 
     success: bool = Field(
         ...,
@@ -66,3 +103,8 @@ class ApiResponse[T](BaseSchema):
         default_factory=list,
         description="List of application errors.",
     )
+
+
+ApiResponse.model_rebuild()
+
+

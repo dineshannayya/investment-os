@@ -148,9 +148,13 @@ def test_corrupted_token() -> None:
     """Corrupted JWT signature should fail validation."""
 
     token = create_access_token(subject="user-123")
-
-    corrupted = token[:-1] + "X"
-
+    
+    parts = token.split(".")
+    
+    parts[2] = "invalid-signature"
+    
+    corrupted = ".".join(parts)
+    
     with pytest.raises(jwt.InvalidTokenError):
         decode_token(corrupted)
 

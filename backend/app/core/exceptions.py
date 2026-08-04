@@ -8,6 +8,9 @@ from __future__ import annotations
 
 from app.core.config.error_codes import ErrorCode
 
+from http import HTTPStatus
+
+from typing import Any
 
 class AppException(Exception):
     """
@@ -19,16 +22,17 @@ class AppException(Exception):
         *,
         code: ErrorCode,
         message: str,
+        status_code: int,
         field: str | None = None,
-        details: dict | None = None,
+        details: dict[str, Any] | None = None,
     ) -> None:
         super().__init__(message)
 
         self.code = code
         self.message = message
+        self.status_code = status_code
         self.field = field
         self.details = details or {}
-
 
 class ValidationException(AppException):
     """Raised when request validation fails."""
@@ -43,6 +47,7 @@ class ValidationException(AppException):
         super().__init__(
             code=ErrorCode.VALIDATION_ERROR,
             message=message,
+            status_code=HTTPStatus.BAD_REQUEST,
             field=field,
             details=details,
         )
@@ -55,6 +60,7 @@ class AuthenticationException(AppException):
         super().__init__(
             code=ErrorCode.AUTHENTICATION_FAILED,
             message=message,
+            status_code=HTTPStatus.UNAUTHORIZED,
         )
 
 
@@ -65,6 +71,7 @@ class AuthorizationException(AppException):
         super().__init__(
             code=ErrorCode.ACCESS_DENIED,
             message=message,
+            status_code=HTTPStatus.FORBIDDEN,
         )
 
 
@@ -75,6 +82,7 @@ class NotFoundException(AppException):
         super().__init__(
             code=ErrorCode.RESOURCE_NOT_FOUND,
             message=message,
+            status_code=HTTPStatus.NOT_FOUND,
         )
 
 
@@ -85,6 +93,7 @@ class ConflictException(AppException):
         super().__init__(
             code=ErrorCode.RESOURCE_CONFLICT,
             message=message,
+            status_code=HTTPStatus.CONFLICT,
         )
 
 
@@ -95,6 +104,7 @@ class BusinessRuleException(AppException):
         super().__init__(
             code=ErrorCode.BUSINESS_RULE_VIOLATION,
             message=message,
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
         )
 
 
@@ -105,6 +115,7 @@ class DatabaseException(AppException):
         super().__init__(
             code=ErrorCode.DATABASE_ERROR,
             message=message,
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
         )
 
 
@@ -115,6 +126,7 @@ class ExternalServiceException(AppException):
         super().__init__(
             code=ErrorCode.EXTERNAL_SERVICE_ERROR,
             message=message,
+            status_code=HTTPStatus.SERVICE_UNAVAILABLE,
         )
 
 
@@ -125,4 +137,5 @@ class InternalServerException(AppException):
         super().__init__(
             code=ErrorCode.INTERNAL_ERROR,
             message=message,
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
         )
