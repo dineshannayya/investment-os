@@ -291,3 +291,11 @@ def test_equal_response_objects() -> None:
     )
 
     assert response1.model_dump() == response2.model_dump()
+
+
+def test_fail_without_errors():
+    response = ApiResponse.fail(
+        message="Boom",
+    )
+
+    assert response.errors == []

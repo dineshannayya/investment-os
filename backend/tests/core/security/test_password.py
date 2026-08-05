@@ -6,9 +6,14 @@ from __future__ import annotations
 
 import pytest
 
+from unittest.mock import MagicMock
+
+import app.core.security.password as password_module
+
 from app.core.security.password import (
     hash_password,
     verify_password,
+    needs_rehash,
 )
 
 # =============================================================================
@@ -109,3 +114,20 @@ def test_verify_invalid_hash_returns_false() -> None:
         )
         is False
     )
+
+
+
+def test_needs_rehash_true(monkeypatch):
+    mock = MagicMock()
+    mock.verify_and_update.return_value = (
+        True,
+        "new-hash",
+    )
+
+    monkeypatch.setattr(
+        password_module,
+        "_password_hash",
+        mock,
+    )
+
+    assert needs_rehash("old-hash") is True

@@ -36,7 +36,8 @@ Coverage
 # Section 1 — ORM Metadata
 # These are structural tests that should never change unless the schema changes.
 from decimal import Decimal
-from uuid import UUID
+from uuid import UUID,uuid4
+
 
 from app.models import Investment
 from app.models.enums import InvestmentDecision, InvestmentStatus
@@ -351,3 +352,16 @@ def test_startup_navigation(investment_factory):
 #    text = repr(investment)
 #
 #    assert str(investment.amount) in text
+
+
+def test_repr():
+    investment = Investment()
+
+    investment.id = uuid4()
+    investment.decision = InvestmentDecision.APPROVED
+    investment.status = InvestmentStatus.DRAFT
+
+    result = repr(investment)
+
+    assert InvestmentDecision.APPROVED.value in result
+    assert InvestmentStatus.DRAFT.value in result

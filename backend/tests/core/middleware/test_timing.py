@@ -2,12 +2,17 @@
 Tests for timing middleware.
 """
 
+import asyncio
 import time
 
-from fastapi import FastAPI
+from types import SimpleNamespace
+from unittest.mock import MagicMock
+
+from fastapi import FastAPI, Request, Response
 from fastapi.testclient import TestClient
 
 from app.core.middleware import register_middlewares
+from app.core.middleware.timing import timing_middleware
 
 
 def create_app(delay: float = 0.0) -> FastAPI:
@@ -81,3 +86,22 @@ class TestTimingMiddleware:
             response = client.get("/health")
 
             assert "X-Response-Time" in response.headers
+
+    def test_without_request_context(self) -> None:
+        request = MagicMock(spec=Request)
+        request.state = SimpleNamespace()
+    
+        response = Response(status_code=200)
+    
+        async def call_next(_):
+            return response
+    
+        result = asyncio.run(
+            timing_middleware(
+                request,
+                call_next,
+            )
+        )
+    
+        assert result is response
+
