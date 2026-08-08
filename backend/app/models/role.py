@@ -13,14 +13,12 @@ Examples:
 
 from __future__ import annotations
 
-import uuid
-
+import sqlalchemy as sa
 from sqlalchemy import Boolean, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
-import sqlalchemy as sa
 
 from app.models.base import Base
-from app.models.mixins import UUIDMixin, TimestampMixin
+from app.models.mixins import TimestampMixin, UUIDMixin
 
 
 class Role(Base, UUIDMixin, TimestampMixin):

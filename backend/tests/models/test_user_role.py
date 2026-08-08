@@ -10,8 +10,6 @@ from datetime import UTC, datetime, timedelta
 import pytest
 from sqlalchemy.exc import IntegrityError
 
-from app.models.role import Role
-from app.models.user import User
 from app.models.user_role import UserRole
 
 

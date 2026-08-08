@@ -63,6 +63,11 @@ select = [
     "SIM",
 ]
 
+[tool.ruff.lint.per-file-ignores]
+"alembic/versions/*.py" = ["E501"]
+"app/schemas/response.py" = ["UP046"]
+
+
 ignore = []
 
 [tool.pytest.ini_options]

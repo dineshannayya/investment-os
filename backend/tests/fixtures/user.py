@@ -8,8 +8,8 @@ import uuid
 
 import pytest
 
-from app.models.user import User
 from app.core.security.password import hash_password
+from app.models.user import User
 
 
 @pytest.fixture

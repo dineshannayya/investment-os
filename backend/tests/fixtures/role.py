@@ -2,6 +2,7 @@ import pytest
 
 from app.models import Role
 
+
 @pytest.fixture
 def role_factory(db_session):
     def _create(**kwargs):

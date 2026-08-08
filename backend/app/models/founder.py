@@ -8,6 +8,7 @@ import uuid
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
+import sqlalchemy as sa
 from sqlalchemy import (
     Boolean,
     Enum,
@@ -17,8 +18,6 @@ from sqlalchemy import (
     Text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
-import sqlalchemy as sa
 
 from app.models.base import Base
 from app.models.enums import FounderRole

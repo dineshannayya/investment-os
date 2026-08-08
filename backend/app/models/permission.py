@@ -14,7 +14,6 @@ Examples:
 from __future__ import annotations
 
 import sqlalchemy as sa
-
 from sqlalchemy import Boolean, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 

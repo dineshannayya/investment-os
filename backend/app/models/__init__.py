@@ -12,10 +12,10 @@ from app.models.mixins import (
     UUIDMixin,
 )
 from app.models.opportunity import Opportunity
+from app.models.permission import Permission
+from app.models.role import Role
 from app.models.startup import Startup
 from app.models.user import User
-from app.models.role import Role
-from app.models.permission import Permission
 from app.models.user_role import UserRole
 
 __all__ = [

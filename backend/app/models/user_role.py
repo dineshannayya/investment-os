@@ -6,14 +6,14 @@ Represents assignment of a Role to a User.
 
 from __future__ import annotations
 
-import sqlalchemy as sa
+from datetime import datetime
 
+import sqlalchemy as sa
 from sqlalchemy import DateTime, ForeignKey, Index, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
 from app.models.mixins import TimestampMixin, UUIDMixin
-from datetime import datetime
 
 
 class UserRole(Base, UUIDMixin, TimestampMixin):

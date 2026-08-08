@@ -97,7 +97,13 @@ def create_access_token(
     return _create_token(
         subject=subject,
         token_type="access",
-        expires_delta=( expires_delta or timedelta( minutes=settings.jwt_access_token_expire_minutes,)),
+        expires_delta=( 
+            expires_delta 
+            or 
+            timedelta( 
+                minutes=settings.jwt_access_token_expire_minutes,
+            )
+        ),
         additional_claims=additional_claims,
     )
 

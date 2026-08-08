@@ -31,9 +31,6 @@ def user_role_factory(db_session, user_factory, role_factory):
         if role is None:
             role = role_factory()
 
-        if assigned_by_user is None and kwargs.get("assigned_by") is None:
-            assigned_by = kwargs.pop("assigned_by", None)
-
         user_role = UserRole(
             user=user,
             role=role,

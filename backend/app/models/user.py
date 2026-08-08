@@ -8,9 +8,9 @@ from __future__ import annotations
 
 from datetime import datetime
 
+import sqlalchemy as sa
 from sqlalchemy import Boolean, DateTime, String
 from sqlalchemy.orm import Mapped, mapped_column
-import sqlalchemy as sa
 
 from app.models.base import Base
 from app.models.mixins import (

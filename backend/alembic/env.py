@@ -9,16 +9,14 @@ from __future__ import annotations
 
 from logging.config import fileConfig
 
-from alembic import context
 from sqlalchemy import engine_from_config, pool
-
-from app.core.config.settings import settings
-from app.core.database.base import Base
 
 # Import all ORM models so that they are registered with Base.metadata.
 # Add new models here as they are introduced.
-
 import app.models  # noqa: F401
+from alembic import context
+from app.core.config.settings import settings
+from app.core.database.base import Base
 
 # ---------------------------------------------------------------------
 # Alembic configuration
