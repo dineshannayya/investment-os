@@ -170,12 +170,17 @@ class TestPermissionModel:
         permission = permission_factory()
 
         assert permission.id is not None
-        assert permission.name == "startup:read"
+        assert permission.name.startswith("startup:read:")
         assert permission.resource == "startup"
         assert permission.action == "read"
+        
+        assert permission.display_name.startswith("Startup Read")
+
 
     def test_permission_fixture(self, permission) -> None:
         """Fixture returns persisted permission."""
 
         assert permission.id is not None
-        assert permission.name == "startup:read"
+        assert permission.name.startswith("startup:read:")
+        assert permission.resource == "startup"
+        assert permission.action == "read"

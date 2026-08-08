@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import sqlalchemy as sa
 from sqlalchemy import Boolean, String, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
 from app.models.mixins import TimestampMixin, UUIDMixin
@@ -57,12 +57,26 @@ class Role(Base, UUIDMixin, TimestampMixin):
     # ------------------------------------------------------------------
     # Relationships
     # ------------------------------------------------------------------
-    #
-    # Added in Sprint 2.3A.3
-    #
-    # user_roles
-    # role_permissions
-    #
+    
+    user_roles: Mapped[list["UserRole"]] = relationship(
+        "UserRole",
+        back_populates="role",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+        doc="Users assigned to this role.",
+    )
+    
+    role_permissions: Mapped[list["RolePermission"]] = relationship(
+        "RolePermission",
+        back_populates="role",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+        doc="Permissions granted to this role.",
+    )
+
+    # ------------------------------------------------------------------
+    # Representation
+    # ------------------------------------------------------------------
 
     def __repr__(self) -> str:
         """Return developer-friendly representation."""

@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import sqlalchemy as sa
 from sqlalchemy import Boolean, String, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
 from app.models.mixins import TimestampMixin, UUIDMixin
@@ -90,6 +90,18 @@ class Permission(Base, UUIDMixin, TimestampMixin):
         default=False,
         server_default=sa.false(),
         doc="True if this permission is system-defined.",
+    )
+
+    # ------------------------------------------------------------------
+    # Relationships
+    # ------------------------------------------------------------------
+    
+    role_permissions: Mapped[list["RolePermission"]] = relationship(
+        "RolePermission",
+        back_populates="permission",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+        doc="Roles that grant this permission.",
     )
 
     # ------------------------------------------------------------------

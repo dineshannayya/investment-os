@@ -79,17 +79,19 @@ class RolePermission(Base, UUIDMixin, TimestampMixin):
     # Relationships
     # ------------------------------------------------------------------
 
-    role = relationship(
+    role: Mapped["Role"] = relationship(
         "Role",
+        back_populates="role_permissions",
         lazy="selectin",
     )
 
-    permission = relationship(
+    permission: Mapped["Permission"] = relationship(
         "Permission",
+        back_populates="role_permissions",
         lazy="selectin",
     )
 
-    granted_by_user = relationship(
+    granted_by_user: Mapped["User | None"] = relationship(
         "User",
         foreign_keys=[granted_by],
         lazy="selectin",

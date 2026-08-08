@@ -17,11 +17,19 @@ def permission_factory(db_session):
     Returns:
         Callable that creates and persists Permission objects.
     """
+    import uuid
 
     def _create(**kwargs) -> Permission:
+        suffix = uuid.uuid4().hex[:8]
         permission = Permission(
-            name=kwargs.pop("name", "startup:read"),
-            display_name=kwargs.pop("display_name", "Read Startup"),
+            name=kwargs.pop(
+                "name",
+                f"startup:read:{suffix}",
+            ),
+            display_name=kwargs.pop(
+                "display_name",
+                f"Startup Read {suffix}",
+            ),
             description=kwargs.pop(
                 "description",
                 "Allows reading startup information.",

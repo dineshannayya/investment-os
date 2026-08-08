@@ -10,7 +10,7 @@ from datetime import datetime
 
 import sqlalchemy as sa
 from sqlalchemy import Boolean, DateTime, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
 from app.models.mixins import (
@@ -83,6 +83,19 @@ class User(Base, UUIDMixin, TimestampMixin):
     last_login: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
+    )
+
+    # -------------------------------------------------------------------------
+    # Relationships
+    # -------------------------------------------------------------------------
+    
+    user_roles: Mapped[list["UserRole"]] = relationship(
+        "UserRole",
+        back_populates="user",
+        foreign_keys="UserRole.user_id",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+        doc="Role assignments for this user.",
     )
 
     # -------------------------------------------------------------------------
