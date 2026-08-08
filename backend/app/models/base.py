@@ -1,13 +1,9 @@
 """
-Base declarative model for all ORM entities.
+Base declarative model.
+
+Re-export the application's shared SQLAlchemy Base.
 """
 
-from sqlalchemy.orm import DeclarativeBase
+from app.core.database.base import Base
 
-
-class Base(DeclarativeBase):
-    """
-    Base class for all SQLAlchemy ORM models.
-    """
-
-    pass
+__all__ = ["Base"]

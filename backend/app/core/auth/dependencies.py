@@ -15,7 +15,6 @@ from app.core.database.dependencies import get_db
 from app.repositories.user_repository import UserRepository
 from app.services.auth_service import AuthService
 
-
 # =============================================================================
 # Repository Dependencies
 # =============================================================================

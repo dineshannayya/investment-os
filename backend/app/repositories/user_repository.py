@@ -10,6 +10,7 @@ from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import select
+
 from app.models.user import User
 from app.repositories.base import Repository
 

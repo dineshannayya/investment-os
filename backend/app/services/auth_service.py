@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from uuid import UUID
 
+from app.core.config import settings
+from app.core.exceptions import AuthenticationException
 from app.core.security.jwt import (
     create_access_token,
     create_refresh_token,
@@ -18,12 +20,10 @@ from app.core.security.password import verify_password
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
 from app.schemas.auth import (
-    TokenData,
     AuthenticatedUser,
     LoginResponse,
+    TokenData,
 )
-from app.core.config import settings
-from app.core.exceptions import AuthenticationException
 
 
 class AuthService:

@@ -14,7 +14,7 @@ from app.models.mixins import (
 from app.models.opportunity import Opportunity
 from app.models.startup import Startup
 from app.models.user import User
-
+from app.models.role import Role
 
 __all__ = [
     # Base
@@ -30,4 +30,6 @@ __all__ = [
     "Document",
     "Investment",
     "User",
+   # Role
+    "Role",
 ]

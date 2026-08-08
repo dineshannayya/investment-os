@@ -10,7 +10,6 @@ from fastapi.security import OAuth2PasswordBearer
 
 from app.core.config import API_PREFIX
 
-
 # =============================================================================
 # OAuth2 Bearer Scheme
 # =============================================================================

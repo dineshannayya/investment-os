@@ -9,19 +9,19 @@ from __future__ import annotations
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, status
-from app.core.config import settings
 
 from app.core.auth import (
     get_auth_service,
     get_current_active_user,
 )
+from app.core.config import settings
 from app.models.user import User
 from app.schemas.auth import (
+    AuthenticatedUser,
     LoginRequest,
     LoginResponse,
     RefreshTokenRequest,
     RefreshTokenResponse,
-    AuthenticatedUser,
 )
 from app.schemas.response import ApiResponse
 from app.services.auth_service import AuthService

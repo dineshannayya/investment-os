@@ -21,12 +21,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from app.core.config import settings
-from app.core.config.error_codes import ErrorCode
 from app.main import app as fastapi_app
-from app.schemas.error import ErrorDetail
-from app.schemas.pagination import PaginationMeta
-from app.schemas.response import ResponseMeta
-
 
 pytest_plugins = [
     # Infrastructure
@@ -36,6 +31,7 @@ pytest_plugins = [
     "tests.fixtures.orm",
     "tests.fixtures.auth",
     "tests.fixtures.responses",
+    "tests.fixtures.role",
 
     # Test scenarios
     "tests.investment_scenarios",

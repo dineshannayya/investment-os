@@ -6,11 +6,11 @@ Defines the canonical exception types used throughout Investment OS.
 
 from __future__ import annotations
 
+from http import HTTPStatus
+from typing import Any
+
 from app.core.config.error_codes import ErrorCode
 
-from http import HTTPStatus
-
-from typing import Any
 
 class AppException(Exception):
     """

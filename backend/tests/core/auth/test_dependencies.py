@@ -15,7 +15,6 @@ from app.core.auth.dependencies import (
 from app.repositories.user_repository import UserRepository
 from app.services.auth_service import AuthService
 
-
 # =============================================================================
 # TestGetUserRepository
 # =============================================================================

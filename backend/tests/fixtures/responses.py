@@ -1,9 +1,11 @@
 
 import pytest
+
 from app.core.config.error_codes import ErrorCode
+from app.schemas.error import ErrorDetail
 from app.schemas.pagination import PaginationMeta
 from app.schemas.response import ResponseMeta
-from app.schemas.error import ErrorDetail
+
 # =============================================================================
 # Common Schema Fixtures
 # =============================================================================

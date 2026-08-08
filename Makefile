@@ -117,7 +117,50 @@ clean:
 shell:
 	$(UV) run python
 
+# -----------------------------------------------
+# Alembic commands 
+# To generate : make revision "create_roles_table"
+# 1. Generate migration
+# make alembic_revision MSG="initial_schema"
+# 
+# 2. Review the generated migration
+# vim alembic/versions/*.py
+# 
+# 3. Apply it
+# make alembic_upgrade
+# 
+# 4. Verify current revision
+# make alembic_current
+# 
+# 5. Run the test suite
+# docker compose exec backend pytest tests -v
+# 
+# ----------------------------------------------
 
+alembic_migrate:
+	docker compose exec backend alembic upgrade head
+
+alembic_revision:
+	@test -n "$(MSG)" || (echo "Usage: make alembic_revision MSG=\"create_roles_table\"" && exit 1)
+	docker compose exec backend alembic revision --autogenerate -m "$(MSG)"
+
+alembic_upgrade:
+	docker compose exec backend alembic upgrade head
+
+alembic_downgrade:
+	docker compose exec backend alembic downgrade -1
+
+alembic_current:
+	docker compose exec backend alembic current
+
+alembic_history:
+	docker compose exec backend alembic history
+
+alembic_heads:
+	docker compose exec backend alembic heads
+
+alembic_check:
+	docker compose exec backend alembic check
 
 # -------------------------------------
 # Tests
@@ -143,6 +186,7 @@ test-all:
 
 # --------------------------------
 # Database
+# --------------------------------
 
 db-revision:
 	$(UV) run alembic revision --autogenerate -m "$(MSG)"

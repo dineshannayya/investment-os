@@ -9,16 +9,15 @@ from uuid import uuid4
 
 import pytest
 
+from app.core.config import settings
+from app.core.exceptions import AuthenticationException
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
-from app.services.auth_service import AuthService
-from app.core.exceptions import AuthenticationException
-from app.core.config import settings
 from app.schemas.auth import (
-    TokenData,
-    AuthenticatedUser,
     LoginResponse,
+    TokenData,
 )
+from app.services.auth_service import AuthService
 
 # --------------------------------------------
 #  fixtures

@@ -8,13 +8,13 @@ Investment OS APIs.
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from typing import Generic, TypeVar
 
 from pydantic import Field
 
 from app.schemas.base import BaseSchema
 from app.schemas.error import ErrorDetail
 from app.schemas.pagination import PaginationMeta
-from typing import Generic, TypeVar
 
 T = TypeVar("T")
 

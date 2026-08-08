@@ -4,18 +4,15 @@ Unit tests for global exception handlers.
 
 from __future__ import annotations
 
-import pytest
 import asyncio
 import json
-
-from fastapi import Request
-from app.core.config.error_codes import ErrorCode
-
+from types import SimpleNamespace
 from unittest.mock import MagicMock
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 
+from app.core.config.error_codes import ErrorCode
 from app.core.exception_handlers import (
     app_exception_handler,
     register_exception_handlers,
@@ -23,7 +20,6 @@ from app.core.exception_handlers import (
     validation_exception_handler,
 )
 from app.core.exceptions import AppException
-from types import SimpleNamespace
 
 # =============================================================================
 # TestRegisterExceptionHandlers

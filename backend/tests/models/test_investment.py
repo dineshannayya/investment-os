@@ -36,8 +36,7 @@ Coverage
 # Section 1 — ORM Metadata
 # These are structural tests that should never change unless the schema changes.
 from decimal import Decimal
-from uuid import UUID,uuid4
-
+from uuid import UUID, uuid4
 
 from app.models import Investment
 from app.models.enums import InvestmentDecision, InvestmentStatus

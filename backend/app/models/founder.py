@@ -18,6 +18,8 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+import sqlalchemy as sa
+
 from app.models.base import Base
 from app.models.enums import FounderRole
 from app.models.mixins import (
@@ -109,6 +111,7 @@ class Founder(
         Boolean,
         nullable=False,
         default=False,
+        server_default=sa.false(),
     )
 
     #

@@ -10,6 +10,7 @@ from datetime import datetime
 
 from sqlalchemy import Boolean, DateTime, String
 from sqlalchemy.orm import Mapped, mapped_column
+import sqlalchemy as sa
 
 from app.models.base import Base
 from app.models.mixins import (
@@ -58,18 +59,21 @@ class User(Base, UUIDMixin, TimestampMixin):
         Boolean,
         default=True,
         nullable=False,
+        server_default=sa.true(),
     )
 
     is_superuser: Mapped[bool] = mapped_column(
         Boolean,
         default=False,
         nullable=False,
+        server_default=sa.false(),
     )
 
     email_verified: Mapped[bool] = mapped_column(
         Boolean,
         default=False,
         nullable=False,
+        server_default=sa.false(),
     )
 
     # -------------------------------------------------------------------------

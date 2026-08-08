@@ -4,16 +4,15 @@ Unit tests for password hashing utilities.
 
 from __future__ import annotations
 
-import pytest
-
 from unittest.mock import MagicMock
 
-import app.core.security.password as password_module
+import pytest
 
+import app.core.security.password as password_module
 from app.core.security.password import (
     hash_password,
-    verify_password,
     needs_rehash,
+    verify_password,
 )
 
 # =============================================================================

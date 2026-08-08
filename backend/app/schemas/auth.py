@@ -7,12 +7,11 @@ Request and response models for authentication APIs.
 from __future__ import annotations
 
 from datetime import datetime
+from uuid import UUID
 
 from pydantic import EmailStr, Field
 
 from app.schemas.base import BaseSchema
-
-from uuid import UUID
 
 # =============================================================================
 # Login

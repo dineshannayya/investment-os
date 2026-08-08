@@ -4,7 +4,6 @@ Tests for timing middleware.
 
 import asyncio
 import time
-
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 

@@ -7,22 +7,18 @@ from unittest.mock import MagicMock
 import pytest
 from fastapi.testclient import TestClient
 
-from uuid import uuid4
-
+from app.core.auth.current_user import get_current_active_user
 from app.core.auth.dependencies import get_auth_service
 from app.core.exceptions import (
     AuthenticationException,
     AuthorizationException,
 )
-
 from app.main import app
 from app.schemas.auth import (
     AuthenticatedUser,
     LoginResponse,
     TokenData,
 )
-
-from app.core.auth.current_user import get_current_active_user
 
 #Test Class
 

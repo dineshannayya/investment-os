@@ -1,10 +1,9 @@
+from unittest.mock import MagicMock
 from uuid import uuid4
 
 import pytest
 
 from app.schemas.auth import AuthenticatedUser
-
-from unittest.mock import MagicMock
 
 
 @pytest.fixture
