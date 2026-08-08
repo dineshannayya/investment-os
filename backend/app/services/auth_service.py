@@ -45,7 +45,7 @@ class AuthService:
         self,
         email: str,
         password: str,
-    ) -> User :
+    ) -> User:
         """
         Authenticate a user using email and password.
         """
@@ -54,7 +54,7 @@ class AuthService:
 
         if user is None:
             raise AuthenticationException("Invalid email or password")
-        
+
         if not user.is_active:
             raise AuthenticationException("User account is inactive")
 
@@ -71,7 +71,7 @@ class AuthService:
         self,
         email: str,
         password: str,
-    ) -> LoginResponse :
+    ) -> LoginResponse:
         """
         Authenticate a user and issue JWT tokens.
         """
@@ -82,10 +82,14 @@ class AuthService:
 
         return LoginResponse(
             tokens=TokenData(
-                access_token=create_access_token( subject=str(user.id),),
-                refresh_token=create_refresh_token( subject=str(user.id),),
+                access_token=create_access_token(
+                    subject=str(user.id),
+                ),
+                refresh_token=create_refresh_token(
+                    subject=str(user.id),
+                ),
                 token_type="bearer",
-                expires_in=settings.jwt_access_token_expire_minutes * 60 ,
+                expires_in=settings.jwt_access_token_expire_minutes * 60,
             ),
             user=AuthenticatedUser.model_validate(user),
         )
@@ -105,17 +109,23 @@ class AuthService:
         payload = decode_token(refresh_token)
 
         if not is_refresh_token(payload):
-            raise AuthenticationException( "Invalid refresh token",)
+            raise AuthenticationException(
+                "Invalid refresh token",
+            )
 
         user = self._repository.get_by_id(
             UUID(payload["sub"]),
         )
 
         if user is None:
-            raise AuthenticationException( "User not found",)
+            raise AuthenticationException(
+                "User not found",
+            )
 
         if not user.is_active:
-            raise AuthenticationException( "User account is inactive",)
+            raise AuthenticationException(
+                "User account is inactive",
+            )
 
         return TokenData(
             access_token=create_access_token(

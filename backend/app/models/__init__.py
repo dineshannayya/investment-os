@@ -14,6 +14,7 @@ from app.models.mixins import (
 from app.models.opportunity import Opportunity
 from app.models.permission import Permission
 from app.models.role import Role
+from app.models.role_permission import RolePermission
 from app.models.startup import Startup
 from app.models.user import User
 from app.models.user_role import UserRole
@@ -32,11 +33,12 @@ __all__ = [
     "Document",
     "Investment",
     "User",
-   # Role
+    # Role
     "Role",
-   # Permission
+    # Permission
     "Permission",
-   #UserRole
+    # UserRole
     "UserRole",
-
+    # RolePermission
+    "RolePermission",
 ]

@@ -48,9 +48,7 @@ def test_decode_access_token() -> None:
 def test_access_token_identification() -> None:
     """Access token should be identified correctly."""
 
-    payload = decode_token(
-        create_access_token(subject="user-123")
-    )
+    payload = decode_token(create_access_token(subject="user-123"))
 
     assert is_access_token(payload)
     assert not is_refresh_token(payload)
@@ -84,9 +82,7 @@ def test_decode_refresh_token() -> None:
 def test_refresh_token_identification() -> None:
     """Refresh token should be identified correctly."""
 
-    payload = decode_token(
-        create_refresh_token(subject="user-123")
-    )
+    payload = decode_token(create_refresh_token(subject="user-123"))
 
     assert is_refresh_token(payload)
     assert not is_access_token(payload)
@@ -147,13 +143,13 @@ def test_corrupted_token() -> None:
     """Corrupted JWT signature should fail validation."""
 
     token = create_access_token(subject="user-123")
-    
+
     parts = token.split(".")
-    
+
     parts[2] = "invalid-signature"
-    
+
     corrupted = ".".join(parts)
-    
+
     with pytest.raises(jwt.InvalidTokenError):
         decode_token(corrupted)
 
@@ -191,13 +187,9 @@ def test_subject_roundtrip(subject: str) -> None:
 def test_access_and_refresh_tokens_are_different() -> None:
     """Access and refresh tokens should carry different types."""
 
-    access = decode_token(
-        create_access_token(subject="user-123")
-    )
+    access = decode_token(create_access_token(subject="user-123"))
 
-    refresh = decode_token(
-        create_refresh_token(subject="user-123")
-    )
+    refresh = decode_token(create_refresh_token(subject="user-123"))
 
     assert access["type"] == "access"
     assert refresh["type"] == "refresh"

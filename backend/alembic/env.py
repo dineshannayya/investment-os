@@ -40,6 +40,7 @@ target_metadata = Base.metadata
 # Offline migrations
 # ---------------------------------------------------------------------
 
+
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""
 
@@ -61,6 +62,7 @@ def run_migrations_offline() -> None:
 # ---------------------------------------------------------------------
 # Online migrations
 # ---------------------------------------------------------------------
+
 
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode."""

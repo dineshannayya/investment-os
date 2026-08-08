@@ -89,18 +89,17 @@ class TestTimingMiddleware:
     def test_without_request_context(self) -> None:
         request = MagicMock(spec=Request)
         request.state = SimpleNamespace()
-    
+
         response = Response(status_code=200)
-    
+
         async def call_next(_):
             return response
-    
+
         result = asyncio.run(
             timing_middleware(
                 request,
                 call_next,
             )
         )
-    
-        assert result is response
 
+        assert result is response

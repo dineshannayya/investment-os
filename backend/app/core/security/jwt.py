@@ -53,11 +53,11 @@ def _create_token(
     expire = now + expires_delta
 
     payload: dict[str, Any] = {
-        CLAIM_SUBJECT    : subject,
-        CLAIM_TYPE       : token_type,
-        CLAIM_ISSUED_AT  : now,
-        CLAIM_EXPIRATION : expire,
-        CLAIM_ISSUER     : settings.jwt_issuer,
+        CLAIM_SUBJECT: subject,
+        CLAIM_TYPE: token_type,
+        CLAIM_ISSUED_AT: now,
+        CLAIM_EXPIRATION: expire,
+        CLAIM_ISSUER: settings.jwt_issuer,
     }
 
     if additional_claims:
@@ -97,15 +97,15 @@ def create_access_token(
     return _create_token(
         subject=subject,
         token_type="access",
-        expires_delta=( 
-            expires_delta 
-            or 
-            timedelta( 
+        expires_delta=(
+            expires_delta
+            or timedelta(
                 minutes=settings.jwt_access_token_expire_minutes,
             )
         ),
         additional_claims=additional_claims,
     )
+
 
 def create_refresh_token(
     subject: str,
@@ -118,7 +118,12 @@ def create_refresh_token(
     return _create_token(
         subject=subject,
         token_type="refresh",
-        expires_delta=( expires_delta or timedelta( days=settings.jwt_refresh_token_expire_days,)),
+        expires_delta=(
+            expires_delta
+            or timedelta(
+                days=settings.jwt_refresh_token_expire_days,
+            )
+        ),
     )
 
 
@@ -148,7 +153,6 @@ def decode_token(
             "require": ["sub", "exp", "iat", "type"],
         },
     )
-
 
 
 def is_access_token(

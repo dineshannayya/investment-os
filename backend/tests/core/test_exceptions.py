@@ -24,6 +24,7 @@ from app.core.exceptions import (
 # Base Exception
 # -------------------------------------------
 
+
 class TestAppException:
     """Tests for AppException."""
 
@@ -43,9 +44,11 @@ class TestAppException:
         assert exc.field == "email"
         assert exc.details == {"id": 1}
 
+
 # -------------------------------------------
 # ValidationException
 # -------------------------------------------
+
 
 class TestValidationException:
 
@@ -61,9 +64,11 @@ class TestValidationException:
         assert exc.field == "email"
         assert exc.message == "Invalid email"
 
+
 # -------------------------------------------
 # AuthenticationException
 # -------------------------------------------
+
 
 class TestAuthenticationException:
 
@@ -79,9 +84,11 @@ class TestAuthenticationException:
 
         assert exc.message == "Invalid password"
 
+
 # -------------------------------------------
 # AuthorizationException
 # -------------------------------------------
+
 
 class TestAuthorizationException:
 
@@ -96,9 +103,11 @@ class TestAuthorizationException:
 
         assert exc.message == "Admin only"
 
+
 # -------------------------------------------
 # NotFoundException
 # -------------------------------------------
+
 
 class TestNotFoundException:
 
@@ -113,9 +122,11 @@ class TestNotFoundException:
 
         assert exc.message == "Startup not found"
 
+
 # -------------------------------------------
 # ConflictException
 # -------------------------------------------
+
 
 class TestConflictException:
 
@@ -130,9 +141,11 @@ class TestConflictException:
 
         assert exc.message == "Duplicate email"
 
+
 # -------------------------------------------
 # BusinessRuleException
 # -------------------------------------------
+
 
 class TestBusinessRuleException:
 
@@ -145,9 +158,11 @@ class TestBusinessRuleException:
         assert exc.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
         assert exc.message == "Investment limit exceeded"
 
+
 # -------------------------------------------
 # DatabaseException
 # -------------------------------------------
+
 
 class TestDatabaseException:
 
@@ -162,9 +177,11 @@ class TestDatabaseException:
 
         assert exc.message == "Connection lost"
 
+
 # -------------------------------------------
 # ExternalServiceException
 # -------------------------------------------
+
 
 class TestExternalServiceException:
 
@@ -179,9 +196,11 @@ class TestExternalServiceException:
 
         assert exc.message == "OpenAI unavailable"
 
+
 # -------------------------------------------
 # InternalServerException
 # -------------------------------------------
+
 
 class TestInternalServerException:
 
@@ -195,5 +214,3 @@ class TestInternalServerException:
         exc = InternalServerException("Unexpected error")
 
         assert exc.message == "Unexpected error"
-
-

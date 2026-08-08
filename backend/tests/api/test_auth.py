@@ -20,18 +20,18 @@ from app.schemas.auth import (
     TokenData,
 )
 
-#Test Class
+# Test Class
+
 
 class TestLogin:
     """Tests for POST /auth/login."""
+
 
 @pytest.fixture
 def authenticated_client(
     authenticated_user: AuthenticatedUser,
 ):
-    app.dependency_overrides[get_current_active_user] = (
-        lambda: authenticated_user
-    )
+    app.dependency_overrides[get_current_active_user] = lambda: authenticated_user
 
     with TestClient(app) as client:
         yield client
@@ -43,16 +43,16 @@ def authenticated_client(
 def client(mock_auth_service):
     """Test client with overridden AuthService."""
 
-    app.dependency_overrides[get_auth_service] = (
-        lambda: mock_auth_service
-    )
+    app.dependency_overrides[get_auth_service] = lambda: mock_auth_service
 
     with TestClient(app) as client:
         yield client
 
     app.dependency_overrides.clear()
 
+
 # Test 1 — Successful Login
+
 
 def test_login_success(
     client: TestClient,
@@ -70,7 +70,6 @@ def test_login_success(
         ),
         user=authenticated_user,
     )
-
 
     response = client.post(
         "/api/v1/auth/login",
@@ -92,7 +91,9 @@ def test_login_success(
 
     mock_auth_service.login.assert_called_once()
 
+
 # Test 2 — Invalid Password
+
 
 def test_invalid_password(
     client: TestClient,
@@ -100,9 +101,7 @@ def test_invalid_password(
 ):
     """Invalid password returns 401."""
 
-    mock_auth_service.login.side_effect = AuthenticationException(
-        "Invalid email or password"
-    )
+    mock_auth_service.login.side_effect = AuthenticationException("Invalid email or password")
 
     response = client.post(
         "/api/v1/auth/login",
@@ -114,7 +113,9 @@ def test_invalid_password(
 
     assert response.status_code == 401
 
+
 # Test 3 — Unknown Email
+
 
 def test_unknown_email(
     client: TestClient,
@@ -122,9 +123,7 @@ def test_unknown_email(
 ):
     """Unknown email returns 401."""
 
-    mock_auth_service.login.side_effect = AuthenticationException(
-        "Invalid email or password"
-    )
+    mock_auth_service.login.side_effect = AuthenticationException("Invalid email or password")
 
     response = client.post(
         "/api/v1/auth/login",
@@ -136,7 +135,9 @@ def test_unknown_email(
 
     assert response.status_code == 401
 
+
 # Test 4 — Inactive User
+
 
 def test_inactive_user(
     client: TestClient,
@@ -144,9 +145,7 @@ def test_inactive_user(
 ):
     """Inactive users cannot log in."""
 
-    mock_auth_service.login.side_effect = AuthorizationException(
-        "User account is inactive"
-    )
+    mock_auth_service.login.side_effect = AuthorizationException("User account is inactive")
 
     response = client.post(
         "/api/v1/auth/login",
@@ -158,7 +157,9 @@ def test_inactive_user(
 
     assert response.status_code == 403
 
+
 # Test 5 — Validation Error
+
 
 @pytest.mark.parametrize(
     "payload",
@@ -185,6 +186,7 @@ def test_login_validation_error(
 
     assert response.status_code == 422
 
+
 # -------------------------------------
 # TestRefreshToken
 # -------------------------------------
@@ -198,12 +200,12 @@ class TestRefreshToken:
     ) -> None:
         """Valid refresh token returns a new access token."""
 
-        #mock_auth_service.refresh_access_token.return_value = TokenData(
+        # mock_auth_service.refresh_access_token.return_value = TokenData(
         #    access_token="new-access-token",
         #    refresh_token="refresh-token",
         #    token_type="bearer",
         #    expires_in=1800,
-        #)
+        # )
         mock_auth_service.refresh_access_token.return_value = "new-access-token"
 
         response = client.post(
@@ -232,8 +234,8 @@ class TestRefreshToken:
     ) -> None:
         """Invalid refresh token returns 401."""
 
-        mock_auth_service.refresh_access_token.side_effect = (
-            AuthenticationException("Invalid refresh token")
+        mock_auth_service.refresh_access_token.side_effect = AuthenticationException(
+            "Invalid refresh token"
         )
 
         response = client.post(
@@ -258,8 +260,9 @@ class TestRefreshToken:
 
         assert response.status_code == 422
 
+
 # ---------------------------------------
-# 
+#
 # ---------------------------------------
 class TestCurrentUser:
     """Tests for GET /auth/me."""

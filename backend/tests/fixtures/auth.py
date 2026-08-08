@@ -22,6 +22,7 @@ def authenticated_user() -> AuthenticatedUser:
 
 # tests/fixtures/auth.py
 
+
 @pytest.fixture
 def mock_auth_service() -> MagicMock:
     """Mock authentication service."""

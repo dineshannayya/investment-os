@@ -26,7 +26,6 @@ from app.main import app as fastapi_app
 pytest_plugins = [
     # Infrastructure
     "tests.database",
-
     # Shared fixtures
     "tests.fixtures.orm",
     "tests.fixtures.auth",
@@ -35,7 +34,7 @@ pytest_plugins = [
     "tests.fixtures.permission",
     "tests.fixtures.user",
     "tests.fixtures.user_role",
-
+    "tests.fixtures.role_permission",
     # Test scenarios
     "tests.investment_scenarios",
 ]
@@ -113,5 +112,3 @@ def get_openapi_response(client: TestClient):
     Execute GET /openapi.json
     """
     return client.get("/openapi.json")
-
-

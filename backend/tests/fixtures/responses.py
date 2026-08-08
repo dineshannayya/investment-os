@@ -1,4 +1,3 @@
-
 import pytest
 
 from app.core.config.error_codes import ErrorCode

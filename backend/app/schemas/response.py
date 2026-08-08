@@ -60,8 +60,7 @@ class ApiResponse(BaseSchema, Generic[T]):
             meta=meta,
             errors=[],
         )
-    
-    
+
     @classmethod
     def fail(
         cls,
@@ -77,7 +76,6 @@ class ApiResponse(BaseSchema, Generic[T]):
             meta=meta,
             errors=errors or [],
         )
-
 
     success: bool = Field(
         ...,
@@ -106,5 +104,3 @@ class ApiResponse(BaseSchema, Generic[T]):
 
 
 ApiResponse.model_rebuild()
-
-

@@ -17,11 +17,13 @@ from app.repositories.user_repository import UserRepository
 class TestUserRepository:
     """Tests for UserRepository."""
 
+
 @pytest.fixture
 def repository(db_session: Session) -> UserRepository:
     """Return UserRepository instance."""
 
     return UserRepository(db_session)
+
 
 @pytest.fixture
 def sample_user(db_session: Session) -> User:
@@ -45,6 +47,7 @@ def sample_user(db_session: Session) -> User:
 
     return user
 
+
 def test_exists_by_email(
     repository: UserRepository,
     sample_user: User,
@@ -55,6 +58,7 @@ def test_exists_by_email(
         sample_user.email,
     )
 
+
 def test_email_not_exists(
     repository: UserRepository,
 ):
@@ -63,6 +67,7 @@ def test_email_not_exists(
     assert not repository.exists_by_email(
         "unknown@example.com",
     )
+
 
 def test_get_active_user(
     repository: UserRepository,
@@ -75,6 +80,7 @@ def test_get_active_user(
     )
 
     assert result is not None
+
 
 def test_get_inactive_user_returns_none(
     repository: UserRepository,
@@ -93,6 +99,7 @@ def test_get_inactive_user_returns_none(
 
     assert result is None
 
+
 def test_is_superuser(
     repository: UserRepository,
     sample_user: User,
@@ -104,6 +111,7 @@ def test_is_superuser(
     )
 
     assert result.is_superuser
+
 
 # ----------------------------------
 #  TestQueries
@@ -119,12 +127,14 @@ def test_get_by_id_found(
     assert result is not None
     assert result.id == sample_user.id
 
+
 def test_get_by_id_not_found(
     repository: UserRepository,
 ):
     """Unknown ID returns None."""
 
     assert repository.get_by_id(uuid4()) is None
+
 
 def test_get_by_email_found(
     repository: UserRepository,
@@ -139,6 +149,7 @@ def test_get_by_email_found(
     assert result is not None
     assert result.id == sample_user.id
     assert result.email == sample_user.email
+
 
 def test_get_by_email_not_found(
     repository: UserRepository,
@@ -161,6 +172,7 @@ def test_list_active(
     assert len(users) == 1
     assert users[0].id == sample_user.id
 
+
 def test_list_superusers(
     repository: UserRepository,
     sample_user: User,
@@ -169,6 +181,7 @@ def test_list_superusers(
 
     assert len(users) == 1
     assert users[0].is_superuser
+
 
 def test_search_by_email(
     repository: UserRepository,
@@ -179,6 +192,7 @@ def test_search_by_email(
     assert len(users) == 1
     assert users[0].email == sample_user.email
 
+
 def test_search_by_name(
     repository: UserRepository,
     sample_user: User,
@@ -188,9 +202,11 @@ def test_search_by_name(
     assert len(users) == 1
     assert users[0].full_name == sample_user.full_name
 
+
 # ----------------------------------
 #
 # ----------------------------------
+
 
 def test_create(
     repository: UserRepository,
@@ -207,6 +223,7 @@ def test_create(
 
     assert result.id == user.id
 
+
 def test_update(
     repository: UserRepository,
     sample_user: User,
@@ -216,6 +233,7 @@ def test_update(
     result = repository.update(sample_user)
 
     assert result.full_name == "Updated Name"
+
 
 def test_delete(
     repository: UserRepository,
@@ -237,6 +255,7 @@ def test_update_password(
 
     assert sample_user.password_hash == "new-password-hash"
 
+
 def test_verify_email(
     repository: UserRepository,
     sample_user: User,
@@ -246,7 +265,6 @@ def test_verify_email(
     repository.verify_email(sample_user)
 
     assert sample_user.email_verified is True
-
 
 
 # ----------------------------------

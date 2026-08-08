@@ -34,6 +34,7 @@ class AppException(Exception):
         self.field = field
         self.details = details or {}
 
+
 class ValidationException(AppException):
     """Raised when request validation fails."""
 

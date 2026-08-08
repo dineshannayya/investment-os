@@ -72,41 +72,38 @@ class TestUnhandledExceptionHandler:
         assert response.status_code == 500
 
         payload = json.loads(response.body)
-        
+
         assert payload["success"] is False
         assert payload["message"] == "Internal server error."
         assert payload["meta"]["request_id"] == "req-123"
-        
+
         assert payload["errors"][0]["code"] == ErrorCode.INTERNAL_ERROR.value
         assert payload["errors"][0]["message"] == "Internal server error."
-        
-
 
     def test_without_request_id(self) -> None:
         """Should handle requests without a request_id."""
-    
+
         request = MagicMock(spec=Request)
         request.state = SimpleNamespace()
-    
+
         # Simulate request.state without request_id
         if hasattr(request.state, "request_id"):
             delattr(request.state, "request_id")
-   
-        # request.state has no request_id attribute 
+
+        # request.state has no request_id attribute
         response = asyncio.run(
             unhandled_exception_handler(
                 request,
                 RuntimeError("boom"),
             )
         )
-    
+
         assert response.status_code == 500
-    
+
         payload = json.loads(response.body)
-        
+
         assert payload["success"] is False
         assert payload["message"] == "Internal server error."
         assert payload["meta"]["request_id"] is None
-        
-        assert payload["errors"][0]["code"] == ErrorCode.INTERNAL_ERROR.value
 
+        assert payload["errors"][0]["code"] == ErrorCode.INTERNAL_ERROR.value

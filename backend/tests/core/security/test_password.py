@@ -115,7 +115,6 @@ def test_verify_invalid_hash_returns_false() -> None:
     )
 
 
-
 def test_needs_rehash_true(monkeypatch):
     mock = MagicMock()
     mock.verify_and_update.return_value = (

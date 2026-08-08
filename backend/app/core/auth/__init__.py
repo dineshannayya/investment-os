@@ -19,11 +19,9 @@ from app.core.auth.oauth2 import oauth2_scheme
 __all__ = [
     # OAuth2
     "oauth2_scheme",
-
     # Dependencies
     "get_user_repository",
     "get_auth_service",
-
     # Current User
     "get_current_user",
     "get_current_active_user",

@@ -12,4 +12,3 @@ class BaseSchema(BaseModel):
         validate_assignment=True,
         populate_by_name=True,
     )
-

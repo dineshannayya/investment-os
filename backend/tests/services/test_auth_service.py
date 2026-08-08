@@ -23,11 +23,13 @@ from app.services.auth_service import AuthService
 #  fixtures
 # --------------------------------------------
 
+
 @pytest.fixture
 def repository() -> MagicMock:
     """Mock UserRepository."""
 
     return MagicMock(spec=UserRepository)
+
 
 @pytest.fixture
 def auth_service(
@@ -53,9 +55,11 @@ def sample_user() -> User:
         last_login=None,
     )
 
+
 # -----------------------------------------
 # TestAuthenticateUser
 # -----------------------------------------
+
 
 class TestAuthenticateUser:
     """Tests for AuthService.authenticate_user()."""
@@ -180,9 +184,11 @@ class TestAuthenticateUser:
 
         assert "inactive" in str(exc_info.value).lower()
 
+
 # ----------------------------------------
 # TestLogin
 # ----------------------------------------
+
 
 class TestLogin:
     """Tests for AuthService.login()."""
@@ -232,10 +238,7 @@ class TestLogin:
         assert response.tokens.access_token == "access-token"
         assert response.tokens.refresh_token == "refresh-token"
         assert response.tokens.token_type == "bearer"
-        assert (
-            response.tokens.expires_in
-            == settings.jwt_access_token_expire_minutes * 60
-        )
+        assert response.tokens.expires_in == settings.jwt_access_token_expire_minutes * 60
 
         #
         # User
@@ -301,6 +304,7 @@ class TestLogin:
 # TestRefreshToken
 # ----------------------------------------------------------------
 
+
 class TestRefreshToken:
     """Tests for AuthService.refresh_access_token()."""
 
@@ -342,10 +346,7 @@ class TestRefreshToken:
         assert response.access_token == "new-access-token"
         assert response.refresh_token == "refresh-token"
         assert response.token_type == "bearer"
-        assert (
-            response.expires_in
-            == settings.jwt_access_token_expire_minutes * 60
-        )
+        assert response.expires_in == settings.jwt_access_token_expire_minutes * 60
 
         repository.get_by_id.assert_called_once_with(
             sample_user.id,
@@ -451,6 +452,7 @@ class TestRefreshToken:
 # ----------------------------------------------------------------
 # TestUserOperations
 # ----------------------------------------------------------------
+
 
 class TestUserOperations:
     """Tests for AuthService user helper methods."""

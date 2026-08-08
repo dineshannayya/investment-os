@@ -130,6 +130,7 @@ shell:
 # make alembic_revision MSG="initial_schema"
 # make alembic_revision MSG="add_permissions_table"
 # make alembic_revision MSG="add_user_roles_table"
+# make alembic_revision MSG="add_role_permissions_table"
 # 
 # 2. Review the generated migration
 # vim alembic/versions/*.py

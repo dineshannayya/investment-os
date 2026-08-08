@@ -51,10 +51,7 @@ class UserRepository(Repository):
         Return a user by email address.
         """
 
-        stmt = (
-            select(User)
-            .where(User.email == email.lower())
-        )
+        stmt = select(User).where(User.email == email.lower())
 
         return self._session.scalar(stmt)
 
@@ -65,15 +62,12 @@ class UserRepository(Repository):
         """
         Return active user by email.
         """
-    
-        stmt = (
-            select(User)
-            .where(
-                User.email == email.lower(),
-                User.is_active.is_(True),
-            )
+
+        stmt = select(User).where(
+            User.email == email.lower(),
+            User.is_active.is_(True),
         )
-    
+
         return self._session.scalar(stmt)
 
     def exists_by_email(
@@ -92,13 +86,9 @@ class UserRepository(Repository):
         """
         Return all active users.
         """
-    
-        stmt = (
-            select(User)
-            .where(User.is_active.is_(True))
-            .order_by(User.full_name)
-        )
-    
+
+        stmt = select(User).where(User.is_active.is_(True)).order_by(User.full_name)
+
         return list(self._session.scalars(stmt))
 
     def list_superusers(
@@ -107,15 +97,10 @@ class UserRepository(Repository):
         """
         Return all administrators.
         """
-    
-        stmt = (
-            select(User)
-            .where(User.is_superuser.is_(True))
-            .order_by(User.full_name)
-        )
-    
-        return list(self._session.scalars(stmt))
 
+        stmt = select(User).where(User.is_superuser.is_(True)).order_by(User.full_name)
+
+        return list(self._session.scalars(stmt))
 
     def search(
         self,
@@ -124,19 +109,17 @@ class UserRepository(Repository):
         """
         Search users by name or email.
         """
-    
+
         pattern = f"%{keyword.lower()}%"
-    
+
         stmt = (
             select(User)
-            .where(
-                User.email.ilike(pattern)
-                | User.full_name.ilike(pattern)
-            )
+            .where(User.email.ilike(pattern) | User.full_name.ilike(pattern))
             .order_by(User.full_name)
         )
-    
+
         return list(self._session.scalars(stmt))
+
     # -------------------------------------------------------------------------
     # Persistence
     #  CRUD
@@ -202,11 +185,10 @@ class UserRepository(Repository):
         """
         Persist new password hash.
         """
-    
-        user.password_hash = password_hash
-    
-        return self.save(user)
 
+        user.password_hash = password_hash
+
+        return self.save(user)
 
     def verify_email(
         self,
@@ -215,18 +197,11 @@ class UserRepository(Repository):
         """
         Mark email as verified.
         """
-    
+
         user.email_verified = True
-    
+
         return self.save(user)
 
-
-
-     
     # -------------------------------------------------------------------------
-    # 
+    #
     # -------------------------------------------------------------------------
-
-
-
-

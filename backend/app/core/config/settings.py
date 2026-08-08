@@ -86,22 +86,32 @@ class Settings(BaseSettings):
     # =========================================================================
     # Database
     # =========================================================================
-    database_url: str 
+    database_url: str
     database_echo: bool = False
     database_pool_size: int = 10
     database_max_overflow: int = 20
     database_pool_timeout: int = 30
     database_pool_recycle: int = 1800
 
-    jwt_secret_key: str = Field( default=DEFAULT_JWT_SECRET_KEY,)
+    jwt_secret_key: str = Field(
+        default=DEFAULT_JWT_SECRET_KEY,
+    )
 
-    jwt_algorithm: str = Field( default=DEFAULT_JWT_ALGORITHM,)
+    jwt_algorithm: str = Field(
+        default=DEFAULT_JWT_ALGORITHM,
+    )
 
-    jwt_issuer: str = Field( default=DEFAULT_JWT_ISSUER,)
+    jwt_issuer: str = Field(
+        default=DEFAULT_JWT_ISSUER,
+    )
 
-    jwt_access_token_expire_minutes: int = Field( default=DEFAULT_JWT_ACCESS_TOKEN_EXPIRE_MINUTES,)
+    jwt_access_token_expire_minutes: int = Field(
+        default=DEFAULT_JWT_ACCESS_TOKEN_EXPIRE_MINUTES,
+    )
 
-    jwt_refresh_token_expire_days: int = Field( default=DEFAULT_JWT_REFRESH_TOKEN_EXPIRE_DAYS,)
+    jwt_refresh_token_expire_days: int = Field(
+        default=DEFAULT_JWT_REFRESH_TOKEN_EXPIRE_DAYS,
+    )
 
 
 @lru_cache
