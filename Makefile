@@ -119,9 +119,16 @@ shell:
 
 # -----------------------------------------------
 # Alembic commands 
-# To generate : make revision "create_roles_table"
+# Proposed Alembic update sequence 
+#   initial_schema
+#   add_permissions_table
+#   add_user_roles_table
+#   add_role_permissions_table
+#
+# To generate : make revision "initial_schema"
 # 1. Generate migration
 # make alembic_revision MSG="initial_schema"
+# make alembic_revision MSG="add_permissions_table"
 # 
 # 2. Review the generated migration
 # vim alembic/versions/*.py

@@ -23,6 +23,16 @@ from fastapi.testclient import TestClient
 from app.core.config import settings
 from app.main import app as fastapi_app
 
+from tests.fixtures.permission import (
+    permission,
+    permission_factory,
+)
+
+from tests.fixtures.role import (
+    role,
+    role_factory,
+)
+
 pytest_plugins = [
     # Infrastructure
     "tests.database",
@@ -32,6 +42,7 @@ pytest_plugins = [
     "tests.fixtures.auth",
     "tests.fixtures.responses",
     "tests.fixtures.role",
+    "tests.fixtures.permission",
 
     # Test scenarios
     "tests.investment_scenarios",

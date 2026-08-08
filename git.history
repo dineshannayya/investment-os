@@ -1,3 +1,27 @@
+
+------- 8 th Aug 2026 ---------------
+
+Sprint 2.3A.2 Status
+Permission Model
+    ✅ Permission model implemented.
+    ✅ Model exported.
+    ✅ Test fixtures added.
+    ✅ Model tests passing.
+    ✅ Alembic migration generated.
+    ✅ Migration applied successfully.
+    ✅ Full regression suite passed.
+
+
+Sprint 2.3A – RBAC Foundation
+
+✅ 2.3A.0 Alembic Infrastructure
+✅ 2.3A.1 Role Model
+✅ 2.3A.2 Permission Model
+⬜ 2.3A.3 UserRole
+⬜ 2.3A.4 RolePermission
+⬜ 2.3A.5 RBAC Services
+⬜ 2.3A.6 RBAC APIs
+
 ------- 8 th Aug 2026 ---------------
 Sprint 2.3A Status
 Database Infrastructure
