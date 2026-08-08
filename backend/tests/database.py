@@ -27,25 +27,24 @@ from app.models import Base
 # Engine
 # =============================================================================
 
+from sqlalchemy.pool import StaticPool
 
 @pytest.fixture(scope="session")
 def engine() -> Generator[Engine, None, None]:
-    """
-    Create SQLAlchemy engine.
-
-    One engine is shared across the entire test session.
-    """
 
     engine = create_engine(
-        "sqlite:///:memory:",
+        "sqlite://",
         future=True,
         echo=False,
+        connect_args={
+            "check_same_thread": False,
+        },
+        poolclass=StaticPool,
     )
 
     yield engine
 
     engine.dispose()
-
 
 # =============================================================================
 # Schema

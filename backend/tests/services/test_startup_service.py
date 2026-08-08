@@ -8,9 +8,10 @@ from uuid import uuid4
 
 import pytest
 
-from app.models.startup import Startup
 from app.repositories.startup import StartupRepository
 from app.services.startup import StartupService
+from app.schemas.startup import StartupCreate
+from app.schemas.startup import StartupUpdate
 
 
 class TestStartupService:
@@ -107,16 +108,19 @@ class TestStartupService:
         """Create startup."""
     
         service = self._create_service(db_session)
-    
-        startup = Startup(
+
+        payload = StartupCreate(
             name="New Startup",
             stage=startup_factory().stage,
             status=startup_factory().status,
         )
-    
-        created = service.create_startup(startup)
-    
+        
+        created = service.create_startup(payload)
+        
         assert created.id is not None
+        assert created.name == "New Startup"
+
+    
     
     # Duplicate
     
@@ -132,17 +136,16 @@ class TestStartupService:
         startup_factory(
             name="Duplicate",
         )
-    
-        duplicate = Startup(
+
+        duplicate = StartupCreate(
             name="Duplicate",
             stage=startup_factory().stage,
             status=startup_factory().status,
         )
-    
+        
         with pytest.raises(ValueError):
-            service.create_startup(
-                duplicate,
-            )
+            service.create_startup(duplicate)
+    
     
     # Update
     
@@ -157,13 +160,17 @@ class TestStartupService:
     
         startup = startup_factory()
     
-        startup.description = "Updated"
-    
-        updated = service.update_startup(
-            startup,
+        payload = StartupUpdate(
+            description="Updated",
         )
-    
+        
+        updated = service.update_startup(
+            startup.id,
+            payload,
+        )
+        
         assert updated.description == "Updated"
+    
     
     
     # Delete
@@ -178,10 +185,33 @@ class TestStartupService:
         service = self._create_service(db_session)
     
         startup = startup_factory()
+
+        service.delete_startup(startup.id)
+        
+        assert service.get_startup(startup.id) is None
+
+    def test_update_unknown_startup(
+        self,
+        db_session,
+    ):
+        service = self._create_service(db_session)
     
-        service.delete_startup(startup)
-    
-        assert (
-            service.get_startup(startup.id)
-            is None
+        payload = StartupUpdate(
+            description="Updated",
         )
+    
+        with pytest.raises(ValueError):
+            service.update_startup(
+                uuid4(),
+                payload,
+            )
+    
+    def test_delete_unknown_startup(
+        self,
+        db_session,
+    ):
+        service = self._create_service(db_session)
+    
+        with pytest.raises(ValueError):
+            service.delete_startup(uuid4())
+        

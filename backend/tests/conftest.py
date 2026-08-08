@@ -22,6 +22,7 @@ from fastapi.testclient import TestClient
 
 from app.core.config import settings
 from app.main import app as fastapi_app
+from app.core.database.dependencies import get_db
 
 pytest_plugins = [
     # Infrastructure
@@ -44,7 +45,7 @@ pytest_plugins = [
 # =============================================================================
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def app() -> FastAPI:
     """
     Return the FastAPI application.
@@ -58,17 +59,20 @@ def app() -> FastAPI:
 # Test Client
 # =============================================================================
 
+@pytest.fixture
+def client(
+    app: FastAPI,
+    db_session,
+):
+    def override_get_db():
+        yield db_session
 
-@pytest.fixture(scope="session")
-def client(app: FastAPI) -> Generator[TestClient, None, None]:
-    """
-    Return a FastAPI TestClient.
+    app.dependency_overrides[get_db] = override_get_db
 
-    The client is shared across the entire test session.
-    """
     with TestClient(app) as test_client:
         yield test_client
 
+    app.dependency_overrides.clear()
 
 # =============================================================================
 # Application Settings
