@@ -16,6 +16,7 @@ from app.models.startup import Startup
 from app.models.user import User
 from app.models.role import Role
 from app.models.permission import Permission
+from app.models.user_role import UserRole
 
 __all__ = [
     # Base
@@ -35,4 +36,7 @@ __all__ = [
     "Role",
    # Permission
     "Permission",
+   #UserRole
+    "UserRole",
+
 ]

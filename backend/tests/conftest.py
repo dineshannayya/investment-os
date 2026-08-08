@@ -33,6 +33,22 @@ from tests.fixtures.role import (
     role_factory,
 )
 
+from tests.fixtures.user_role import (
+    active_user_role,
+    expired_user_role,
+    user_role,
+    user_role_factory,
+)
+
+
+from tests.fixtures.user import (
+    admin_user,
+    inactive_user,
+    user,
+    user_factory,
+    verified_user,
+)
+
 pytest_plugins = [
     # Infrastructure
     "tests.database",
@@ -43,6 +59,8 @@ pytest_plugins = [
     "tests.fixtures.responses",
     "tests.fixtures.role",
     "tests.fixtures.permission",
+    "tests.fixtures.user",
+    "tests.fixtures.user_role",
 
     # Test scenarios
     "tests.investment_scenarios",

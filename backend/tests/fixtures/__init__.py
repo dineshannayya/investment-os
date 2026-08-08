@@ -20,6 +20,20 @@ from tests.fixtures.permission import *
 from tests.fixtures.responses import *
 from tests.fixtures.role import *
 
+from tests.fixtures.user_role import (
+    active_user_role,
+    expired_user_role,
+    user_role,
+    user_role_factory,
+)
+from tests.fixtures.user import (
+    admin_user,
+    inactive_user,
+    user,
+    user_factory,
+    verified_user,
+)
+
 __all__ = [
     # Authentication
     "access_token",
@@ -38,4 +52,17 @@ __all__ = [
     # Permission
     "permission",
     "permission_factory",
+
+    # UserRole
+    "user_role",
+    "user_role_factory",
+    "active_user_role",
+    "expired_user_role",
+
+    # User
+    "user",
+    "user_factory",
+    "admin_user",
+    "inactive_user",
+    "verified_user",
 ]
