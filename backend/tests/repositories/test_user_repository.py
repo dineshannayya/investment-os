@@ -11,7 +11,7 @@ import pytest
 from sqlalchemy.orm import Session
 
 from app.models.user import User
-from app.repositories.user_repository import UserRepository
+from app.repositories.user import UserRepository
 
 
 class TestUserRepository:
@@ -26,7 +26,7 @@ def repository(db_session: Session) -> UserRepository:
 
 
 @pytest.fixture
-def sample_user(db_session: Session) -> User:
+def user(db_session: Session) -> User:
     """Create a sample user."""
 
     user = User(
@@ -50,12 +50,12 @@ def sample_user(db_session: Session) -> User:
 
 def test_exists_by_email(
     repository: UserRepository,
-    sample_user: User,
+    user: User,
 ):
     """Existing email should be found."""
 
     assert repository.exists_by_email(
-        sample_user.email,
+        user.email,
     )
 
 
@@ -71,12 +71,12 @@ def test_email_not_exists(
 
 def test_get_active_user(
     repository: UserRepository,
-    sample_user: User,
+    user: User,
 ):
     """Should return active user."""
 
     result = repository.get_active_by_email(
-        sample_user.email,
+        user.email,
     )
 
     assert result is not None
@@ -85,16 +85,16 @@ def test_get_active_user(
 def test_get_inactive_user_returns_none(
     repository: UserRepository,
     db_session: Session,
-    sample_user: User,
+    user: User,
 ):
     """Inactive users should not be returned."""
 
-    sample_user.is_active = False
+    user.is_active = False
 
     db_session.flush()
 
     result = repository.get_active_by_email(
-        sample_user.email,
+        user.email,
     )
 
     assert result is None
@@ -102,12 +102,12 @@ def test_get_inactive_user_returns_none(
 
 def test_is_superuser(
     repository: UserRepository,
-    sample_user: User,
+    user: User,
 ):
     """Verify superuser lookup."""
 
     result = repository.get_by_email(
-        sample_user.email,
+        user.email,
     )
 
     assert result.is_superuser
@@ -118,14 +118,14 @@ def test_is_superuser(
 # ----------------------------------
 def test_get_by_id_found(
     repository: UserRepository,
-    sample_user: User,
+    user: User,
 ):
     """Should return user by ID."""
 
-    result = repository.get_by_id(sample_user.id)
+    result = repository.get_by_id(user.id)
 
     assert result is not None
-    assert result.id == sample_user.id
+    assert result.id == user.id
 
 
 def test_get_by_id_not_found(
@@ -138,17 +138,17 @@ def test_get_by_id_not_found(
 
 def test_get_by_email_found(
     repository: UserRepository,
-    sample_user: User,
+    user: User,
 ):
     """Should return user by email."""
 
     result = repository.get_by_email(
-        sample_user.email,
+        user.email,
     )
 
     assert result is not None
-    assert result.id == sample_user.id
-    assert result.email == sample_user.email
+    assert result.id == user.id
+    assert result.email == user.email
 
 
 def test_get_by_email_not_found(
@@ -165,17 +165,17 @@ def test_get_by_email_not_found(
 
 def test_list_active(
     repository: UserRepository,
-    sample_user: User,
+    user: User,
 ):
     users = repository.list_active()
 
     assert len(users) == 1
-    assert users[0].id == sample_user.id
+    assert users[0].id == user.id
 
 
 def test_list_superusers(
     repository: UserRepository,
-    sample_user: User,
+    user: User,
 ):
     users = repository.list_superusers()
 
@@ -185,86 +185,49 @@ def test_list_superusers(
 
 def test_search_by_email(
     repository: UserRepository,
-    sample_user: User,
+    user: User,
 ):
     users = repository.search("admin")
 
     assert len(users) == 1
-    assert users[0].email == sample_user.email
+    assert users[0].email == user.email
 
 
 def test_search_by_name(
     repository: UserRepository,
-    sample_user: User,
+    user: User,
 ):
     users = repository.search("Administrator")
 
     assert len(users) == 1
-    assert users[0].full_name == sample_user.full_name
+    assert users[0].full_name == user.full_name
 
 
 # ----------------------------------
 #
 # ----------------------------------
 
-
-def test_create(
-    repository: UserRepository,
-):
-    user = User(
-        id=uuid4(),
-        email="new@example.com",
-        password_hash="hash",
-        full_name="New User",
-        is_active=True,
-    )
-
-    result = repository.create(user)
-
-    assert result.id == user.id
-
-
-def test_update(
-    repository: UserRepository,
-    sample_user: User,
-):
-    sample_user.full_name = "Updated Name"
-
-    result = repository.update(sample_user)
-
-    assert result.full_name == "Updated Name"
-
-
-def test_delete(
-    repository: UserRepository,
-    sample_user: User,
-):
-    repository.delete(sample_user)
-
-    assert repository.get_by_id(sample_user.id) is None
-
-
 def test_update_password(
     repository: UserRepository,
-    sample_user: User,
+    user: User,
 ):
     repository.update_password(
-        sample_user,
+        user,
         "new-password-hash",
     )
 
-    assert sample_user.password_hash == "new-password-hash"
+    assert user.password_hash == "new-password-hash"
 
 
 def test_verify_email(
     repository: UserRepository,
-    sample_user: User,
+    user: User,
 ):
-    sample_user.email_verified = False
+    user.email_verified = False
 
-    repository.verify_email(sample_user)
+    repository.verify_email(user)
 
-    assert sample_user.email_verified is True
+    assert user.email_verified is True
 
 
 # ----------------------------------
@@ -272,15 +235,21 @@ def test_verify_email(
 # ---------------------------------
 def test_update_last_login(
     repository: UserRepository,
-    sample_user: User,
+    user: User,
 ):
     """Should update last login timestamp."""
 
-    before = sample_user.last_login
+    before = user.last_login
 
-    repository.update_last_login(sample_user)
+    repository.update_last_login(user)
 
-    assert sample_user.last_login is not None
+    assert user.last_login is not None
 
     if before is not None:
-        assert sample_user.last_login >= before
+        assert user.last_login >= before
+
+def test_repository_session(
+    repository: UserRepository,
+    db_session: Session,
+):
+    assert repository.session is db_session

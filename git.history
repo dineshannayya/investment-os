@@ -1,5 +1,18 @@
 
 ------- 8 th Aug 2026 ---------------
+Sprint 3.0
+
+✓ 3.0A.1 Repository Infrastructure
+
+    ✓ BaseRepository
+    ✓ Repository Exceptions
+    ✓ Repository Tests
+
+✓ 3.0A.2 Startup Repository
+
+    ✓ StartupRepository
+    ✓ StartupRepository Tests
+------- 8 th Aug 2026 ---------------
 Sprint 2.3A is now complete
 
 Your latest test run shows:

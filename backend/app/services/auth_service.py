@@ -18,7 +18,7 @@ from app.core.security.jwt import (
 )
 from app.core.security.password import verify_password
 from app.models.user import User
-from app.repositories.user_repository import UserRepository
+from app.repositories.user import UserRepository
 from app.schemas.auth import (
     AuthenticatedUser,
     LoginResponse,

@@ -12,7 +12,7 @@ import pytest
 from app.core.config import settings
 from app.core.exceptions import AuthenticationException
 from app.models.user import User
-from app.repositories.user_repository import UserRepository
+from app.repositories.user import UserRepository
 from app.schemas.auth import (
     LoginResponse,
     TokenData,

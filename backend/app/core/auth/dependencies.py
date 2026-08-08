@@ -12,7 +12,7 @@ from fastapi import Depends
 from sqlalchemy.orm import Session
 
 from app.core.database.dependencies import get_db
-from app.repositories.user_repository import UserRepository
+from app.repositories.user import UserRepository
 from app.services.auth_service import AuthService
 
 # =============================================================================

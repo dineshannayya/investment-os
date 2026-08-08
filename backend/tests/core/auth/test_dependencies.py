@@ -12,7 +12,7 @@ from app.core.auth.dependencies import (
     get_auth_service,
     get_user_repository,
 )
-from app.repositories.user_repository import UserRepository
+from app.repositories.user import UserRepository
 from app.services.auth_service import AuthService
 
 # =============================================================================
