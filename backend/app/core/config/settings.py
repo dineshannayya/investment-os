@@ -26,6 +26,14 @@ from app.core.config.logging import (
     DEFAULT_LOG_LEVEL,
 )
 
+from enum import StrEnum
+
+class StorageProviderType(StrEnum):
+    LOCAL = "local"
+    S3 = "s3"
+    AZURE = "azure"
+    GCS = "gcs"
+
 
 class Settings(BaseSettings):
     """
@@ -111,6 +119,35 @@ class Settings(BaseSettings):
 
     jwt_refresh_token_expire_days: int = Field(
         default=DEFAULT_JWT_REFRESH_TOKEN_EXPIRE_DAYS,
+    )
+
+    # =========================================================================
+    # Storage
+    # =========================================================================
+
+    storage_provider: StorageProviderType = Field(
+        default=StorageProviderType.LOCAL,
+    )
+
+    storage_root: str = Field(
+        default="./storage",
+    )
+
+    max_upload_size: int = Field(
+        default=100 * 1024 * 1024,  # 100 MB
+    )
+
+    allowed_mime_types: list[str] = Field(
+        default_factory=lambda: [
+            "application/pdf",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/vnd.ms-excel",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "text/plain",
+            "image/jpeg",
+            "image/png",
+        ],
     )
 
 

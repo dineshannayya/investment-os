@@ -61,3 +61,36 @@ def test_default_log_level():
     settings = Settings(database_url="postgresql://test", redis_url="redis://localhost")
 
     assert settings.log_level == "INFO"
+
+# ============================================================
+# Storage
+# ============================================================
+
+def test_default_storage_settings():
+    settings = Settings(
+        database_url="postgresql://test",
+        redis_url="redis://localhost",
+    )
+
+    assert settings.storage_provider == "local"
+    assert settings.storage_root == "./storage"
+    assert settings.max_upload_size == 100 * 1024 * 1024
+
+def test_storage_env_override(monkeypatch):
+    monkeypatch.setenv("DATABASE_URL", "postgresql://test")
+    monkeypatch.setenv("STORAGE_PROVIDER", "local")
+    monkeypatch.setenv("STORAGE_ROOT", "/tmp/storage")
+
+    settings = Settings()
+
+    assert settings.storage_provider == "local"
+    assert settings.storage_root == "/tmp/storage"
+
+def test_allowed_mime_types():
+    settings = Settings(
+        database_url="postgresql://test",
+        redis_url="redis://localhost",
+    )
+
+    assert "application/pdf" in settings.allowed_mime_types
+    assert "image/png" in settings.allowed_mime_types
