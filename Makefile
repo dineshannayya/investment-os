@@ -214,6 +214,14 @@ docker-up:
 docker-down:
 	docker compose down
 
+# After editing pyproject.toml
+docker-rebuild:
+	docker compose run --rm backend uv lock
+	docker compose exec backend uv sync
+	docker compose build --no-cache backend
+	docker compose up -d backend
+
+
 docker-build:
 	docker compose build
 
@@ -232,11 +240,6 @@ frontend-shell:
 db-shell:
 	docker compose exec postgres psql -U investment investment_os
 
-
-docker-rebuild:
-	docker compose down -v
-	docker compose build --no-cache
-	docker compose up -d
 
 docker-status:
 	docker compose ps
