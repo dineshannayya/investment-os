@@ -13,6 +13,8 @@ from app.processors.factory import ProcessorFactory
 from app.services.document import DocumentService
 from app.storage.service import StorageService
 
+from app.chunking.base import Chunk, Chunker
+
 
 class DocumentProcessingService:
     """
@@ -31,11 +33,16 @@ class DocumentProcessingService:
         documents: DocumentService,
         storage: StorageService,
         processors: ProcessorFactory,
+        chunker: Chunker,
     ) -> None:
         self._documents = documents
         self._storage = storage
         self._processors = processors
+        self._chunker = chunker
 
+    # ------------------------------------
+    # properties
+    # -----------------------------------
     @property
     def document_service(self) -> DocumentService:
         return self._documents
@@ -47,6 +54,37 @@ class DocumentProcessingService:
     @property
     def processor_factory(self) -> ProcessorFactory:
         return self._processors
+
+    @property
+    def chunker(self) -> Chunker:
+        return self._chunker
+
+
+    # -----------------------------
+    # public methods
+    # ----------------------------
+    def chunk_document(
+        self,
+        document_id: UUID,
+    ) -> list[Chunk]:
+        """
+        Process and chunk a document.
+        """
+    
+        content = self.process_document(document_id)
+    
+        return self._chunker.chunk(content)
+    
+    def process_and_chunk(
+        self,
+        document_id: UUID,
+    ) -> tuple[DocumentContent, list[Chunk]]:
+    
+        content = self.process_document(document_id)
+        
+        chunks = self._chunker.chunk(content)
+        
+        return content, chunks
 
     def process_document(
         self,
@@ -76,6 +114,12 @@ class DocumentProcessingService:
             document_id=document.id,
             path=path,
         )
+
+
+    
+    # -------------------------------------
+    # private helpers
+    # -------------------------------------
 
     def _get_document(
         self,

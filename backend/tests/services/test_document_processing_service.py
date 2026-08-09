@@ -19,10 +19,29 @@ from app.services.document_processing import (
     DocumentProcessingService,
 )
 
+from app.chunking.base import Chunk, Chunker
 
 # ============================================================================
 # Test Doubles
 # ============================================================================
+
+class FakeChunker(Chunker):
+    """Fake chunker."""
+
+    @property
+    def name(self) -> str:
+        return "fake"
+
+    def chunk(self, document):
+        return [
+            Chunk(
+                index=0,
+                text=document.text,
+                start_offset=0,
+                end_offset=len(document.text),
+                metadata={},
+            )
+        ]
 
 
 class FakeDocumentService:
@@ -105,6 +124,7 @@ class TestDocumentProcessingService:
             documents=FakeDocumentService(document),
             storage=FakeStorageService(path),
             processors=self.create_factory(),
+            chunker=FakeChunker(),
         )
 
         result = service.process_document(
@@ -132,6 +152,7 @@ class TestDocumentProcessingService:
             documents=FakeDocumentService(None),
             storage=FakeStorageService(tmp_path),
             processors=self.create_factory(),
+            chunker=FakeChunker(),
         )
 
         with pytest.raises(
@@ -162,6 +183,7 @@ class TestDocumentProcessingService:
             documents=FakeDocumentService(document),
             storage=FakeStorageService(missing),
             processors=self.create_factory(),
+            chunker=FakeChunker(),
         )
 
         with pytest.raises(
@@ -192,6 +214,7 @@ class TestDocumentProcessingService:
             documents=FakeDocumentService(document),
             storage=FakeStorageService(path),
             processors=self.create_factory(),
+            chunker=FakeChunker(),
         )
 
         with pytest.raises(
@@ -216,6 +239,7 @@ class TestDocumentProcessingService:
             documents=FakeDocumentService(None),
             storage=FakeStorageService(tmp_path),
             processors=factory,
+            chunker=FakeChunker(),
         )
 
         assert service.processor_factory is factory
@@ -234,6 +258,7 @@ class TestDocumentProcessingService:
             documents=FakeDocumentService(None),
             storage=storage,
             processors=self.create_factory(),
+            chunker=FakeChunker(),
         )
 
         assert service.storage_service is storage
@@ -252,6 +277,71 @@ class TestDocumentProcessingService:
             documents=documents,
             storage=FakeStorageService(tmp_path),
             processors=self.create_factory(),
+            chunker=FakeChunker(),
         )
 
         assert service.document_service is documents
+
+
+    def test_chunker_property(self, tmp_path):
+        chunker = FakeChunker()
+    
+        service = DocumentProcessingService(
+            documents=FakeDocumentService(None),
+            storage=FakeStorageService(tmp_path),
+            processors=self.create_factory(),
+            chunker=chunker,
+        )
+    
+        assert service.chunker is chunker
+    
+    def test_chunk_document(
+        self,
+        tmp_path,
+        document_factory,
+    ):
+        path = tmp_path / "sample.txt"
+        path.write_text("Hello")
+    
+        document = document_factory(
+            storage_path="sample.txt",
+            mime_type="text/plain",
+        )
+    
+        service = DocumentProcessingService(
+            documents=FakeDocumentService(document),
+            storage=FakeStorageService(path),
+            processors=self.create_factory(),
+            chunker=FakeChunker(),
+        )
+    
+        chunks = service.chunk_document(document.id)
+    
+        assert len(chunks) == 1
+        assert chunks[0].text == "Investment OS"
+    
+    def test_process_and_chunk(
+        self,
+        tmp_path,
+        document_factory,
+    ):
+        path = tmp_path / "sample.txt"
+        path.write_text("Hello")
+    
+        document = document_factory(
+            storage_path="sample.txt",
+            mime_type="text/plain",
+        )
+    
+        service = DocumentProcessingService(
+            documents=FakeDocumentService(document),
+            storage=FakeStorageService(path),
+            processors=self.create_factory(),
+            chunker=FakeChunker(),
+        )
+    
+        content, chunks = service.process_and_chunk(document.id)
+    
+        assert content.text == "Investment OS"
+        assert len(chunks) == 1
+    
