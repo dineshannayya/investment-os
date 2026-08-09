@@ -25,6 +25,7 @@ class BaseRepository(Generic[ModelT]):
     def __init__(self, session: Session) -> None:
         self._session = session
 
+
     @property
     def session(self) -> Session:
         """Return the underlying SQLAlchemy session."""

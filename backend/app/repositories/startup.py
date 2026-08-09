@@ -20,6 +20,9 @@ from app.repositories.base import BaseRepository
 class StartupRepository(BaseRepository[Startup]):
     """Repository for Startup persistence operations."""
 
+    def __init__(self, session: Session) -> None:
+        super().__init__(session)
+
     # -------------------------------------------------------------------------
     # Queries
     # -------------------------------------------------------------------------
@@ -63,7 +66,7 @@ class StartupRepository(BaseRepository[Startup]):
 
         stmt = (
             select(Startup)
-            .order_by(Startup.name)
+            .order_by(Startup.name.asc())
         )
 
         return list(self.session.scalars(stmt))
