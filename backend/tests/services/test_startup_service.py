@@ -8,7 +8,6 @@ from uuid import uuid4
 
 import pytest
 
-from app.repositories.startup import StartupRepository
 from app.services.startup import StartupService
 from app.schemas.startup import StartupCreate
 from app.schemas.startup import StartupUpdate
@@ -27,13 +26,7 @@ class TestStartupService:
     ) -> StartupService:
         """Create a StartupService."""
 
-        repository = StartupRepository(db_session)
-
-        return StartupService(
-            repository=repository,
-            session=db_session,
-        )
-
+        return StartupService(db_session)
 
     # Query methods: These simply verify delegation.
     

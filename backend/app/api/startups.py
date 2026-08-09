@@ -4,27 +4,27 @@ Startup API endpoints.
 
 from __future__ import annotations
 
+from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter
-from fastapi import Depends
-from fastapi import HTTPException
-from starlette.status import (
-    HTTP_400_BAD_REQUEST,
-    HTTP_404_NOT_FOUND,
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    Response,
+    status,
 )
-from fastapi import status
 from sqlalchemy.orm import Session
 
 from app.core.database.dependencies import get_db
-from app.repositories.startup import StartupRepository
-from app.schemas.startup import StartupCreate
-from app.schemas.startup import StartupResponse
-from app.schemas.startup import StartupSummary
-from app.schemas.startup import StartupUpdate
+from app.schemas.startup import ( 
+    StartupCreate, 
+    StartupResponse,
+    StartupSummary,
+    StartupUpdate,
+)
 from app.services.startup import StartupService
 
-from typing import Annotated
 
 router = APIRouter(
     prefix="/startups",
@@ -32,26 +32,27 @@ router = APIRouter(
 )
 
 
+# ---------------------------------
 # Dependency
+# ---------------------------------
 
 def get_startup_service(
-    db: Session = Depends(get_db),
+    db: Annotated[
+        Session,
+        Depends(get_db),
+    ],
 ) -> StartupService:
-    """Return StartupService."""
+    return StartupService(db)
 
-    repository = StartupRepository(db)
-
-    return StartupService(
-        repository=repository,
-        session=db,
-    )
 
 StartupServiceDep = Annotated[
     StartupService,
     Depends(get_startup_service),
 ]
 
+# ---------------------------------
 # POST
+# ---------------------------------
 @router.post(
     "",
     response_model=StartupResponse,
@@ -60,26 +61,28 @@ StartupServiceDep = Annotated[
 def create_startup(
     payload: StartupCreate,
     service: StartupServiceDep,
-):
+)-> StartupResponse:
     """Create startup."""
 
     try:
         return service.create_startup(payload)
     except ValueError as exc:
         raise HTTPException(
-            status_code=HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(exc),
         ) from exc
 
 
-#GET (List)
+# ---------------------------------
+# GET (List)
+# ---------------------------------
 @router.get(
     "",
     response_model=list[StartupSummary],
 )
 def list_startups(
     service: StartupServiceDep,
-):
+)-> list[StartupSummary]:
     """List startups."""
 
     return service.list_startups()
@@ -91,7 +94,7 @@ def list_startups(
 def get_startup(
     startup_id: UUID,
     service: StartupServiceDep,
-):
+)-> StartupResponse:
     """Return startup."""
 
     startup = service.get_startup(startup_id)
@@ -104,7 +107,9 @@ def get_startup(
 
     return startup
 
+# ---------------------------------
 # PATCH
+# ---------------------------------
 @router.patch(
     "/{startup_id}",
     response_model=StartupResponse,
@@ -116,12 +121,28 @@ def update_startup(
 ):
     """Update startup."""
 
-    return service.update_startup(
-        startup_id,
-        payload,
-    )
+    try:
+        return service.update_startup(
+            startup_id,
+            payload,
+        )
+    except ValueError as exc:
+        message = str(exc)
 
-#DELETE
+        if "not found" in message.lower():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=message,
+            ) from exc
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=message,
+        ) from exc
+
+# ---------------------------------
+# DELETE
+# ---------------------------------
 @router.delete(
     "/{startup_id}",
     status_code=status.HTTP_204_NO_CONTENT,
@@ -129,16 +150,20 @@ def update_startup(
 def delete_startup(
     startup_id: UUID,
     service: StartupServiceDep,
-):
+) -> Response:
     """Delete startup."""
 
     try:
         service.delete_startup(startup_id)
     except ValueError as exc:
         raise HTTPException(
-            status_code=HTTP_404_NOT_FOUND,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail=str(exc),
         ) from exc
+
+    return Response( 
+        status_code=status.HTTP_204_NO_CONTENT,
+    )
 
 
 # ------------------------------

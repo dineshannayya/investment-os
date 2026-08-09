@@ -16,13 +16,9 @@ from app.schemas.startup import StartupCreate
 class StartupService:
     """Business service for Startup operations."""
 
-    def __init__(
-        self,
-        repository: StartupRepository,
-        session: Session,
-    ) -> None:
-        self._repository = repository
+    def __init__(self, session: Session):
         self._session = session
+        self._repository = StartupRepository(session)
 
     # Query Operations
     

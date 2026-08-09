@@ -169,11 +169,11 @@ def document_factory(
             "document_type": DocumentType.PITCH_DECK,
             "status": DocumentStatus.UPLOADED,
             "title": "Pitch Deck",
-            "filename": "pitch.pdf",
+            "filename": f"{uuid4().hex}.pdf",
             "original_filename": "pitch.pdf",
             "mime_type": "application/pdf",
             "file_size": 12345,
-            "file_hash": kwargs.get("file_hash", uuid4().hex),
+            "file_hash": uuid4().hex,
             "storage_path": f"/test/{uuid4().hex}.pdf",
         }
 
