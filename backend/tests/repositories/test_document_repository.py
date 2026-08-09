@@ -90,7 +90,7 @@ class TestDocumentRepository:
     # Hash
     # -------------------------------------------------------------------------
 
-    def test_find_by_hash(
+    def test_get_by_file_hash(
         self,
         db_session,
         document_factory,
@@ -101,7 +101,7 @@ class TestDocumentRepository:
 
         repository = DocumentRepository(db_session)
 
-        found = repository.find_by_hash(
+        found = repository.get_by_file_hash(
             document.file_hash,
         )
 
@@ -116,7 +116,7 @@ class TestDocumentRepository:
         repository = DocumentRepository(db_session)
 
         assert (
-            repository.find_by_hash(
+            repository.get_by_file_hash(
                 "unknown_hash",
             )
             is None

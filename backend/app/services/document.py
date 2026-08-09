@@ -47,6 +47,17 @@ class DocumentService:
 
         return self._repository.get_by_id(document_id)
 
+    def get_by_file_hash(
+        self,
+        file_hash: str,
+    ) -> Document | None:
+        """
+        Return a document by file hash.
+        """
+    
+        return self._repository.get_by_file_hash(file_hash)
+
+
     def list_documents(self) -> list[Document]:
         """Return all documents."""
 

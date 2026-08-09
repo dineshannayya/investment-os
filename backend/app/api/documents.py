@@ -10,9 +10,12 @@ from uuid import UUID
 from fastapi import (
     APIRouter,
     Depends,
+    File,
+    Form,
     HTTPException,
     Query,
     Response,
+    UploadFile,
     status,
 )
 from sqlalchemy.orm import Session
@@ -30,6 +33,24 @@ router = APIRouter(
     prefix="/documents",
     tags=["Documents"],
 )
+
+from app.core.config.settings import settings
+from app.models.enums import DocumentType
+from app.services.upload import (
+    UploadRequest,
+    UploadService,
+)
+from app.storage.local import LocalStorageProvider
+from app.storage.service import StorageService
+
+# -------------------------------------------------------------------------
+# Helper
+# -------------------------------------------------------------------------
+def create_storage_service() -> StorageService:
+    provider = LocalStorageProvider(
+        settings.storage_root,
+    )
+    return StorageService(provider)
 
 
 # -------------------------------------------------------------------------
@@ -53,6 +74,36 @@ DocumentServiceDep = Annotated[
     Depends(get_document_service),
 ]
 
+
+def get_storage_service() -> StorageService:
+    """
+    Return StorageService.
+    """
+    return create_storage_service()
+
+
+StorageServiceDep = Annotated[
+    StorageService,
+    Depends(get_storage_service),
+]
+
+def get_upload_service(
+    documents: DocumentServiceDep,
+    storage: StorageServiceDep,
+) -> UploadService:
+    """
+    Return UploadService.
+    """
+
+    return UploadService(
+        storage=storage,
+        documents=documents,
+    )
+
+UploadServiceDep = Annotated[
+    UploadService,
+    Depends(get_upload_service),
+]
 
 # -------------------------------------------------------------------------
 # Create
@@ -80,6 +131,57 @@ def create_document(
         ) from exc
 
 
+
+# -------------------------------------------------------------------------
+# Upload
+# -------------------------------------------------------------------------
+
+@router.post(
+    "/upload",
+    response_model=DocumentResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def upload_document(
+    startup_id: UUID = Form(...),
+    document_type: DocumentType = Form(...),
+    title: str = Form(...),
+    file: UploadFile = File(...),
+    *,
+    service: UploadServiceDep,
+    description: str | None = Form(default=None),
+) -> DocumentResponse:
+    """
+    Upload a document.
+    """
+
+    data = await file.read()
+
+    request = UploadRequest(
+        startup_id=startup_id,
+        document_type=document_type,
+        title=title,
+        filename=file.filename or "upload.bin",
+        mime_type=file.content_type or "application/octet-stream",
+        description=description,
+        data=data,
+    )
+
+    try:
+        return service.upload(request)
+
+    except ValueError as exc:
+        message = str(exc)
+
+        if "not found" in message.lower():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=message,
+            ) from exc
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=message,
+        ) from exc
 # -------------------------------------------------------------------------
 # Read
 # -------------------------------------------------------------------------

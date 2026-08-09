@@ -1,5 +1,28 @@
 
 ------- 9 th Aug 2026 ---------------
+Sprint Status
+Sprint 3.1A
+    ✅ Startup CRUD
+    ✅ Founder CRUD
+    ✅ Document CRUD
+Complete.
+
+Sprint 3.1B.1
+    ✅ Storage abstraction
+    ✅ Local provider
+    ✅ Storage service
+Complete.
+
+Sprint 3.1B.2
+    ✅ Upload API
+    ✅ UploadService
+    ✅ Multipart support
+    ✅ Duplicate detection
+    ✅ SHA256
+    ✅ Integration tests
+Complete.
+
+------- 9 th Aug 2026 ---------------
 
 
 ✅ 604 / 604 tests passing

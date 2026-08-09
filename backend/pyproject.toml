@@ -30,6 +30,14 @@ dependencies = [
     "email-validator>=2.2.0",
 
     "alembic>=1.16",
+
+    "python-multipart>=0.0.9",
+]
+
+[project.optional-dependencies]
+document = [
+    "pypdf",
+    "python-docx",
 ]
 
 [dependency-groups]

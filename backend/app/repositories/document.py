@@ -39,6 +39,21 @@ class DocumentRepository(BaseRepository):
 
         return self.session.scalar(stmt)
 
+    def get_by_file_hash(
+        self,
+        file_hash: str,
+    ) -> Document | None:
+        """
+        Return document by file hash.
+        """
+    
+        return (
+            self._session.query(Document)
+            .filter(Document.file_hash == file_hash)
+            .first()
+        )
+
+
     def list_all(self) -> list[Document]:
         """Return all documents."""
 
@@ -77,20 +92,6 @@ class DocumentRepository(BaseRepository):
     # Search
     # -------------------------------------------------------------------------
 
-    def find_by_hash(
-        self,
-        file_hash: str,
-    ) -> Document | None:
-        """Return a document by file hash."""
-
-        stmt = (
-            select(Document)
-            .where(
-                Document.file_hash == file_hash,
-            )
-        )
-
-        return self.session.scalar(stmt)
 
     def exists_by_hash(
         self,
@@ -98,7 +99,7 @@ class DocumentRepository(BaseRepository):
     ) -> bool:
         """Return True if a document hash already exists."""
 
-        return self.find_by_hash(file_hash) is not None
+        return self.get_by_file_hash(file_hash) is not None
 
     def search_title(
         self,
