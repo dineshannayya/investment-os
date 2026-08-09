@@ -53,6 +53,16 @@ class StorageService:
             )
         )
 
+    def resolve(
+        self,
+        storage_path: str,
+    ) -> Path:
+        """
+        Resolve a storage path to an absolute filesystem path.
+        """
+    
+        return self._backend.resolve(storage_path)
+
     # ------------------------------------------------------------------
     # Commands
     # ------------------------------------------------------------------

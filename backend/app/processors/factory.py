@@ -7,6 +7,9 @@ from __future__ import annotations
 from pathlib import Path
 
 from app.processors.base import DocumentProcessor
+from app.processors.docx import DocxProcessor
+from app.processors.pdf import PdfProcessor
+from app.processors.text import TextProcessor
 
 
 class ProcessorFactory:
@@ -29,7 +32,20 @@ class ProcessorFactory:
         Register a document processor.
         """
 
+        if processor in self._processors:
+            return
+
         self._processors.append(processor)
+
+        return self
+
+    def clear(self) -> None:
+        """
+        Remove all registered processors.
+        """
+    
+        self._processors.clear()
+
 
     # -------------------------------------------------------------------------
     # Lookup
@@ -79,17 +95,20 @@ class ProcessorFactory:
 
         return tuple(self._processors)
 
-    def create_processor_factory() -> ProcessorFactory:
-        """
-        Create a factory with all built-in processors registered.
-        """
-    
-        factory = ProcessorFactory()
-    
-        # Registration will be added as processors are implemented.
-        # factory.register(TextProcessor())
-        # factory.register(PdfProcessor())
-        # factory.register(DocxProcessor())
-    
-        return factory
+# --------------------------------------------
+#
+# --------------------------------------------
+def create_processor_factory() -> ProcessorFactory:
+    """
+    Create a factory with all built-in processors registered.
+    """
+
+    factory = ProcessorFactory()
+
+    # Registration will be added as processors are implemented.
+    factory.register(TextProcessor())
+    factory.register(PdfProcessor())
+    factory.register(DocxProcessor())
+
+    return factory
 
