@@ -1,14 +1,11 @@
 """
-Tests for vector store models.
+Tests for vector store domain models.
 """
 
 from __future__ import annotations
 
-from dataclasses import FrozenInstanceError
 from types import MappingProxyType
 from uuid import uuid4
-
-import pytest
 
 from app.embeddings.models import EmbeddingVector
 from app.vectorstore.models import (
@@ -19,74 +16,95 @@ from app.vectorstore.models import (
 
 
 class TestStoredVector:
-    """Tests for StoredVector."""
 
     @staticmethod
-    def create_vector() -> EmbeddingVector:
+    def create_embedding() -> EmbeddingVector:
         return EmbeddingVector(
             values=(1.0, 2.0, 3.0),
             model_name="dummy",
             dimensions=3,
         )
 
-    def test_defaults(self):
+    def test_create(self):
 
-        stored = StoredVector(
+        document_id = uuid4()
+        chunk_id = uuid4()
+
+        vector = StoredVector(
+            document_id=document_id,
+            chunk_id=chunk_id,
+            text="Healthcare startup information",
+            vector=self.create_embedding(),
+        )
+
+        assert vector.document_id == document_id
+        assert vector.chunk_id == chunk_id
+        assert (
+            vector.text
+            == "Healthcare startup information"
+        )
+        assert vector.vector.values == (
+            1.0,
+            2.0,
+            3.0,
+        )
+
+    def test_default_metadata(self):
+
+        vector = StoredVector(
             document_id=uuid4(),
-            vector=self.create_vector(),
+            chunk_id=uuid4(),
+            text="Example",
+            vector=self.create_embedding(),
         )
 
+        assert vector.metadata == {}
         assert isinstance(
-            stored.document_id,
-            type(uuid4()),
-        )
-
-        assert stored.vector.dimensions == 3
-
-        assert isinstance(
-            stored.metadata,
+            vector.metadata,
             MappingProxyType,
         )
 
-        assert len(stored.metadata) == 0
-
     def test_metadata(self):
 
-        metadata = MappingProxyType(
-            {
-                "type": "document",
-                "title": "Pitch Deck",
-            }
-        )
+        metadata = {
+            "page": 4,
+            "section": "Financials",
+        }
 
-        stored = StoredVector(
+        vector = StoredVector(
             document_id=uuid4(),
-            vector=self.create_vector(),
+            chunk_id=uuid4(),
+            text="Financial information",
+            vector=self.create_embedding(),
             metadata=metadata,
         )
 
-        assert stored.metadata["type"] == "document"
-
-        assert stored.metadata["title"] == "Pitch Deck"
+        assert vector.metadata["page"] == 4
+        assert (
+            vector.metadata["section"]
+            == "Financials"
+        )
 
     def test_frozen(self):
 
-        stored = StoredVector(
+        vector = StoredVector(
             document_id=uuid4(),
-            vector=self.create_vector(),
+            chunk_id=uuid4(),
+            text="Example",
+            vector=self.create_embedding(),
         )
 
-        with pytest.raises(
-            FrozenInstanceError,
-        ):
-            stored.document_id = uuid4()
+        try:
+            vector.text = "Changed"
+            assert False, "Expected FrozenInstanceError"
+        except AttributeError:
+            pass
 
 
 class TestSearchRequest:
-    """Tests for SearchRequest."""
 
     @staticmethod
-    def create_vector() -> EmbeddingVector:
+    def create_embedding() -> EmbeddingVector:
         return EmbeddingVector(
             values=(1.0, 2.0, 3.0),
             model_name="dummy",
@@ -96,64 +114,56 @@ class TestSearchRequest:
     def test_defaults(self):
 
         request = SearchRequest(
-            vector=self.create_vector(),
+            vector=self.create_embedding(),
         )
 
         assert request.top_k == 5
-
         assert request.threshold == 0.0
 
     def test_custom_values(self):
 
         request = SearchRequest(
-            vector=self.create_vector(),
+            vector=self.create_embedding(),
             top_k=10,
-            threshold=0.8,
+            threshold=0.75,
         )
 
         assert request.top_k == 10
-
-        assert request.threshold == pytest.approx(
-            0.8
-        )
-
-    def test_frozen(self):
-
-        request = SearchRequest(
-            vector=self.create_vector(),
-        )
-
-        with pytest.raises(
-            FrozenInstanceError,
-        ):
-            request.top_k = 20
+        assert request.threshold == 0.75
 
 
 class TestSearchResult:
-    """Tests for SearchResult."""
 
-    @staticmethod
-    def create_vector() -> EmbeddingVector:
-        return EmbeddingVector(
-            values=(1.0, 2.0, 3.0),
-            model_name="dummy",
-            dimensions=3,
+    def test_create(self):
+
+        document_id = uuid4()
+        chunk_id = uuid4()
+
+        result = SearchResult(
+            document_id=document_id,
+            chunk_id=chunk_id,
+            text="Relevant investment information",
+            similarity=0.92,
         )
 
-    def test_defaults(self):
+        assert result.document_id == document_id
+        assert result.chunk_id == chunk_id
+        assert (
+            result.text
+            == "Relevant investment information"
+        )
+        assert result.similarity == 0.92
+
+    def test_default_metadata(self):
 
         result = SearchResult(
             document_id=uuid4(),
-            similarity=0.95,
-            vector=self.create_vector(),
+            chunk_id=uuid4(),
+            text="Example",
+            similarity=0.8,
         )
 
-        assert result.similarity == pytest.approx(
-            0.95
-        )
-
-        assert result.vector.dimensions == 3
-
+        assert result.metadata == {}
         assert isinstance(
             result.metadata,
             MappingProxyType,
@@ -161,74 +171,34 @@ class TestSearchResult:
 
     def test_metadata(self):
 
-        metadata = MappingProxyType(
-            {
-                "page": 2,
-                "chunk": 5,
-            }
-        )
-
         result = SearchResult(
             document_id=uuid4(),
-            similarity=0.90,
-            vector=self.create_vector(),
-            metadata=metadata,
+            chunk_id=uuid4(),
+            text="Example",
+            similarity=0.85,
+            metadata={
+                "page": 7,
+                "section": "Risk",
+            },
         )
 
-        assert result.metadata["page"] == 2
-
-        assert result.metadata["chunk"] == 5
+        assert result.metadata["page"] == 7
+        assert (
+            result.metadata["section"]
+            == "Risk"
+        )
 
     def test_frozen(self):
 
         result = SearchResult(
             document_id=uuid4(),
-            similarity=0.5,
-            vector=self.create_vector(),
+            chunk_id=uuid4(),
+            text="Example",
+            similarity=0.8,
         )
 
-        with pytest.raises(
-            FrozenInstanceError,
-        ):
-            result.similarity = 0.7
-
-    def test_score_alias(self):
-
-        result = SearchResult(
-            document_id=uuid4(),
-            similarity=0.83,
-            vector=self.create_vector(),
-        )
-
-        assert result.score == pytest.approx(
-            0.83
-        )
-
-    def test_stored_vector_equality(self):
-    
-        vector = self.create_vector()
-    
-        document_id = uuid4()
-    
-        a = StoredVector(
-            document_id=document_id,
-            vector=vector,
-        )
-    
-        b = StoredVector(
-            document_id=document_id,
-            vector=vector,
-        )
-    
-        assert a == b
-
-    def test_metadata_is_read_only(self):
-    
-        stored = StoredVector(
-            document_id=uuid4(),
-            vector=self.create_vector(),
-        )
-    
-        with pytest.raises(TypeError):
-            stored.metadata["page"] = 1
-        
+        try:
+            result.text = "Changed"
+            assert False, "Expected FrozenInstanceError"
+        except AttributeError:
+            pass

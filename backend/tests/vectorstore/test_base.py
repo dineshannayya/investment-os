@@ -89,16 +89,19 @@ class TestVectorStore:
 
     @staticmethod
     def create_vector() -> StoredVector:
-
+    
         return StoredVector(
             document_id=uuid4(),
+            chunk_id=uuid4(),
+            text="Example chunk",
             vector=EmbeddingVector(
                 values=(1.0, 2.0, 3.0),
                 model_name="dummy",
                 dimensions=3,
             ),
         )
-
+    
+    
     #
     # ------------------------------------------------------------------
     # add()

@@ -11,17 +11,20 @@ from uuid import UUID
 
 from app.embeddings.models import EmbeddingVector
 
-
 @dataclass(slots=True, frozen=True)
 class StoredVector:
     """
-    Vector stored in the vector store.
+    Vector stored in a vector store.
+
+    The vector is associated with the source document and chunk so
+    retrieval can return the original content without requiring
+    another lookup.
     """
 
     document_id: UUID
-
     vector: EmbeddingVector
-
+    chunk_id: UUID | None = None
+    text: str = ""
     metadata: Mapping[str, Any] = field(
         default_factory=lambda: MappingProxyType({}),
     )
@@ -30,7 +33,7 @@ class StoredVector:
 @dataclass(slots=True, frozen=True)
 class SearchRequest:
     """
-    Search request submitted to a vector store.
+    Vector similarity search request.
     """
 
     vector: EmbeddingVector
@@ -43,22 +46,17 @@ class SearchRequest:
 @dataclass(slots=True, frozen=True)
 class SearchResult:
     """
-    Result returned from a vector search.
+    Result returned by a vector similarity search.
     """
 
     document_id: UUID
 
-    similarity: float
+    chunk_id: UUID
 
-    vector: EmbeddingVector
+    text: str
+
+    similarity: float
 
     metadata: Mapping[str, Any] = field(
         default_factory=lambda: MappingProxyType({}),
     )
-
-    @property
-    def score(self) -> float:
-        """
-        Alias for similarity.
-        """
-        return self.similarity

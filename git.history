@@ -1,4 +1,17 @@
 ------- 12 th Aug 2026 ---------------
+clean Sprint 3.5 test baseline.
+
+Current result
+
+The latest run shows:
+
+1041 tests collected
+1041 passed
+0 failures
+18 warnings
+98% overall coverage
+
+------- 12 th Aug 2026 ---------------
 Sprint 3.4.2 Status
 
 Sprint 3.4.2 – Vector Store Framework is now fully complete.

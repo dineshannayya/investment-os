@@ -75,36 +75,36 @@ class MemoryVectorStore(VectorStore):
         self,
         request: SearchRequest,
     ) -> list[SearchResult]:
-
+    
         results: list[SearchResult] = []
-
+    
         query = request.vector.values
-
+    
         for stored in self._vectors.values():
-
+    
             similarity = self._compute_similarity(
                 query,
                 stored.vector.values,
             )
-
+    
             if similarity < request.threshold:
                 continue
-
+    
             results.append(
                 SearchResult(
                     document_id=stored.document_id,
+                    chunk_id=stored.chunk_id,
+                    text=stored.text,
                     similarity=similarity,
-                    vector=stored.vector,
                     metadata=stored.metadata,
                 )
             )
-
+    
         return nlargest(
             request.top_k,
             results,
             key=lambda r: r.similarity,
         )
-
 
     #
     # ------------------------------------------------------------------
