@@ -15,6 +15,7 @@ from app.intelligence.factory import (
 from app.intelligence.metadata import MetadataExtractor
 from app.intelligence.entities import EntityExtractor
 from app.intelligence.financial import FinancialExtractor
+from app.intelligence.risk      import RiskExtractor
 from app.intelligence.models import DocumentMetadata
 from app.processors import DocumentContent
 
@@ -199,7 +200,12 @@ class TestIntelligenceFactory:
             for extractor in factory.extractors
         )
 
-        assert len(factory.extractors) == 3
+        assert any(
+            isinstance(extractor, RiskExtractor)
+            for extractor in factory.extractors
+        )
+
+        assert len(factory.extractors) == 4
 
     def test_extractors_property_returns_tuple(self):
         factory = IntelligenceFactory()

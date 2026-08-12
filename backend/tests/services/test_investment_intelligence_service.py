@@ -15,6 +15,8 @@ from app.intelligence.models import (
     FinancialMetrics,
     InvestmentEntities,
     InvestmentProfile,
+    InvestmentSignals,
+    RiskAssessment,
 )
 from app.processors import DocumentContent
 from app.services.investment_intelligence import (
@@ -23,22 +25,30 @@ from app.services.investment_intelligence import (
 
 
 # ============================================================================
-# Test Double
+# Test doubles
 # ============================================================================
 
 
-class FakeIntelligenceFactory:
-    """Fake intelligence factory."""
+class FakeExtractor:
+    """Simple intelligence extractor."""
 
-    def __init__(self, results=None):
-        self._results = results or {}
+    def __init__(self, name: str, result):
+        self.name = name
+        self.result = result
         self.called = False
 
-    def run(self, document, chunks):
+    def extract(self, document, chunks):
         self.called = True
         self.document = document
         self.chunks = chunks
-        return self._results
+        return self.result
+
+
+class FakeIntelligenceFactory:
+    """Fake IntelligenceFactory."""
+
+    def __init__(self, *extractors):
+        self.extractors = list(extractors)
 
 
 # ============================================================================
@@ -47,7 +57,6 @@ class FakeIntelligenceFactory:
 
 
 class TestInvestmentIntelligenceService:
-    """Tests for InvestmentIntelligenceService."""
 
     @staticmethod
     def create_document() -> DocumentContent:
@@ -72,51 +81,31 @@ class TestInvestmentIntelligenceService:
         ]
 
     # ------------------------------------------------------------------
-    # Properties
+    # Metadata
     # ------------------------------------------------------------------
 
-    def test_factory_property(self):
-        factory = FakeIntelligenceFactory()
+    def test_default_metadata(self):
 
         service = InvestmentIntelligenceService(
-            factory=factory,
+            factory=FakeIntelligenceFactory(),
         )
 
-        assert service.factory is factory
-
-    # ------------------------------------------------------------------
-    # Analysis
-    # ------------------------------------------------------------------
-
-    def test_analyze_metadata_only(self):
-        metadata = DocumentMetadata(
-            title="SemSure Pitch Deck",
-            confidence=0.95,
-        )
-
-        factory = FakeIntelligenceFactory(
-            {
-                "metadata": metadata,
-            }
-        )
-
-        service = InvestmentIntelligenceService(
-            factory=factory,
-        )
+        document = self.create_document()
 
         profile = service.analyze(
-            self.create_document(),
+            document,
             self.create_chunks(),
         )
 
-        assert factory.called
-        assert isinstance(profile, InvestmentProfile)
+        assert profile.metadata.title == document.title
+        assert profile.metadata.page_count == document.page_count
 
-        assert profile.metadata is metadata
-        assert profile.entities == InvestmentEntities()
-        assert profile.financials == FinancialMetrics()
+    # ------------------------------------------------------------------
+    # Complete Profile
+    # ------------------------------------------------------------------
 
-    def test_analyze_complete_profile(self):
+    def test_complete_profile(self):
+
         metadata = DocumentMetadata(
             title="SemSure",
             confidence=0.90,
@@ -133,16 +122,24 @@ class TestInvestmentIntelligenceService:
             confidence=0.70,
         )
 
-        factory = FakeIntelligenceFactory(
-            {
-                "metadata": metadata,
-                "entities": entities,
-                "financials": financials,
-            }
+        signals = InvestmentSignals(
+            stage="seed",
+            confidence=0.60,
+        )
+
+        risks = RiskAssessment(
+            financial_risks=("pre_revenue",),
+            confidence=0.50,
         )
 
         service = InvestmentIntelligenceService(
-            factory=factory,
+            factory=FakeIntelligenceFactory(
+                FakeExtractor("metadata", metadata),
+                FakeExtractor("entities", entities),
+                FakeExtractor("financials", financials),
+                FakeExtractor("signals", signals),
+                FakeExtractor("risks", risks),
+            ),
         )
 
         profile = service.analyze(
@@ -150,38 +147,25 @@ class TestInvestmentIntelligenceService:
             self.create_chunks(),
         )
 
+        assert isinstance(
+            profile,
+            InvestmentProfile,
+        )
+
         assert profile.metadata is metadata
         assert profile.entities is entities
         assert profile.financials is financials
+        assert profile.signals is signals
+        assert profile.risks is risks
 
-    def test_default_metadata(self):
-        factory = FakeIntelligenceFactory()
-
-        document = self.create_document()
-
-        service = InvestmentIntelligenceService(
-            factory=factory,
-        )
-
-        profile = service.analyze(
-            document,
-            self.create_chunks(),
-        )
-
-        assert profile.metadata.title == document.title
-        assert profile.metadata.page_count == document.page_count
+    # ------------------------------------------------------------------
+    # Defaults
+    # ------------------------------------------------------------------
 
     def test_default_entities(self):
-        factory = FakeIntelligenceFactory(
-            {
-                "metadata": DocumentMetadata(
-                    title="Test",
-                )
-            }
-        )
 
         service = InvestmentIntelligenceService(
-            factory=factory,
+            factory=FakeIntelligenceFactory(),
         )
 
         profile = service.analyze(
@@ -192,16 +176,9 @@ class TestInvestmentIntelligenceService:
         assert profile.entities == InvestmentEntities()
 
     def test_default_financials(self):
-        factory = FakeIntelligenceFactory(
-            {
-                "metadata": DocumentMetadata(
-                    title="Test",
-                )
-            }
-        )
 
         service = InvestmentIntelligenceService(
-            factory=factory,
+            factory=FakeIntelligenceFactory(),
         )
 
         profile = service.analyze(
@@ -211,34 +188,92 @@ class TestInvestmentIntelligenceService:
 
         assert profile.financials == FinancialMetrics()
 
+    def test_default_signals(self):
+
+        service = InvestmentIntelligenceService(
+            factory=FakeIntelligenceFactory(),
+        )
+
+        profile = service.analyze(
+            self.create_document(),
+            self.create_chunks(),
+        )
+
+        assert profile.signals == InvestmentSignals()
+
+    def test_default_risks(self):
+
+        service = InvestmentIntelligenceService(
+            factory=FakeIntelligenceFactory(),
+        )
+
+        profile = service.analyze(
+            self.create_document(),
+            self.create_chunks(),
+        )
+
+        assert profile.risks == RiskAssessment()
+
+    # ------------------------------------------------------------------
+    # Extras
+    # ------------------------------------------------------------------
+
+    def test_unknown_extractor_goes_to_extras(self):
+
+        class Dummy:
+            pass
+
+        service = InvestmentIntelligenceService(
+            factory=FakeIntelligenceFactory(
+                FakeExtractor(
+                    "dummy",
+                    Dummy(),
+                ),
+            ),
+        )
+
+        profile = service.analyze(
+            self.create_document(),
+            self.create_chunks(),
+        )
+
+        assert "dummy" in profile.extras
+
     # ------------------------------------------------------------------
     # Confidence
     # ------------------------------------------------------------------
 
     def test_confidence_average(self):
+
         metadata = DocumentMetadata(
             title="Test",
             confidence=0.9,
         )
 
         entities = InvestmentEntities(
-            confidence=0.6,
+            confidence=0.8,
         )
 
         financials = FinancialMetrics(
-            confidence=0.3,
+            confidence=0.7,
         )
 
-        factory = FakeIntelligenceFactory(
-            {
-                "metadata": metadata,
-                "entities": entities,
-                "financials": financials,
-            }
+        signals = InvestmentSignals(
+            confidence=0.6,
+        )
+
+        risks = RiskAssessment(
+            confidence=0.5,
         )
 
         service = InvestmentIntelligenceService(
-            factory=factory,
+            factory=FakeIntelligenceFactory(
+                FakeExtractor("metadata", metadata),
+                FakeExtractor("entities", entities),
+                FakeExtractor("financials", financials),
+                FakeExtractor("signals", signals),
+                FakeExtractor("risks", risks),
+            ),
         )
 
         profile = service.analyze(
@@ -247,14 +282,24 @@ class TestInvestmentIntelligenceService:
         )
 
         assert profile.confidence == pytest.approx(
-            (0.9 + 0.6 + 0.3) / 3
+            (0.9 + 0.8 + 0.7 + 0.6 + 0.5) / 5
         )
 
-    def test_factory_receives_document_and_chunks(self):
-        factory = FakeIntelligenceFactory()
+    # ------------------------------------------------------------------
+    # Extractor invocation
+    # ------------------------------------------------------------------
+
+    def test_extractors_receive_document_and_chunks(self):
+
+        extractor = FakeExtractor(
+            "metadata",
+            DocumentMetadata(title="Test"),
+        )
 
         service = InvestmentIntelligenceService(
-            factory=factory,
+            factory=FakeIntelligenceFactory(
+                extractor,
+            ),
         )
 
         document = self.create_document()
@@ -265,5 +310,25 @@ class TestInvestmentIntelligenceService:
             chunks,
         )
 
-        assert factory.document is document
-        assert factory.chunks is chunks
+        assert extractor.called
+        assert extractor.document is document
+        assert extractor.chunks is chunks
+
+    def test_extractor_order_independent(self):
+    
+        service = InvestmentIntelligenceService(
+            factory=FakeIntelligenceFactory(
+                FakeExtractor("financials", FinancialMetrics()),
+                FakeExtractor("metadata", DocumentMetadata(title="Test")),
+                FakeExtractor("signals", InvestmentSignals()),
+                FakeExtractor("entities", InvestmentEntities()),
+                FakeExtractor("risks", RiskAssessment()),
+            ),
+        )
+    
+        profile = service.analyze(
+            self.create_document(),
+            self.create_chunks(),
+        )
+    
+        assert profile.metadata.title == "Test"

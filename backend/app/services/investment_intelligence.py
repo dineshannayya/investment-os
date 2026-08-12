@@ -11,29 +11,45 @@ from app.intelligence.models import (
     FinancialMetrics,
     InvestmentEntities,
     InvestmentProfile,
+    InvestmentSignals,
+    RiskAssessment,
 )
 from app.processors import DocumentContent
 
+RESULT_MAPPING :  dict[type, str] = {
+    DocumentMetadata: "metadata",
+    InvestmentEntities: "entities",
+    FinancialMetrics: "financials",
+    InvestmentSignals: "signals",
+    RiskAssessment: "risks",
+}
 
 class InvestmentIntelligenceService:
     """
-    Service responsible for extracting structured investment
-    intelligence from processed documents.
+    Build a structured InvestmentProfile from a processed document.
     """
 
     def __init__(
         self,
-        *,
         factory: IntelligenceFactory,
     ) -> None:
         self._factory = factory
 
-    @property
-    def factory(self) -> IntelligenceFactory:
-        """
-        Intelligence factory.
-        """
-        return self._factory
+    def _calculate_confidence(
+        self,
+        profile_data: dict[str, any],
+    ) -> float:
+    
+        confidences = (
+            profile_data["metadata"].confidence,
+            profile_data["entities"].confidence,
+            profile_data["financials"].confidence,
+            profile_data["signals"].confidence,
+            profile_data["risks"].confidence,
+        )
+    
+        return sum(confidences) / len(confidences)
+
 
     def analyze(
         self,
@@ -41,66 +57,39 @@ class InvestmentIntelligenceService:
         chunks: list[Chunk],
     ) -> InvestmentProfile:
         """
-        Analyze a processed document.
-
-        Returns
-        -------
-        InvestmentProfile
-            Consolidated investment intelligence.
+        Run all registered intelligence extractors.
         """
 
-        results = self._factory.run(
-            document=document,
-            chunks=chunks,
-        )
-
-        metadata = results.get("metadata")
-
-        if metadata is None:
-            metadata = DocumentMetadata(
-                title=document.title or "Untitled",
+        #
+        # Execute every registered extractor.
+        #
+        profile_data: dict[str, object] = {
+            "metadata": DocumentMetadata(
+                title=document.title,
                 page_count=document.page_count,
-            )
+            ),
+            "entities": InvestmentEntities(),
+            "financials": FinancialMetrics(),
+            "signals": InvestmentSignals(),
+            "risks": RiskAssessment(),
+            "extras": {},
+        }
+        
+        for extractor in self._factory.extractors:
+            result = extractor.extract(document, chunks)
+        
+            for model_type, field_name in RESULT_MAPPING.items():
+                if isinstance(result, model_type):
+                    profile_data[field_name] = result
+                    break
+            else:
+                profile_data["extras"][extractor.name] = result
 
-        entities = results.get(
-            "entities",
-            InvestmentEntities(),
-        )
 
-        financials = results.get(
-            "financials",
-            FinancialMetrics(),
-        )
+        confidence = self._calculate_confidence(profile_data)
 
         return InvestmentProfile(
             document_id=document.document_id,
-            metadata=metadata,
-            entities=entities,
-            financials=financials,
-            confidence=self._calculate_confidence(
-                metadata,
-                entities,
-                financials,
-            ),
+            confidence=confidence,
+            **profile_data,
         )
-
-    def _calculate_confidence(
-        self,
-        metadata: DocumentMetadata,
-        entities: InvestmentEntities,
-        financials: FinancialMetrics,
-    ) -> float:
-        """
-        Calculate an overall confidence score.
-
-        Currently implemented as the arithmetic mean of the
-        available extractor confidence values.
-        """
-
-        confidences = [
-            metadata.confidence,
-            entities.confidence,
-            financials.confidence,
-        ]
-
-        return sum(confidences) / len(confidences)

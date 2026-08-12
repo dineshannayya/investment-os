@@ -25,6 +25,8 @@ class DocumentMetadata:
 
     document_type: str | None = None
 
+    secondary_document_types: tuple[str, ...] = ()
+
     language: str | None = None
 
     page_count: int = 0
@@ -80,20 +82,24 @@ class FinancialMetrics:
 
     currency: str | None = None
 
+    #
+    # Funding
+    # 
     raise_amount: Decimal | None = None
-
     valuation: Decimal | None = None
 
+    #
+    # Business performance
+    #
     revenue: Decimal | None = None
-
     arr: Decimal | None = None
-
     ebitda: Decimal | None = None
-
-    burn_rate: Decimal | None = None
-
     margin: Decimal | None = None
 
+    #
+    # Cash
+    #
+    burn_rate: Decimal | None = None
     runway_months: int | None = None
 
     confidence: float = 1.0
@@ -102,6 +108,83 @@ class FinancialMetrics:
 # ============================================================================
 # Investment Profile
 # ============================================================================
+@dataclass(slots=True, frozen=True)
+class InvestmentSignals:
+    """
+    Investment-specific signals inferred from the document.
+    """
+
+    #
+    # Company maturity
+    #
+    stage: str | None = None
+
+    #
+    # Business
+    #
+    industry: tuple[str, ...] = ()
+
+    business_models: tuple[str, ...] = ()
+
+    #
+    # Technology
+    #
+    technologies: tuple[str, ...] = ()
+
+    #
+    # Customers
+    #
+    markets: tuple[str, ...] = ()
+
+    #
+    # Geography
+    #
+    geographies: tuple[str, ...] = ()
+
+    #
+    # Investment themes
+    #
+    themes: tuple[str, ...] = ()
+
+    confidence: float = 1.0
+
+@dataclass(slots=True, frozen=True)
+class RiskAssessment:
+    """
+    Investment risks inferred from the document.
+    """
+
+    #
+    # Founder
+    #
+    founder_risks: tuple[str, ...] = ()
+
+    #
+    # Financial
+    #
+    financial_risks: tuple[str, ...] = ()
+
+    #
+    # Execution
+    #
+    execution_risks: tuple[str, ...] = ()
+
+    #
+    # Market
+    #
+    market_risks: tuple[str, ...] = ()
+
+    #
+    # Technology
+    #
+    technology_risks: tuple[str, ...] = ()
+
+    #
+    # Legal / Regulatory
+    #
+    legal_risks: tuple[str, ...] = ()
+
+    confidence: float = 1.0
 
 
 @dataclass(slots=True, frozen=True)
@@ -118,6 +201,12 @@ class InvestmentProfile:
 
     financials: FinancialMetrics
 
+    signals: investmentSignals = field( default_factory=InvestmentSignals,)
+
+    risks: RiskAssessment = field( default_factory=RiskAssessment,)
+
     extras: dict[str, Any] = field(default_factory=dict)
 
     confidence: float = 1.0
+
+
