@@ -8,6 +8,8 @@ from typing import Any
 
 from app.intelligence.base import IntelligenceExtractor
 from app.intelligence.metadata import MetadataExtractor
+from app.intelligence.entities import EntityExtractor
+from app.intelligence.financial import FinancialExtractor
 
 
 class IntelligenceFactory:
@@ -77,8 +79,11 @@ def create_intelligence_factory() -> IntelligenceFactory:
 
     factory = IntelligenceFactory()
 
-    factory.register(
+    for extractor in (
         MetadataExtractor(),
-    )
+        EntityExtractor(),
+        FinancialExtractor(),
+    ):
+        factory.register(extractor)
 
     return factory

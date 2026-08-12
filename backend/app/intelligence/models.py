@@ -36,6 +36,8 @@ class DocumentMetadata:
     confidence: float = 1.0
 
 
+
+
 # ============================================================================
 # Investment Entities
 # ============================================================================
@@ -70,7 +72,6 @@ class InvestmentEntities:
 # Financial Metrics
 # ============================================================================
 
-
 @dataclass(slots=True, frozen=True)
 class FinancialMetrics:
     """
@@ -90,6 +91,8 @@ class FinancialMetrics:
     ebitda: Decimal | None = None
 
     burn_rate: Decimal | None = None
+
+    margin: Decimal | None = None
 
     runway_months: int | None = None
 
