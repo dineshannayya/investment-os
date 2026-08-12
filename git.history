@@ -1,4 +1,22 @@
 ------- 12 th Aug 2026 ---------------
+
+close Sprint 3.5
+
+At this point I would consider the Sprint 3.5 implementation complete:
+
+Sprint 3.5 — Retrieval & Context
+────────────────────────────────────
+3.5.1 Retrieval Models        ✅
+3.5.2 Retriever Framework     ✅
+3.5.3 Semantic Retriever      ✅
+3.5.4 Context Models          ✅
+3.5.5 Context Builder         ✅
+3.5.6 Retrieval Service       ✅
+3.5.7 Tests                   ✅
+
+Full regression               ✅ 1089/1089
+
+------- 12 th Aug 2026 ---------------
 clean Sprint 3.5 test baseline.
 
 Current result
