@@ -1,4 +1,39 @@
 ------- 12 th Aug 2026 ---------------
+Sprint 3.4.1 Review
+
+Everything planned for the Embedding Framework has now been completed.
+Embeddings
+
+✓ app/embeddings/__init__.py
+✓ app/embeddings/base.py
+✓ app/embeddings/models.py
+✓ app/embeddings/factory.py
+✓ app/embeddings/sentence_transformers.py
+
+Services
+
+✓ app/services/embedding_service.py
+
+Tests
+
+✓ tests/embeddings/test_base.py
+✓ tests/embeddings/test_models.py
+✓ tests/embeddings/test_factory.py
+✓ tests/embeddings/test_sentence_transformers.py
+✓ tests/services/test_embedding_service.py
+
+Sprint 3.4.1
+=============================
+
+✓ Embedding Models
+✓ Embedding Provider
+✓ SentenceTransformer Provider
+✓ Factory
+✓ Embedding Service
+✓ Unit Tests
+
+
+------- 12 th Aug 2026 ---------------
 Sprint 3.3 Status
 
 At this point, I would consider Sprint 3.3 – Intelligence Extraction complete.
