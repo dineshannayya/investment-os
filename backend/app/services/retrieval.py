@@ -8,8 +8,8 @@ from __future__ import annotations
 
 from app.context.builder import ContextBuilder
 from app.context.models import PromptContext
-from app.retrieval.models import Query
 from app.retrieval.base import Retriever
+from app.retrieval.models import Query
 
 
 class RetrievalService:

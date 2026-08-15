@@ -10,7 +10,6 @@ from uuid import uuid4
 import pytest
 
 from app.storage.service import StorageService
-
 from tests.storage.fake_provider import FakeStorageProvider
 
 

@@ -1,8 +1,9 @@
+import uuid
+
 import pytest
 
 from app.models import Role
 
-import uuid
 
 @pytest.fixture
 def role_factory(db_session):

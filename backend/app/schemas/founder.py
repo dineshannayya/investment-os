@@ -5,10 +5,8 @@ Founder schemas.
 from __future__ import annotations
 
 from uuid import UUID
-from pydantic import HttpUrl
-from pydantic import ConfigDict
-from pydantic import EmailStr
-from pydantic import Field
+
+from pydantic import ConfigDict, EmailStr, Field, HttpUrl
 
 from app.schemas.base import BaseSchema
 

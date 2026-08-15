@@ -21,13 +21,13 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import Connection, Engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from app.models import Base
-
 # =============================================================================
 # Engine
 # =============================================================================
-
 from sqlalchemy.pool import StaticPool
+
+from app.models import Base
+
 
 @pytest.fixture(scope="session")
 def engine() -> Generator[Engine, None, None]:

@@ -7,13 +7,12 @@ from __future__ import annotations
 from pathlib import Path
 from uuid import UUID
 
+from app.chunking.base import Chunk, Chunker
 from app.models.document import Document
 from app.processors.base import DocumentContent
 from app.processors.factory import ProcessorFactory
 from app.services.document import DocumentService
 from app.storage.service import StorageService
-
-from app.chunking.base import Chunk, Chunker
 
 
 class DocumentProcessingService:

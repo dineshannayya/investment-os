@@ -89,7 +89,7 @@ class User(Base, UUIDMixin, TimestampMixin):
     # Relationships
     # -------------------------------------------------------------------------
     
-    user_roles: Mapped[list["UserRole"]] = relationship(
+    user_roles: Mapped[list[UserRole]] = relationship(
         "UserRole",
         back_populates="user",
         foreign_keys="UserRole.user_id",

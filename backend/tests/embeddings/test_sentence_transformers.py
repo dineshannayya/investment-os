@@ -4,8 +4,7 @@ Tests for SentenceTransformerProvider.
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from app.embeddings.models import EmbeddingVector
 from app.embeddings.sentence_transformers import (

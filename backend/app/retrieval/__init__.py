@@ -9,9 +9,9 @@ from app.retrieval.base import Retriever
 from app.retrieval.factory import RetrieverFactory
 from app.retrieval.models import (
     Query,
+    RetrievalResult,
     RetrievedChunk,
     RetrievedDocument,
-    RetrievalResult,
 )
 from app.retrieval.semantic import SemanticRetriever
 

@@ -23,7 +23,6 @@ from app.services.investment_intelligence import (
     InvestmentIntelligenceService,
 )
 
-
 # ============================================================================
 # Test doubles
 # ============================================================================

@@ -9,7 +9,6 @@ from uuid import uuid4
 from starlette import status
 
 from app.models.enums import (
-    DocumentStatus,
     DocumentType,
 )
 

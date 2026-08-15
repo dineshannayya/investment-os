@@ -8,17 +8,16 @@ from uuid import uuid4
 
 from app.chunking.base import Chunk
 from app.intelligence.base import IntelligenceExtractor
+from app.intelligence.entities import EntityExtractor
 from app.intelligence.factory import (
     IntelligenceFactory,
     create_intelligence_factory,
 )
-from app.intelligence.metadata import MetadataExtractor
-from app.intelligence.entities import EntityExtractor
 from app.intelligence.financial import FinancialExtractor
-from app.intelligence.risk      import RiskExtractor
+from app.intelligence.metadata import MetadataExtractor
 from app.intelligence.models import DocumentMetadata
+from app.intelligence.risk import RiskExtractor
 from app.processors import DocumentContent
-
 
 # ============================================================================
 # Test Doubles

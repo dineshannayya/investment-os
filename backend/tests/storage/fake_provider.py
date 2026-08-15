@@ -6,6 +6,7 @@ from app.storage.base import (
     StorageResult,
 )
 
+
 class FakeStorageProvider:
     """In-memory storage provider for unit tests."""
 

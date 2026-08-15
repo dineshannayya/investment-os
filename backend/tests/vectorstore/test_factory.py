@@ -6,7 +6,6 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from app.embeddings.models import EmbeddingVector
 from app.vectorstore.base import VectorStore
 from app.vectorstore.factory import VectorStoreFactory
 from app.vectorstore.memory import MemoryVectorStore

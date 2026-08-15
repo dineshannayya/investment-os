@@ -14,15 +14,13 @@ Model factories belong in:
 
 from __future__ import annotations
 
-from collections.abc import Generator
-
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from app.core.config import settings
-from app.main import app as fastapi_app
 from app.core.database.dependencies import get_db
+from app.main import app as fastapi_app
 
 pytest_plugins = [
     # Infrastructure

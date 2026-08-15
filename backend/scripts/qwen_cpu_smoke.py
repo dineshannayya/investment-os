@@ -17,7 +17,6 @@ import os
 import resource
 import sys
 import time
-import re
 from dataclasses import dataclass
 from pathlib import Path
 

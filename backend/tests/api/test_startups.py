@@ -6,9 +6,8 @@ from __future__ import annotations
 
 from uuid import uuid4
 
-from app.models.enums import StartupStage
-from app.models.enums import StartupStatus
 from app.core.config import API_PREFIX
+from app.models.enums import StartupStage, StartupStatus
 
 STARTUPS_URL = f"{API_PREFIX}/startups"
 

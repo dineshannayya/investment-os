@@ -6,14 +6,13 @@ from __future__ import annotations
 
 import pytest
 
+from app.llm.base import LLMProvider
 from app.llm.mock import MockLLMProvider
 from app.llm.models import (
     LLMMessage,
     LLMRequest,
     LLMResponse,
 )
-
-from app.llm.base import LLMProvider
 
 
 class TestMockLLMProvider:

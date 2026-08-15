@@ -5,12 +5,10 @@ Document upload service.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from uuid import uuid4
-from uuid import UUID
-from app.models.enums import DocumentType
+from uuid import UUID, uuid4
 
 from app.models.document import Document
-from app.models.enums import DocumentStatus
+from app.models.enums import DocumentStatus, DocumentType
 from app.schemas.document import DocumentCreate
 from app.services.document import DocumentService
 from app.storage.service import StorageService

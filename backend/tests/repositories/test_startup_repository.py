@@ -5,7 +5,6 @@ Tests for StartupRepository.
 from __future__ import annotations
 
 from app.models.enums import StartupStatus
-from app.models.startup import Startup
 from app.repositories.startup import StartupRepository
 
 

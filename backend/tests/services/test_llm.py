@@ -5,11 +5,11 @@ Tests for LLMService.
 from __future__ import annotations
 
 from app.llm.base import LLMProvider
+from app.llm.mock import MockLLMProvider
 from app.llm.models import (
     LLMRequest,
     LLMResponse,
 )
-from app.llm.mock import MockLLMProvider
 from app.prompt.models import Prompt
 from app.services.llm import LLMService
 

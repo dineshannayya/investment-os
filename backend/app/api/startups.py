@@ -17,14 +17,13 @@ from fastapi import (
 from sqlalchemy.orm import Session
 
 from app.core.database.dependencies import get_db
-from app.schemas.startup import ( 
-    StartupCreate, 
+from app.schemas.startup import (
+    StartupCreate,
     StartupResponse,
     StartupSummary,
     StartupUpdate,
 )
 from app.services.startup import StartupService
-
 
 router = APIRouter(
     prefix="/startups",

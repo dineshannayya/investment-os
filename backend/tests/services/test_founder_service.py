@@ -8,8 +8,7 @@ from uuid import uuid4
 
 import pytest
 
-from app.schemas.founder import FounderCreate
-from app.schemas.founder import FounderUpdate
+from app.schemas.founder import FounderCreate, FounderUpdate
 from app.services.founder import FounderService
 
 

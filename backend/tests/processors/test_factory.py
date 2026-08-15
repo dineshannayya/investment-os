@@ -5,7 +5,6 @@ Tests for ProcessorFactory.
 from __future__ import annotations
 
 from pathlib import Path
-from uuid import uuid4
 
 import pytest
 
@@ -13,14 +12,13 @@ from app.processors import (
     DocumentContent,
     DocumentProcessor,
 )
+from app.processors.docx import DocxProcessor
 from app.processors.factory import (
     ProcessorFactory,
     create_processor_factory,
 )
-from app.processors.text import TextProcessor
 from app.processors.pdf import PdfProcessor
-from app.processors.docx import DocxProcessor
-
+from app.processors.text import TextProcessor
 
 # ============================================================================
 # Test Processor

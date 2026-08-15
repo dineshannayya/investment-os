@@ -11,8 +11,7 @@ Transactions (commit/rollback) are managed by the service layer.
 
 from __future__ import annotations
 
-from typing import Generic
-from typing import TypeVar
+from typing import Generic, TypeVar
 
 from sqlalchemy.orm import Session
 

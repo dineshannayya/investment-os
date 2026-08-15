@@ -6,10 +6,12 @@ from __future__ import annotations
 
 import pytest
 
-from app.repositories.exceptions import DuplicateEntityError
-from app.repositories.exceptions import EntityNotFoundError
-from app.repositories.exceptions import PersistenceError
-from app.repositories.exceptions import RepositoryError
+from app.repositories.exceptions import (
+    DuplicateEntityError,
+    EntityNotFoundError,
+    PersistenceError,
+    RepositoryError,
+)
 
 
 class TestRepositoryExceptions:

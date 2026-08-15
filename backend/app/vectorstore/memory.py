@@ -5,6 +5,7 @@ In-memory vector store implementation.
 from __future__ import annotations
 
 import math
+from heapq import nlargest
 from uuid import UUID
 
 from app.vectorstore.base import VectorStore
@@ -13,7 +14,7 @@ from app.vectorstore.models import (
     SearchResult,
     StoredVector,
 )
-from heapq import nlargest
+
 
 class MemoryVectorStore(VectorStore):
     """

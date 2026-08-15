@@ -8,10 +8,9 @@ from app.chunking.base import Chunk
 from app.embeddings import (
     DocumentEmbedding,
     EmbeddingFactory,
+    EmbeddingProvider,
 )
 from app.processors import DocumentContent
-from app.embeddings import EmbeddingProvider
-
 
 
 class EmbeddingService:

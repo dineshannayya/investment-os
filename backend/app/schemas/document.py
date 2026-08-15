@@ -6,8 +6,7 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from pydantic import ConfigDict
-from pydantic import Field
+from pydantic import ConfigDict, Field
 
 from app.models.enums import (
     DocumentStatus,

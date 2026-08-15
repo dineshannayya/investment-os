@@ -8,9 +8,8 @@ from uuid import uuid4
 
 import pytest
 
+from app.schemas.startup import StartupCreate, StartupUpdate
 from app.services.startup import StartupService
-from app.schemas.startup import StartupCreate
-from app.schemas.startup import StartupUpdate
 
 
 class TestStartupService:

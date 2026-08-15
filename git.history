@@ -1,4 +1,13 @@
 ------- 15 th Aug 2026 ---------------
+3.7.1 is cleanly complete. The full regression run confirms it:
+
+1,288 tests passed
+0 failures
+app/schemas/analysis.py: 121 statements, 100% coverage
+Overall project coverage: 98%
+Runtime: 20.37 s
+
+------- 15 th Aug 2026 ---------------
 Final 3.6.8 benchmark
 
 | Metric               |       THINK ON |      THINK OFF |

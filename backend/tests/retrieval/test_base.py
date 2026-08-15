@@ -10,9 +10,9 @@ from app.embeddings.models import EmbeddingVector
 from app.retrieval.base import Retriever
 from app.retrieval.models import (
     Query,
+    RetrievalResult,
     RetrievedChunk,
     RetrievedDocument,
-    RetrievalResult,
 )
 
 

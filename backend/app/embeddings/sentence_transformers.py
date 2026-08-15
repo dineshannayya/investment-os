@@ -5,6 +5,7 @@ Sentence Transformers embedding provider.
 from __future__ import annotations
 
 from typing import Any
+
 try:
     from sentence_transformers import SentenceTransformer
 except ImportError:

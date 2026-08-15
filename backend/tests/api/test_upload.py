@@ -4,14 +4,13 @@ Tests for document upload API.
 
 from __future__ import annotations
 
+from hashlib import sha256
 from io import BytesIO
 from uuid import uuid4
-from hashlib import sha256
 
 from starlette import status
 
-from app.models.enums import DocumentType
-from app.models.enums import DocumentStatus
+from app.models.enums import DocumentStatus, DocumentType
 
 
 class TestUploadAPI:

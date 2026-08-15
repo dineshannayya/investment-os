@@ -8,9 +8,9 @@ from abc import ABC, abstractmethod
 
 from app.retrieval.models import (
     Query,
+    RetrievalResult,
     RetrievedChunk,
     RetrievedDocument,
-    RetrievalResult,
 )
 
 

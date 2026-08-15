@@ -7,12 +7,11 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import ConfigDict
-from pydantic import Field
+from pydantic import ConfigDict, Field
 
-from app.models.enums import StartupStage
-from app.models.enums import StartupStatus
+from app.models.enums import StartupStage, StartupStatus
 from app.schemas.base import BaseSchema
+
 
 # StartupCreate
 class StartupCreate(BaseSchema):

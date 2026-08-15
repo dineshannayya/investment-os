@@ -6,11 +6,11 @@ from __future__ import annotations
 
 from typing import Any
 
-from app.intelligence.base      import IntelligenceExtractor
-from app.intelligence.metadata  import MetadataExtractor
-from app.intelligence.entities  import EntityExtractor
+from app.intelligence.base import IntelligenceExtractor
+from app.intelligence.entities import EntityExtractor
 from app.intelligence.financial import FinancialExtractor
-from app.intelligence.risk      import RiskExtractor
+from app.intelligence.metadata import MetadataExtractor
+from app.intelligence.risk import RiskExtractor
 
 
 class IntelligenceFactory:

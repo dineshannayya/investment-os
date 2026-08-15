@@ -5,18 +5,16 @@ Semantic retriever implementation.
 from __future__ import annotations
 
 from time import perf_counter
-from types import MappingProxyType
 
-from app.embeddings.models import EmbeddingVector
-from app.services.embedding_service import EmbeddingService
-from app.services.vector_search import VectorSearchService
 from app.retrieval.base import Retriever
 from app.retrieval.models import (
     Query,
+    RetrievalResult,
     RetrievedChunk,
     RetrievedDocument,
-    RetrievalResult,
 )
+from app.services.embedding_service import EmbeddingService
+from app.services.vector_search import VectorSearchService
 
 
 class SemanticRetriever(Retriever):

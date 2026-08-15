@@ -13,8 +13,8 @@ from app.llm import (
     LLMRequest,
     LLMResponse,
 )
-from app.llm.factory import LLMFactory
 from app.llm.base import LLMProvider
+from app.llm.factory import LLMFactory
 from app.prompt import Prompt
 
 

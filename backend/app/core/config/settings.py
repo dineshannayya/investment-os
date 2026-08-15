@@ -4,10 +4,10 @@ Runtime application settings.
 All values in this file may be overridden through environment variables.
 """
 
+from enum import StrEnum
 from functools import lru_cache
 
 from pydantic import Field, field_validator
-
 from pydantic_settings import (
     BaseSettings,
     SettingsConfigDict,
@@ -22,20 +22,19 @@ from app.core.config.constants import (
     DEFAULT_JWT_ISSUER,
     DEFAULT_JWT_REFRESH_TOKEN_EXPIRE_DAYS,
     DEFAULT_JWT_SECRET_KEY,
+    DEFAULT_LLM_MAX_TOKENS,
     DEFAULT_LLM_MODEL,
     DEFAULT_LLM_TEMPERATURE,
-    DEFAULT_LLM_MAX_TOKENS,
-    DEFAULT_QWEN_MODEL_PATH,
-    DEFAULT_QWEN_CONTEXT_SIZE,
-    DEFAULT_QWEN_THREADS,
-    DEFAULT_QWEN_ENABLE_THINKING,
     DEFAULT_OPENAI_MODEL,
+    DEFAULT_QWEN_CONTEXT_SIZE,
+    DEFAULT_QWEN_ENABLE_THINKING,
+    DEFAULT_QWEN_MODEL_PATH,
+    DEFAULT_QWEN_THREADS,
 )
 from app.core.config.logging import (
     DEFAULT_LOG_LEVEL,
 )
 
-from enum import StrEnum
 
 class StorageProviderType(StrEnum):
     LOCAL = "local"

@@ -8,13 +8,11 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from sqlalchemy import or_
-from sqlalchemy import select
+from sqlalchemy import or_, select
 
 from app.models.enums import StartupStatus
 from app.models.startup import Startup
 from app.repositories.base import BaseRepository
-
 
 
 class StartupRepository(BaseRepository[Startup]):

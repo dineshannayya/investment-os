@@ -20,7 +20,6 @@ from app.services.upload import (
 )
 from app.storage.base import StorageResult
 
-
 # ============================================================================
 # Fake Storage Service
 # ============================================================================

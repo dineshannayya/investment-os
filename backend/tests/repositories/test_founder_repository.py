@@ -4,9 +4,10 @@ Tests for FounderRepository.
 
 from __future__ import annotations
 
-from app.models.founder import Founder
-from app.repositories.founder import FounderRepository
 from uuid import uuid4
+
+from app.repositories.founder import FounderRepository
+
 
 class TestFounderRepository:
     """Test FounderRepository."""

@@ -86,20 +86,20 @@ class UserRole(Base, UUIDMixin, TimestampMixin):
     # Relationships
     # ------------------------------------------------------------------
 
-    user: Mapped["User"] = relationship(
+    user: Mapped[User] = relationship(
         "User",
         back_populates="user_roles",
         foreign_keys=[user_id],
         lazy="selectin",
     )
 
-    role: Mapped["Role"] = relationship(
+    role: Mapped[Role] = relationship(
         "Role",
         back_populates="user_roles",
         lazy="selectin",
     )
 
-    assigned_by_user: Mapped["User | None"] = relationship(
+    assigned_by_user: Mapped[User | None] = relationship(
         "User",
         foreign_keys=[assigned_by],
         lazy="selectin",

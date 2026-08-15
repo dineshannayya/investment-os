@@ -96,7 +96,7 @@ class Permission(Base, UUIDMixin, TimestampMixin):
     # Relationships
     # ------------------------------------------------------------------
     
-    role_permissions: Mapped[list["RolePermission"]] = relationship(
+    role_permissions: Mapped[list[RolePermission]] = relationship(
         "RolePermission",
         back_populates="permission",
         cascade="all, delete-orphan",

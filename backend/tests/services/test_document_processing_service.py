@@ -9,6 +9,7 @@ from uuid import uuid4
 
 import pytest
 
+from app.chunking.base import Chunk, Chunker
 from app.models.document import Document
 from app.processors.base import (
     DocumentContent,
@@ -18,8 +19,6 @@ from app.processors.factory import ProcessorFactory
 from app.services.document_processing import (
     DocumentProcessingService,
 )
-
-from app.chunking.base import Chunk, Chunker
 
 # ============================================================================
 # Test Doubles
