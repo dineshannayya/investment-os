@@ -86,6 +86,8 @@ services:
     volumes:
       - ./backend:/opt/investment-os
       - backend_venv:/opt/investment-os/.venv
+      - ./models:/models:ro
+
 
     ports:
       - "8000:8000"

@@ -6,7 +6,8 @@ All values in this file may be overridden through environment variables.
 
 from functools import lru_cache
 
-from pydantic import Field
+from pydantic import Field, field_validator
+
 from pydantic_settings import (
     BaseSettings,
     SettingsConfigDict,
@@ -21,6 +22,13 @@ from app.core.config.constants import (
     DEFAULT_JWT_ISSUER,
     DEFAULT_JWT_REFRESH_TOKEN_EXPIRE_DAYS,
     DEFAULT_JWT_SECRET_KEY,
+    DEFAULT_LLM_MODEL,
+    DEFAULT_LLM_TEMPERATURE,
+    DEFAULT_LLM_MAX_TOKENS,
+    DEFAULT_QWEN_MODEL_PATH,
+    DEFAULT_QWEN_CONTEXT_SIZE,
+    DEFAULT_QWEN_THREADS,
+    DEFAULT_OPENAI_MODEL,
 )
 from app.core.config.logging import (
     DEFAULT_LOG_LEVEL,
@@ -34,6 +42,35 @@ class StorageProviderType(StrEnum):
     AZURE = "azure"
     GCS = "gcs"
 
+class LLMProviderType(StrEnum):
+    QWEN = "qwen"
+    OPENAI = "openai"
+    MOCK = "mock"
+
+# ---------------------------------------
+#   Settings
+#   │
+#   ├── Application
+#   ├── API Server
+#   ├── Redis
+#   │
+#   ├── LLM
+#   │   ├── llm_provider
+#   │   ├── llm_model
+#   │   ├── llm_temperature
+#   │   └── llm_max_tokens
+#   ├── Qwen / Local LLM
+#   │   ├── qwen_model_path
+#   │   ├── qwen_context_size
+#   │   └── qwen_threads
+#   ├── OpenAI
+#   │   ├── openai_api_key
+#   │   └── openai_model
+#   ├── Logging
+#   ├── Database
+#   ├── Security
+#   └── Storage
+# -------------------------------------------
 
 class Settings(BaseSettings):
     """
@@ -79,9 +116,55 @@ class Settings(BaseSettings):
     # LLM
     # =========================================================================
 
-    llm_provider: str | None = Field(default=None)
+    llm_provider: LLMProviderType = Field( default=LLMProviderType.QWEN,)
+    
+    llm_model: str = Field( default=DEFAULT_LLM_MODEL,)
+    
+    llm_temperature: float = Field( default=DEFAULT_LLM_TEMPERATURE, ge=0.0, le=2.0,)
+    
+    llm_max_tokens: int = Field( default=DEFAULT_LLM_MAX_TOKENS, gt=0,)
 
-    llm_model: str | None = Field(default=None)
+    # =========================================================================
+    # Qwen / Local LLM
+    # =========================================================================
+    
+    qwen_model_path: str = Field(
+        default=DEFAULT_QWEN_MODEL_PATH,
+    )
+    
+    qwen_context_size: int = Field( default=DEFAULT_QWEN_CONTEXT_SIZE, gt=0,)
+    
+    qwen_threads: int = Field( default=DEFAULT_QWEN_THREADS, gt=0,)
+
+    
+    # =========================================================================
+    # OpenAI
+    # =========================================================================
+    
+    openai_api_key: str | None = Field(default=None)
+    
+    
+    @field_validator("openai_api_key", mode="before")
+    @classmethod
+    def normalize_openai_api_key(
+        cls,
+        value: str | None,
+    ) -> str | None:
+        """Normalize blank OpenAI API keys to None."""
+    
+        if value is None:
+            return None
+    
+        if isinstance(value, str) and not value.strip():
+            return None
+    
+        return value
+
+    
+    openai_model: str = Field(
+        default=DEFAULT_OPENAI_MODEL,
+    )
+
 
     # =========================================================================
     # Logging
@@ -101,6 +184,9 @@ class Settings(BaseSettings):
     database_pool_timeout: int = 30
     database_pool_recycle: int = 1800
 
+    # =========================================================================
+    # Security
+    # =========================================================================
     jwt_secret_key: str = Field(
         default=DEFAULT_JWT_SECRET_KEY,
     )
@@ -149,6 +235,22 @@ class Settings(BaseSettings):
             "image/png",
         ],
     )
+
+# ------------------------------------------------
+
+@field_validator("openai_api_key", mode="before")
+@classmethod
+def normalize_openai_api_key(
+    cls,
+    value: str | None,
+) -> str | None:
+    if value is None:
+        return None
+
+    if isinstance(value, str) and not value.strip():
+        return None
+
+    return value
 
 
 @lru_cache

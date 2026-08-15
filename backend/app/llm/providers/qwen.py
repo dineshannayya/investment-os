@@ -1,0 +1,111 @@
+"""
+Qwen local LLM provider.
+
+Provides local Qwen inference through llama-cpp-python.
+"""
+
+from __future__ import annotations
+
+from typing import Any
+
+from llama_cpp import Llama
+
+from app.core.config import Settings, settings
+from app.llm.base import LLMProvider
+from app.llm.models import (
+    LLMRequest,
+    LLMResponse,
+    LLMUsage,
+)
+
+
+class QwenProvider(LLMProvider):
+    """
+    Local Qwen provider backed by llama.cpp.
+    """
+
+    NAME = "qwen"
+
+    def __init__(
+        self,
+        *,
+        config: Settings | None = None,
+    ) -> None:
+        self._settings = config or settings
+        self._model: Llama | None = None
+
+    @property
+    def name(self) -> str:
+        """Return provider name."""
+        return self.NAME
+
+    def _get_model(self) -> Llama:
+        """
+        Lazily load and cache the Qwen GGUF model.
+        """
+
+        if self._model is None:
+            self._model = Llama(
+                model_path=self._settings.qwen_model_path,
+                n_ctx=self._settings.qwen_context_size,
+                n_threads=self._settings.qwen_threads,
+                verbose=False,
+            )
+
+        return self._model
+
+    def generate(
+        self,
+        request: LLMRequest,
+    ) -> LLMResponse:
+        """
+        Generate a response from the local Qwen model.
+        """
+
+        model = self._get_model()
+
+        messages: list[dict[str, str]] = [
+            {
+                "role": message.role,
+                "content": message.content,
+            }
+            for message in request.messages
+        ]
+
+        response: dict[str, Any] = model.create_chat_completion(
+            messages=messages,
+            temperature=request.temperature,
+            max_tokens=request.max_tokens,
+        )
+
+        choice = response["choices"][0]
+        message = choice.get("message", {})
+
+        text = message.get("content") or ""
+
+        usage_data = response.get("usage", {})
+
+        usage = LLMUsage(
+            prompt_tokens=usage_data.get(
+                "prompt_tokens",
+                0,
+            ),
+            completion_tokens=usage_data.get(
+                "completion_tokens",
+                0,
+            ),
+            total_tokens=usage_data.get(
+                "total_tokens",
+                0,
+            ),
+        )
+
+        return LLMResponse(
+            text=text,
+            model=request.model or self._settings.llm_model,
+            usage=usage,
+            metadata={
+                "provider": self.NAME,
+                "model_path": self._settings.qwen_model_path,
+            },
+        )

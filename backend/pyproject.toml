@@ -28,16 +28,17 @@ dependencies = [
     "python-dotenv>=1.1.0",
    
     "PyJWT>=2.10",
-
     "pwdlib[argon2]>=0.3.0",
     "email-validator>=2.2.0",
-
-    "alembic>=1.16",
 
     # Document processing
     "python-multipart>=0.0.9",
     "python-docx>=1.1.0",
     "pypdf>=5.0.0",
+
+    # Local LLM
+    "llama-cpp-python==0.3.34",
+
 ]
 
 [project.optional-dependencies]

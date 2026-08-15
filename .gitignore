@@ -212,6 +212,9 @@ logs/
 *.db
 
 # AI/LLM Assets
+models/*
+!models/qwen3/
+!models/qwen3/.gitkeep
 backend/app/ai/models/
 checkpoints/
 embeddings/

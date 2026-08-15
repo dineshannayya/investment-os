@@ -38,6 +38,7 @@ from app.core.config.logging import (
     LOGGER_NAME,
 )
 from app.core.config.settings import (
+    LLMProviderType,
     Settings,
     get_settings,
     settings,
@@ -60,6 +61,7 @@ __all__ = [
     "Settings",
     "settings",
     "get_settings",
+    "LLMProviderType",
     # Application
     "APP_NAME",
     "APP_VERSION",
