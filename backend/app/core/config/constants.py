@@ -72,6 +72,8 @@ DEFAULT_QWEN_CONTEXT_SIZE: Final[int] = 8192
 
 DEFAULT_QWEN_THREADS: Final[int] = 8
 
+DEFAULT_QWEN_ENABLE_THINKING: Final[bool] = True
+
 # =============================================================================
 # OpenAI
 # =============================================================================

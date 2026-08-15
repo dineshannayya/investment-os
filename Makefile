@@ -105,6 +105,10 @@ check: format-check lint typecheck test
 
 ci: check cov
 
+qwen_smoke:
+	docker compose exec -T backend python -u -m scripts.qwen_cpu_smoke 
+
+
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 	find . -type d -name ".pytest_cache" -exec rm -rf {} +

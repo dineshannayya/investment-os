@@ -54,6 +54,37 @@ class QwenProvider(LLMProvider):
 
         return self._model
 
+
+    def _apply_thinking_mode(
+        self,
+        messages: list[dict[str, str]],
+    ) -> list[dict[str, str]]:
+        """Apply the configured Qwen3 thinking mode to the latest user message."""
+
+        directive = (
+            "/think"
+            if self._settings.qwen_enable_thinking
+            else "/no_think"
+        )
+
+        result = [message.copy() for message in messages]
+
+        for message in reversed(result):
+            if message["role"] != "user":
+                continue
+
+            content = message["content"].rstrip()
+
+            if content.endswith("/think"):
+                content = content[: -len("/think")].rstrip()
+            elif content.endswith("/no_think"):
+                content = content[: -len("/no_think")].rstrip()
+
+            message["content"] = f"{content}\n{directive}"
+            break
+
+        return result
+
     def generate(
         self,
         request: LLMRequest,
@@ -71,6 +102,8 @@ class QwenProvider(LLMProvider):
             }
             for message in request.messages
         ]
+
+        messages = self._apply_thinking_mode(messages)
 
         response: dict[str, Any] = model.create_chat_completion(
             messages=messages,
@@ -100,12 +133,16 @@ class QwenProvider(LLMProvider):
             ),
         )
 
+        finish_reason = response["choices"][0].get("finish_reason")
+
         return LLMResponse(
             text=text,
             model=request.model or self._settings.llm_model,
             usage=usage,
+            finish_reason=finish_reason,
             metadata={
                 "provider": self.NAME,
-                "model_path": self._settings.qwen_model_path,
-            },
+                "thinking_enabled": self._settings.qwen_enable_thinking,
+            }
+
         )

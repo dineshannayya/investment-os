@@ -28,6 +28,7 @@ from app.core.config.constants import (
     DEFAULT_QWEN_MODEL_PATH,
     DEFAULT_QWEN_CONTEXT_SIZE,
     DEFAULT_QWEN_THREADS,
+    DEFAULT_QWEN_ENABLE_THINKING,
     DEFAULT_OPENAI_MODEL,
 )
 from app.core.config.logging import (
@@ -136,7 +137,7 @@ class Settings(BaseSettings):
     
     qwen_threads: int = Field( default=DEFAULT_QWEN_THREADS, gt=0,)
 
-    
+    qwen_enable_thinking: bool = Field( default=DEFAULT_QWEN_ENABLE_THINKING,) 
     # =========================================================================
     # OpenAI
     # =========================================================================

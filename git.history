@@ -1,3 +1,18 @@
+------- 15 th Aug 2026 ---------------
+Final 3.6.8 benchmark
+
+| Metric               |       THINK ON |      THINK OFF |
+| -------------------- | -------------: | -------------: |
+| Load time            |         2.71 s |         2.67 s |
+| Inference time       |        86.03 s |        73.62 s |
+| Prompt tokens        |            100 |            101 |
+| Completion tokens    |            512 |            435 |
+| Total tokens         |            612 |            536 |
+| Effective throughput | **5.95 tok/s** | **5.91 tok/s** |
+| Thinking content     |        **YES** |         **NO** |
+| Finish reason        |     **length** |       **stop** |
+| Peak RSS             |        9.25 GB |        9.26 GB |
+
 ------- 12 th Aug 2026 ---------------
 
 close Sprint 3.5

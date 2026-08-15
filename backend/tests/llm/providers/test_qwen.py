@@ -14,6 +14,7 @@ from app.llm.models import (
     LLMResponse,
 )
 from app.llm.providers.qwen import QwenProvider
+from scripts.qwen_cpu_smoke import has_thinking_content
 
 
 class TestQwenProvider:
@@ -98,15 +99,18 @@ class TestQwenProvider:
             qwen_model_path="/test/model.gguf",
             qwen_context_size=4096,
             qwen_threads=4,
+            qwen_enable_thinking=False,
             llm_model="test-qwen",
         )
-
+        
         provider = QwenProvider(config=config)
-
+        
         assert provider._settings is config
         assert provider._settings.qwen_model_path == "/test/model.gguf"
         assert provider._settings.qwen_context_size == 4096
         assert provider._settings.qwen_threads == 4
+        assert provider._settings.qwen_enable_thinking is False
+
 
     # ------------------------------------------------------------------
     # Lazy loading
@@ -216,7 +220,7 @@ class TestQwenProvider:
             },
             {
                 "role": "user",
-                "content": "Analyze this startup.",
+                "content": "Analyze this startup.\n/think",
             },
             {
                 "role": "assistant",
@@ -412,5 +416,331 @@ class TestQwenProvider:
             "System instruction",
             "First question",
             "First answer",
-            "Follow-up question",
+            "Follow-up question\n/think",
         ]
+
+
+    # Test 1 — thinking enabled
+    @patch("app.llm.providers.qwen.Llama")
+    def test_thinking_mode_adds_think_directive(self, mock_llama):
+        """Thinking mode should append /think to the latest user message."""
+    
+        mock_model = MagicMock()
+        mock_model.create_chat_completion.return_value = (
+            self.mock_llama_response()
+        )
+        mock_llama.return_value = mock_model
+    
+        from app.core.config import Settings
+    
+        config = Settings(
+            database_url="postgresql://test",
+            redis_url="redis://localhost",
+            qwen_enable_thinking=True,
+        )
+    
+        provider = QwenProvider(config=config)
+    
+        provider.generate(
+            self.make_request(
+                messages=(
+                    LLMMessage(
+                        role ="user",
+                        content = "Analyze this startup.",
+                    ),
+                ),
+            )
+        )
+    
+        messages = (
+            mock_model.create_chat_completion.call_args
+            .kwargs["messages"]
+        )
+    
+        assert messages[-1]["content"] == (
+            "Analyze this startup.\n/think"
+        )
+    
+    # Test 2 — thinking disabled
+    @patch("app.llm.providers.qwen.Llama")
+    def test_non_thinking_mode_adds_no_think_directive(self, mock_llama):
+        """Non-thinking mode should append /no_think."""
+    
+        mock_model = MagicMock()
+        mock_model.create_chat_completion.return_value = (
+            self.mock_llama_response()
+        )
+        mock_llama.return_value = mock_model
+    
+        from app.core.config import Settings
+    
+        config = Settings(
+            database_url="postgresql://test",
+            redis_url="redis://localhost",
+            qwen_enable_thinking=False,
+        )
+    
+        provider = QwenProvider(config=config)
+    
+        provider.generate(self.make_request())
+    
+        messages = (
+            mock_model.create_chat_completion.call_args
+            .kwargs["messages"]
+        )
+    
+        assert messages[-1]["content"] == (
+            "What is EBITDA?\n/no_think"
+        )
+    
+    # 4. Test replacement of an existing directive
+    
+    @patch("app.llm.providers.qwen.Llama")
+    def test_existing_think_directive_is_replaced(
+        self,
+        mock_llama,
+    ):
+        """An existing /think directive should be replaced when disabled."""
+    
+        mock_model = MagicMock()
+        mock_model.create_chat_completion.return_value = (
+            self.mock_llama_response()
+        )
+        mock_llama.return_value = mock_model
+    
+        from app.core.config import Settings
+    
+        config = Settings(
+            database_url="postgresql://test",
+            redis_url="redis://localhost",
+            qwen_enable_thinking=False,
+        )
+    
+        provider = QwenProvider(config=config)
+    
+        provider.generate(
+            self.make_request(
+                messages=(
+                    LLMMessage(
+                        role="user",
+                        content="Analyze this startup.\n/think",
+                    ),
+                ),
+            )
+        )
+    
+        messages = (
+            mock_model.create_chat_completion.call_args
+            .kwargs["messages"]
+        )
+    
+        assert messages[-1]["content"] == (
+            "Analyze this startup.\n/no_think"
+        )
+    
+    @patch("app.llm.providers.qwen.Llama")
+    def test_existing_no_think_directive_is_replaced(
+        self,
+        mock_llama,
+    ):
+        """An existing /no_think directive should be replaced when enabled."""
+    
+        mock_model = MagicMock()
+        mock_model.create_chat_completion.return_value = (
+            self.mock_llama_response()
+        )
+        mock_llama.return_value = mock_model
+    
+        from app.core.config import Settings
+    
+        config = Settings(
+            database_url="postgresql://test",
+            redis_url="redis://localhost",
+            qwen_enable_thinking=True,
+        )
+    
+        provider = QwenProvider(config=config)
+    
+        provider.generate(
+            self.make_request(
+                messages=(
+                    LLMMessage(
+                        role="user",
+                        content="Analyze this startup.\n/no_think",
+                    ),
+                ),
+            )
+        )
+    
+        messages = (
+            mock_model.create_chat_completion.call_args
+            .kwargs["messages"]
+        )
+    
+        assert messages[-1]["content"] == (
+            "Analyze this startup.\n/think"
+        )
+    
+    # 5. Test only the latest user message is modified
+    @patch("app.llm.providers.qwen.Llama")
+    def test_thinking_mode_modifies_only_latest_user_message(
+        self,
+        mock_llama,
+    ):
+        """Only the latest user message should receive the directive."""
+    
+        mock_model = MagicMock()
+        mock_model.create_chat_completion.return_value = (
+            self.mock_llama_response()
+        )
+        mock_llama.return_value = mock_model
+    
+        provider = QwenProvider()
+    
+        messages = (
+            LLMMessage(
+                role="system",
+                content="You are an investment analyst.",
+            ),
+            LLMMessage(
+                role="user",
+                content="First question",
+            ),
+            LLMMessage(
+                role="assistant",
+                content="First answer",
+            ),
+            LLMMessage(
+                role="user",
+                content="Follow-up question",
+            ),
+        )
+    
+        provider.generate(
+            self.make_request(messages=messages),
+        )
+    
+        forwarded = (
+            mock_model.create_chat_completion.call_args
+            .kwargs["messages"]
+        )
+    
+        assert forwarded[1]["content"] == "First question"
+    
+        assert forwarded[3]["content"] == (
+            "Follow-up question\n/think"
+        )
+    
+    # 6. Test system/assistant messages remain unchanged
+    
+    @patch("app.llm.providers.qwen.Llama")
+    def test_thinking_mode_preserves_non_user_messages(
+        self,
+        mock_llama,
+    ):
+        """System and assistant messages must remain unchanged."""
+    
+        mock_model = MagicMock()
+        mock_model.create_chat_completion.return_value = (
+            self.mock_llama_response()
+        )
+        mock_llama.return_value = mock_model
+    
+        provider = QwenProvider()
+    
+        messages = (
+            LLMMessage(
+                role="system",
+                content="You are an investment analyst.",
+            ),
+            LLMMessage(
+                role="user",
+                content="Analyze this startup.",
+            ),
+            LLMMessage(
+                role="assistant",
+                content="I need more information.",
+            ),
+        )
+    
+        provider.generate(
+            self.make_request(messages=messages),
+        )
+    
+        forwarded = (
+            mock_model.create_chat_completion.call_args
+            .kwargs["messages"]
+        )
+    
+        assert forwarded[0] == {
+            "role": "system",
+            "content": "You are an investment analyst.",
+        }
+    
+        assert forwarded[2] == {
+            "role": "assistant",
+            "content": "I need more information.",
+        }
+
+    @patch("app.llm.providers.qwen.Llama")
+    def test_response_metadata_contains_thinking_mode(
+        self,
+        mock_llama,
+    ):
+        """Response metadata should record the Qwen thinking mode."""
+    
+        mock_model = MagicMock()
+        mock_model.create_chat_completion.return_value = (
+            self.mock_llama_response()
+        )
+        mock_llama.return_value = mock_model
+    
+        from app.core.config import Settings
+    
+        config = Settings(
+            database_url="postgresql://test",
+            redis_url="redis://localhost",
+            qwen_enable_thinking=False,
+        )
+    
+        provider = QwenProvider(config=config)
+    
+        response = provider.generate(
+            self.make_request(),
+        )
+    
+        assert response.metadata["provider"] == "qwen"
+        assert response.metadata["thinking_enabled"] is False
+
+def test_has_thinking_content_with_reasoning():
+    text = """<think>
+This is the model's reasoning.
+It contains multiple lines.
+</think>
+
+Final answer.
+"""
+
+    assert has_thinking_content(text) is True
+
+def test_has_thinking_content_with_empty_block():
+    text = """<think>
+
+</think>
+
+Final answer.
+"""
+
+    assert has_thinking_content(text) is False
+
+def test_has_thinking_content_without_tags():
+    text = "Final answer without thinking tags."
+
+    assert has_thinking_content(text) is False
+
+def test_has_thinking_content_inline():
+    text = "<think>short reasoning</think>Final answer."
+
+    assert has_thinking_content(text) is True
+
+    

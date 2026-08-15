@@ -149,7 +149,7 @@ def test_default_qwen_settings():
     )
 
     assert settings.qwen_context_size == 8192
-    assert settings.qwen_threads == 12
+    assert settings.qwen_threads == 8
 
 # Test OpenAI benchmark defaults
 def test_default_openai_settings():

@@ -118,6 +118,8 @@ class LLMResponse:
 
     model: str | None = None
 
+    finish_reason: str | None = None
+
     usage: LLMUsage = field(
         default_factory=LLMUsage,
     )
