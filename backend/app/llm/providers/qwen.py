@@ -55,17 +55,28 @@ class QwenProvider(LLMProvider):
         return self._model
 
 
+    def _is_thinking_enabled(
+        self,
+        request: LLMRequest,
+    ) -> bool:
+        """Return the effective thinking mode for this request."""
+
+        value = request.metadata.get("thinking_enabled")
+
+        if value is None:
+            return self._settings.qwen_enable_thinking
+
+        return bool(value)
+
     def _apply_thinking_mode(
         self,
         messages: list[dict[str, str]],
+        *,
+        thinking_enabled: bool,
     ) -> list[dict[str, str]]:
-        """Apply the configured Qwen3 thinking mode to the latest user message."""
+        """Apply Qwen3 thinking mode to the latest user message."""
 
-        directive = (
-            "/think"
-            if self._settings.qwen_enable_thinking
-            else "/no_think"
-        )
+        directive = "/think" if thinking_enabled else "/no_think"
 
         result = [message.copy() for message in messages]
 
@@ -103,7 +114,12 @@ class QwenProvider(LLMProvider):
             for message in request.messages
         ]
 
-        messages = self._apply_thinking_mode(messages)
+        thinking_enabled = self._is_thinking_enabled(request)
+        
+        messages = self._apply_thinking_mode(
+            messages,
+            thinking_enabled=thinking_enabled,
+        )
 
         response: dict[str, Any] = model.create_chat_completion(
             messages=messages,
@@ -142,7 +158,7 @@ class QwenProvider(LLMProvider):
             finish_reason=finish_reason,
             metadata={
                 "provider": self.NAME,
-                "thinking_enabled": self._settings.qwen_enable_thinking,
+                "thinking_enabled": thinking_enabled,
             }
 
         )

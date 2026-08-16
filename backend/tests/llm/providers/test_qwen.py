@@ -29,9 +29,10 @@ class TestQwenProvider:
         model: str | None = None,
         temperature: float = 0.0,
         max_tokens: int | None = 128,
+        metadata: dict | None = None,
     ) -> LLMRequest:
         """Create a standard test request."""
-
+    
         if messages is None:
             messages = (
                 LLMMessage(
@@ -39,13 +40,15 @@ class TestQwenProvider:
                     content="What is EBITDA?",
                 ),
             )
-
+    
         return LLMRequest(
             messages=messages,
             model=model,
             temperature=temperature,
             max_tokens=max_tokens,
+            metadata=metadata or {},
         )
+
 
     @staticmethod
     def mock_llama_response(
@@ -204,7 +207,11 @@ class TestQwenProvider:
             ),
         )
 
-        request = self.make_request(messages=messages)
+        request = self.make_request(
+            messages=messages,
+            metadata={"thinking_enabled": True},
+        )
+
 
         provider = QwenProvider()
         provider.generate(request)
@@ -710,6 +717,109 @@ class TestQwenProvider:
         assert response.metadata["provider"] == "qwen"
         assert response.metadata["thinking_enabled"] is False
 
+    @patch("app.llm.providers.qwen.Llama")
+    def test_request_thinking_disabled_overrides_global_enabled(
+        self,
+        mock_llama,
+    ):
+        mock_model = MagicMock()
+        mock_model.create_chat_completion.return_value = (
+            self.mock_llama_response()
+        )
+        mock_llama.return_value = mock_model
+    
+        from app.core.config import Settings
+    
+        config = Settings(
+            database_url="postgresql://test",
+            redis_url="redis://localhost",
+            qwen_enable_thinking=True,
+        )
+    
+        provider = QwenProvider(config=config)
+    
+        provider.generate(
+            self.make_request(
+                metadata={"thinking_enabled": False},
+            )
+        )
+    
+        messages = (
+            mock_model.create_chat_completion.call_args
+            .kwargs["messages"]
+        )
+    
+        assert messages[-1]["content"] == (
+            "What is EBITDA?\n/no_think"
+        )    
+    
+    @patch("app.llm.providers.qwen.Llama")
+    def test_request_thinking_enabled_overrides_global_disabled(
+        self,
+        mock_llama,
+    ):
+        mock_model = MagicMock()
+        mock_model.create_chat_completion.return_value = (
+            self.mock_llama_response()
+        )
+        mock_llama.return_value = mock_model
+    
+        from app.core.config import Settings
+    
+        config = Settings(
+            database_url="postgresql://test",
+            redis_url="redis://localhost",
+            qwen_enable_thinking=False,
+        )
+    
+        provider = QwenProvider(config=config)
+    
+        provider.generate(
+            self.make_request(
+                metadata={"thinking_enabled": True},
+            )
+        )
+    
+        messages = (
+            mock_model.create_chat_completion.call_args
+            .kwargs["messages"]
+        )
+    
+        assert messages[-1]["content"] == (
+            "What is EBITDA?\n/think"
+        )
+    
+    @patch("app.llm.providers.qwen.Llama")
+    def test_response_metadata_contains_effective_thinking_mode(
+        self,
+        mock_llama,
+    ):
+        mock_model = MagicMock()
+        mock_model.create_chat_completion.return_value = (
+            self.mock_llama_response()
+        )
+        mock_llama.return_value = mock_model
+    
+        from app.core.config import Settings
+    
+        config = Settings(
+            database_url="postgresql://test",
+            redis_url="redis://localhost",
+            qwen_enable_thinking=True,
+        )
+    
+        provider = QwenProvider(config=config)
+    
+        response = provider.generate(
+            self.make_request(
+                metadata={"thinking_enabled": False},
+            )
+        )
+    
+        assert response.metadata["provider"] == "qwen"
+        assert response.metadata["thinking_enabled"] is False
+
+
 def test_has_thinking_content_with_reasoning():
     text = """<think>
 This is the model's reasoning.
@@ -741,4 +851,3 @@ def test_has_thinking_content_inline():
 
     assert has_thinking_content(text) is True
 
-    
