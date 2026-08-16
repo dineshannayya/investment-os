@@ -44,3 +44,17 @@ Do not use Markdown code fences.
                       │
                       ▼
             Qualitative Analysis
+
+| Artifact                                  | Source of truth                          | Responsibility                                       |
+| ----------------------------------------- | ---------------------------------------- | ---------------------------------------------------- |
+| **Startup / company data**                | `Startup` + related entities + documents | Original startup information/evidence                |
+| **Analysis input**                        | `AnalysisInputBuilder`                   | Defines exactly what startup data enters an analysis |
+| **Financial metrics**                     | `FinancialMetricsService`                | Deterministic financial calculations                 |
+| **Generation configuration**              | `StartupAnalysisConfig`                  | Mode, thinking, model, tokens, temperature           |
+| **Prompt**                                | Prompt Builder                           | Converts analysis input + metrics into LLM messages  |
+| **Qualitative assessment**                | `QwenProvider` + `StartupAnalysisParser` | LLM generation + structured validation               |
+| **LLM execution metadata**                | `LLMResponse`                            | Model, finish reason, token usage, generated text    |
+| **Historical persistence representation** | `StartupAnalysisMapper`                  | Combines execution artifacts into persistence model  |
+| **Database access**                       | `StartupAnalysisRepository`              | Save/load/query historical analyses                  |
+| **Overall orchestration**                 | `StartupAnalysisOrchestrator`            | Coordinates the above; owns no analysis data         |
+

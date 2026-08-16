@@ -325,5 +325,5 @@ class StartupAnalysis(AnalysisBase):
 
     result: StartupAnalysisResult
 
-    analysis_version: str = "1.0"
+    analysis_version: str = "3.7.5"
 

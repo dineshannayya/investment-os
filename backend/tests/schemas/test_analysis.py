@@ -643,7 +643,7 @@ def test_startup_analysis_defaults():
     assert result.startup_id is None
     assert result.metrics.revenue_multiple is None
     assert result.metrics.ebitda_multiple is None
-    assert result.analysis_version == "1.0"
+    assert result.analysis_version == "3.7.5"
 
 
 def test_startup_analysis_accepts_complete_analysis():
@@ -680,7 +680,7 @@ def test_startup_analysis_accepts_complete_analysis():
     assert result.result.preliminary_recommendation == (
         "needs_further_diligence"
     )
-    assert result.analysis_version == "1.0"
+    assert result.analysis_version == "3.7.5"
 
 
 # ---------------------------------------------------------------------------
