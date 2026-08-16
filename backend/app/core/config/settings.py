@@ -30,6 +30,8 @@ from app.core.config.constants import (
     DEFAULT_QWEN_ENABLE_THINKING,
     DEFAULT_QWEN_MODEL_PATH,
     DEFAULT_QWEN_THREADS,
+    DEFAULT_STARTUP_ANALYSIS_TEMPERATURE,
+    DEFAULT_STARTUP_ANALYSIS_MAX_TOKENS,
 )
 from app.core.config.logging import (
     DEFAULT_LOG_LEVEL,
@@ -235,6 +237,22 @@ class Settings(BaseSettings):
             "image/png",
         ],
     )
+
+    # ==================================================================
+    # STARTUP ANALYSIS
+    # ==================================================================
+    startup_analysis_temperature: float = (
+        DEFAULT_STARTUP_ANALYSIS_TEMPERATURE
+    )
+    
+    startup_analysis_max_tokens: int = (
+        DEFAULT_STARTUP_ANALYSIS_MAX_TOKENS
+    )
+
+    startup_analysis_max_strengths: int = 3
+    startup_analysis_max_risks: int = 3
+    startup_analysis_max_missing_information: int = 3
+    startup_analysis_max_key_observations: int = 3
 
 # ------------------------------------------------
 

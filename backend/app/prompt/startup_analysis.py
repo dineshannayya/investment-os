@@ -68,6 +68,28 @@ Allowed preliminary_recommendation values are exactly:
 - "promising"
 - "needs_further_diligence"
 - "concerns"
+
+OUTPUT CONSTRAINTS
+
+Return concise structured JSON.
+
+List limits:
+- strengths: maximum 3 items
+- risks: maximum 3 items
+- missing_information: maximum 3 items
+- key_observations: maximum 3 items
+
+Narrative limits:
+- Each narrative field: maximum 1–2 concise sentences
+- investment_thesis: maximum 2 sentences
+- Do not repeat the same point across multiple fields
+- Do not invent information that is not present in the input
+- Use null when the available information is insufficient
+
+Narrative fields:
+- 1 concise sentence each
+- Prefer 15–25 words
+- Do not restate numerical data already provided
 """
 
 

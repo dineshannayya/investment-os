@@ -273,11 +273,8 @@ class StartupAnalysisInput(AnalysisBase):
 # Qualitative Result
 # ---------------------------------------------------------------------------
 
-class StartupAnalysisResult(AnalysisBase):
-    """Qualitative output from startup analysis."""
-
+class StartupAnalysisResult(BaseModel):
     company_overview: str | None = None
-
     founder_assessment: str | None = None
     product_assessment: str | None = None
     market_assessment: str | None = None
@@ -287,13 +284,18 @@ class StartupAnalysisResult(AnalysisBase):
     business_model_assessment: str | None = None
     competitive_assessment: str | None = None
 
-    strengths: list[str] = Field(default_factory=list)
-    risks: list[str] = Field(default_factory=list)
-    missing_information: list[str] = Field(default_factory=list)
-    key_observations: list[str] = Field(default_factory=list)
+    strengths: list[str] = Field(default_factory=list, max_length=3)
+    risks: list[str] = Field(default_factory=list, max_length=3)
+    missing_information: list[str] = Field(
+        default_factory=list,
+        max_length=3,
+    )
+    key_observations: list[str] = Field(
+        default_factory=list,
+        max_length=3,
+    )
 
     investment_thesis: str | None = None
-
     preliminary_recommendation: Literal[
         "insufficient_information",
         "promising",

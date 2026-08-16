@@ -79,3 +79,13 @@ DEFAULT_QWEN_ENABLE_THINKING: Final[bool] = True
 # =============================================================================
 
 DEFAULT_OPENAI_MODEL: Final[str] = "gpt-5.4-mini"
+
+# ============================================================================
+# STARTUP ANALAYSIS
+# ============================================================================
+DEFAULT_STARTUP_ANALYSIS_TEMPERATURE: Final[float] = 0.0
+DEFAULT_STARTUP_ANALYSIS_MAX_TOKENS: Final[int] = 512
+DEFAULT_STARTUP_ANALYSIS_MAX_STRENGTHS = 3
+DEFAULT_STARTUP_ANALYSIS_MAX_RISKS = 3
+DEFAULT_STARTUP_ANALYSIS_MAX_MISSING_INFORMATION = 3
+DEFAULT_STARTUP_ANALYSIS_MAX_KEY_OBSERVATIONS = 3

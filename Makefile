@@ -108,6 +108,11 @@ ci: check cov
 qwen_smoke:
 	docker compose exec -T backend python -u -m scripts.qwen_cpu_smoke 
 
+qwen_analysis_smoke:
+	docker compose exec -T backend python -u -m scripts.startup_analysis_qwen_smoke 
+
+qwen_benchmark:
+	docker compose exec -T backend python -u -m scripts.startup_analysis_qwen_benchmark
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
