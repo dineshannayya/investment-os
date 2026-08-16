@@ -8,6 +8,7 @@ import pytest
 
 from app.llm.models import LLMResponse
 from app.core.config import settings
+from app.models.analysis import StartupAnalysisMode
 from app.schemas.analysis import (
     CompanyAnalysis,
     FinancialAnalysis,
@@ -23,7 +24,6 @@ from app.services.startup_analysis import (
     StartupAnalysisService,
 )
 from app.services.startup_analysis_parser import StartupAnalysisParseError
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -170,12 +170,12 @@ def test_analyze_produces_financial_metrics():
     assert result.metrics.valuation_to_growth == Decimal("0.1")
 
 
-def test_analyze_sets_default_analysis_version():
+def test_analyze_sets_analysis_version():
     service, _ = make_service()
 
     result = service.analyze(make_input())
 
-    assert result.analysis_version == "1.0"
+    assert result.analysis_version == "3.7.5"
 
 
 # ---------------------------------------------------------------------------
@@ -220,31 +220,53 @@ def test_analyze_calls_llm_provider():
     assert len(provider.requests) == 1
 
 
-def test_analyze_sends_structured_llm_request():
+def test_analyze_defaults_to_standard_mode():
+    service, provider = make_service()
+
+    service.analyze(make_input())
+
+    request = provider.requests[0]
+
+    assert request.max_tokens == 768
+    assert request.metadata["thinking_enabled"] is False
+
+
+def test_analyze_sends_standard_analysis_config_to_llm():
     analysis_input = make_input()
 
     service, provider = make_service()
 
-    test_settings = settings.model_copy(
-        update={
-            "startup_analysis_max_tokens": 256,
-            "startup_analysis_temperature": 0.0,
-        }
+    service.analyze(
+        analysis_input,
+        mode=StartupAnalysisMode.STANDARD,
     )
-    
-    service = StartupAnalysisService(
-        config=test_settings,
-        llm_provider=provider,
-    )
-    
-    service.analyze(analysis_input)
-    
+
     request = provider.requests[0]
-    
-    assert request.max_tokens == 256
-    assert request.temperature == 0.0
+
+    assert request.max_tokens == 768
+    assert request.temperature == settings.startup_analysis_temperature
+    assert request.model == settings.llm_model
+    assert request.metadata["thinking_enabled"] is False
     assert len(request.messages) >= 1
 
+
+def test_analyze_sends_deep_analysis_config_to_llm():
+    analysis_input = make_input()
+
+    service, provider = make_service()
+
+    service.analyze(
+        analysis_input,
+        mode=StartupAnalysisMode.DEEP,
+    )
+
+    request = provider.requests[0]
+
+    assert request.max_tokens == 1024
+    assert request.temperature == settings.startup_analysis_temperature
+    assert request.model == settings.llm_model
+    assert request.metadata["thinking_enabled"] is True
+    assert len(request.messages) >= 1
 
 def test_analyze_prompt_contains_startup_information():
     analysis_input = make_input()
@@ -435,3 +457,54 @@ def test_analyze_without_fundraising():
 
     assert result.metrics.revenue_multiple is None
     assert result.metrics.ebitda_multiple is None
+
+def test_analyze_result_records_standard_mode():
+    service, _ = make_service()
+
+    result = service.analyze(
+        make_input(),
+        mode=StartupAnalysisMode.STANDARD,
+    )
+
+    assert result.mode == StartupAnalysisMode.STANDARD
+
+
+def test_analyze_result_records_deep_mode():
+    service, _ = make_service()
+
+    result = service.analyze(
+        make_input(),
+        mode=StartupAnalysisMode.DEEP,
+    )
+
+    assert result.mode == StartupAnalysisMode.DEEP
+
+def test_standard_and_deep_use_same_prompt():
+    analysis_input = make_input()
+
+    service, provider = make_service()
+
+    service.analyze(
+        analysis_input,
+        mode=StartupAnalysisMode.STANDARD,
+    )
+    standard_prompt = provider.requests[0].messages
+
+    service.analyze(
+        analysis_input,
+        mode=StartupAnalysisMode.DEEP,
+    )
+    deep_prompt = provider.requests[1].messages
+
+    assert standard_prompt == deep_prompt
+
+def test_analysis_config_and_result_metadata_are_consistent():
+    service, _ = make_service()
+
+    result = service.analyze(
+        make_input(),
+        mode=StartupAnalysisMode.DEEP,
+    )
+
+    assert result.mode == StartupAnalysisMode.DEEP
+    assert result.analysis_version == "3.7.5"

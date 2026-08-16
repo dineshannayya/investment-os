@@ -22,6 +22,10 @@ from app.schemas.analysis import (
 from app.services.financial_metrics import FinancialMetricsService
 from app.services.startup_analysis_parser import StartupAnalysisParser
 from app.prompt.startup_analysis import build_startup_analysis_messages
+from app.models.analysis import StartupAnalysisMode
+from app.services.startup_analysis_config import (
+    get_startup_analysis_config,
+)
 
 
 class StartupAnalysisGenerationError(RuntimeError):
@@ -63,10 +67,16 @@ class StartupAnalysisService:
     def analyze(
         self,
         analysis_input: StartupAnalysisInput,
+        mode: StartupAnalysisMode = StartupAnalysisMode.STANDARD,
     ) -> StartupAnalysis:
         """
         Analyze structured startup information.
         """
+
+        analysis_config = get_startup_analysis_config(
+            mode,
+            config=self._config,
+        )
 
         metrics = self._financial_metrics_service.calculate(
             financials=analysis_input.financials,
@@ -81,9 +91,14 @@ class StartupAnalysisService:
 
         request = LLMRequest(
             messages=messages,
-            temperature=self._config.startup_analysis_temperature,
-            max_tokens=self._config.startup_analysis_max_tokens,
+            model=analysis_config.model_name,
+            temperature=analysis_config.temperature,
+            max_tokens=analysis_config.max_tokens,
+            metadata={
+                "thinking_enabled": analysis_config.thinking_enabled,
+            },
         )
+
 
         try:
             response = self._llm_provider.generate(request)
@@ -107,4 +122,6 @@ class StartupAnalysisService:
             input=analysis_input,
             metrics=metrics,
             result=result,
+            mode=analysis_config.mode,
+            analysis_version=analysis_config.analysis_version,
         )

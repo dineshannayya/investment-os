@@ -16,6 +16,7 @@ from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
+from app.models.analysis import StartupAnalysisMode
 
 # ---------------------------------------------------------------------------
 # Common
@@ -273,7 +274,9 @@ class StartupAnalysisInput(AnalysisBase):
 # Qualitative Result
 # ---------------------------------------------------------------------------
 
-class StartupAnalysisResult(BaseModel):
+class StartupAnalysisResult(AnalysisBase):
+    """Structured qualitative output from the startup analysis engine."""
+
     company_overview: str | None = None
     founder_assessment: str | None = None
     product_assessment: str | None = None
@@ -303,7 +306,6 @@ class StartupAnalysisResult(BaseModel):
         "concerns",
     ] = "insufficient_information"
 
-
 # ---------------------------------------------------------------------------
 # Complete Analysis
 # ---------------------------------------------------------------------------
@@ -312,6 +314,8 @@ class StartupAnalysis(AnalysisBase):
     """Complete startup analysis output."""
 
     startup_id: UUID | None = None
+
+    mode: StartupAnalysisMode = StartupAnalysisMode.STANDARD
 
     input: StartupAnalysisInput
 

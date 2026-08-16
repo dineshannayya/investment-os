@@ -17,7 +17,9 @@ from app.models.mixins import (
     UUIDMixin,
 )
 
+
 if TYPE_CHECKING:
+    from app.models.analysis import StartupAnalysis
     from app.models.document import Document
     from app.models.founder import Founder
     from app.models.opportunity import Opportunity
@@ -38,6 +40,7 @@ class Startup(
     #
     # Company Information
     #
+
     name: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
@@ -57,6 +60,7 @@ class Startup(
     #
     # Business Information
     #
+
     sector: Mapped[str | None] = mapped_column(
         String(100),
         nullable=True,
@@ -99,6 +103,7 @@ class Startup(
     #
     # Relationships
     #
+
     founders: Mapped[list[Founder]] = relationship(
         back_populates="startup",
         cascade="all, delete-orphan",
@@ -114,5 +119,17 @@ class Startup(
         cascade="all, delete-orphan",
     )
 
+    analyses: Mapped[list[StartupAnalysis]] = relationship(
+        "StartupAnalysis",
+        back_populates="startup",
+        cascade="all, delete-orphan",
+        order_by="StartupAnalysis.created_at.desc()",
+    )
+
     def __repr__(self) -> str:
-        return f"Startup(" f"id={self.id}, " f"name='{self.name}', " f"stage='{self.stage.value}')"
+        return (
+            f"Startup("
+            f"id={self.id}, "
+            f"name='{self.name}', "
+            f"stage='{self.stage.value}')"
+        )
