@@ -508,3 +508,4 @@ def test_analysis_config_and_result_metadata_are_consistent():
 
     assert result.mode == StartupAnalysisMode.DEEP
     assert result.analysis_version == "3.7.5"
+

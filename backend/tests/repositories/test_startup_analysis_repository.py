@@ -8,7 +8,7 @@ from uuid import uuid4
 
 import pytest
 from sqlalchemy.orm import Session
-
+from datetime import datetime, timedelta, timezone
 from app.models.analysis import (
     StartupAnalysis,
     StartupAnalysisMode,
@@ -146,3 +146,205 @@ def test_delete(
     repository.delete(analysis)
 
     assert repository.get_by_id(analysis.id) is None
+
+def test_get_by_startup_and_id_rejects_other_startup(
+    repository: StartupAnalysisRepository,
+    analysis: StartupAnalysis,
+):
+    """
+    An analysis belonging to another startup must not be returned.
+    """
+
+    result = repository.get_by_startup_and_id(
+        uuid4(),
+        analysis.id,
+    )
+
+    assert result is None
+
+# 3.7.5.5.2.C — Pagination tests
+
+@pytest.fixture
+def analysis_history(
+    db_session: Session,
+):
+    """Create multiple analyses for two startups."""
+
+
+    startup_id = uuid4()
+    other_startup_id = uuid4()
+
+
+    now = datetime.now(timezone.utc)
+
+
+    analyses = [
+        StartupAnalysis(
+            id=uuid4(),
+            startup_id=startup_id,
+            created_at=now - timedelta(minutes=30),
+            mode=StartupAnalysisMode.STANDARD,
+            status=StartupAnalysisStatus.COMPLETED,
+            model_name="Qwen3-8B-Q4_K_M",
+            max_tokens=768,
+            temperature=0.0,
+        ),
+        StartupAnalysis(
+            id=uuid4(),
+            startup_id=startup_id,
+            created_at=now - timedelta(minutes=20),
+            mode=StartupAnalysisMode.DEEP,
+            status=StartupAnalysisStatus.COMPLETED,
+            model_name="Qwen3-8B-Q4_K_M",
+            max_tokens=1024,
+            temperature=0.0,
+        ),
+        StartupAnalysis(
+            id=uuid4(),
+            startup_id=startup_id,
+            created_at=now - timedelta(minutes=10),
+            mode=StartupAnalysisMode.STANDARD,
+            status=StartupAnalysisStatus.COMPLETED,
+            model_name="Qwen3-8B-Q4_K_M",
+            max_tokens=768,
+            temperature=0.0,
+        ),
+        StartupAnalysis(
+            id=uuid4(),
+            startup_id=other_startup_id,
+            created_at=now,
+            mode=StartupAnalysisMode.STANDARD,
+            status=StartupAnalysisStatus.COMPLETED,
+            model_name="Qwen3-8B-Q4_K_M",
+            max_tokens=768,
+            temperature=0.0,
+        ),
+    ]
+
+
+    db_session.add_all(analyses)
+    db_session.commit()
+
+
+    for item in analyses:
+        db_session.refresh(item)
+
+
+    return {
+        "startup_id": startup_id,
+        "other_startup_id": other_startup_id,
+        "analyses": analyses,
+    }
+
+# Test filtering + ordering
+def test_list_by_startup_returns_newest_first(
+    repository: StartupAnalysisRepository,
+    analysis_history,
+):
+    """History should be filtered by startup and ordered newest first."""
+
+
+    startup_id = analysis_history["startup_id"]
+
+
+    items, total_items = repository.list_by_startup(
+        startup_id,
+    )
+
+
+    assert total_items == 3
+    assert len(items) == 3
+
+
+    assert items[0].created_at > items[1].created_at
+    assert items[1].created_at > items[2].created_at
+
+
+    assert all(
+        item.startup_id == startup_id
+        for item in items
+    )
+
+# Test page size
+def test_list_by_startup_applies_per_page(
+    repository: StartupAnalysisRepository,
+    analysis_history,
+):
+    """History should limit the number of returned records."""
+
+
+    startup_id = analysis_history["startup_id"]
+
+
+    items, total_items = repository.list_by_startup(
+        startup_id,
+        page=1,
+        per_page=2,
+    )
+
+
+    assert total_items == 3
+    assert len(items) == 2
+
+# Test second page
+def test_list_by_startup_applies_page_offset(
+    repository: StartupAnalysisRepository,
+    analysis_history,
+):
+    """Page two should return records after page one."""
+
+
+    startup_id = analysis_history["startup_id"]
+
+
+    items, total_items = repository.list_by_startup(
+        startup_id,
+        page=2,
+        per_page=2,
+    )
+
+
+    assert total_items == 3
+    assert len(items) == 1
+
+# Test empty history
+def test_list_by_startup_returns_empty_history(
+    repository: StartupAnalysisRepository,
+):
+    """A startup with no analyses should return an empty list."""
+
+
+    items, total_items = repository.list_by_startup(
+        uuid4(),
+    )
+
+
+    assert items == []
+    assert total_items == 0
+
+# Test another startup's history is excluded
+def test_list_by_startup_excludes_other_startups(
+    repository: StartupAnalysisRepository,
+    analysis_history,
+):
+    """History must never include another startup's analyses."""
+
+
+    startup_id = analysis_history["startup_id"]
+    other_startup_id = analysis_history["other_startup_id"]
+
+
+    items, total_items = repository.list_by_startup(
+        startup_id,
+    )
+
+
+    assert total_items == 3
+    assert len(items) == 3
+
+
+    assert all(
+        item.startup_id != other_startup_id
+        for item in items
+    )
+

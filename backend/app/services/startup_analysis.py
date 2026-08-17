@@ -13,12 +13,15 @@ The service:
 from __future__ import annotations
 
 from app.core.config import settings
-from app.llm.models import LLMRequest
+from app.llm.models import LLMRequest, LLMResponse
 from app.llm.providers.qwen import QwenProvider
 from app.schemas.analysis import (
+    FinancialMetrics,
     StartupAnalysis,
     StartupAnalysisInput,
+    StartupAnalysisResult,
 )
+
 from app.services.financial_metrics import FinancialMetricsService
 from app.services.startup_analysis_parser import StartupAnalysisParser
 from app.prompt.startup_analysis import build_startup_analysis_messages
@@ -71,24 +74,60 @@ class StartupAnalysisService:
     ) -> StartupAnalysis:
         """
         Analyze structured startup information.
+    
+        Compatibility facade for the legacy service contract.
+    
+        Production orchestration should use:
+            StartupAnalysisOrchestrator
+            -> FinancialMetricsService
+            -> analyze_qualitative()
         """
-
-        analysis_config = get_startup_analysis_config(
-            mode,
-            config=self._config,
-        )
-
+    
         metrics = self._financial_metrics_service.calculate(
             financials=analysis_input.financials,
             fundraising=analysis_input.fundraising,
             business_model=analysis_input.business_model,
         )
+    
+        result, analysis_config, _response = self.analyze_qualitative(
+            analysis_input=analysis_input,
+            metrics=metrics,
+            mode=mode,
+        )
+    
+        return StartupAnalysis(
+            startup_id=analysis_input.startup_id,
+            input=analysis_input,
+            metrics=metrics,
+            result=result,
+            mode=analysis_config.mode,
+            analysis_version=analysis_config.analysis_version,
+        )
 
+
+    def analyze_qualitative(
+        self,
+        *,
+        analysis_input: StartupAnalysisInput,
+        metrics: FinancialMetrics,
+        mode: StartupAnalysisMode = StartupAnalysisMode.STANDARD,
+    ) -> tuple[
+        StartupAnalysisResult,
+        StartupAnalysisConfig,
+        LLMResponse,
+    ]:
+        """Run qualitative startup analysis using supplied deterministic metrics."""
+    
+        analysis_config = get_startup_analysis_config(
+            mode,
+            config=self._config,
+        )
+    
         messages = build_startup_analysis_messages(
             analysis_input=analysis_input,
             metrics=metrics,
         )
-
+    
         request = LLMRequest(
             messages=messages,
             model=analysis_config.model_name,
@@ -98,15 +137,14 @@ class StartupAnalysisService:
                 "thinking_enabled": analysis_config.thinking_enabled,
             },
         )
-
-
+    
         try:
             response = self._llm_provider.generate(request)
         except Exception as exc:
             raise StartupAnalysisGenerationError(
                 "Failed to generate startup analysis."
             ) from exc
-
+    
         if response.finish_reason == "length":
             raise StartupAnalysisGenerationError(
                 "Startup analysis response was truncated.",
@@ -114,14 +152,8 @@ class StartupAnalysisService:
                 response_text=response.text,
                 usage=response.usage,
             )
-
+    
         result = self._parser.parse(response.text)
-
-        return StartupAnalysis(
-            startup_id=analysis_input.startup_id,
-            input=analysis_input,
-            metrics=metrics,
-            result=result,
-            mode=analysis_config.mode,
-            analysis_version=analysis_config.analysis_version,
-        )
+    
+        return result, analysis_config, response
+    
