@@ -8,7 +8,8 @@ import hashlib
 from uuid import uuid4
 
 import pytest
-
+from pathlib import Path
+from unittest.mock import Mock
 from app.storage.service import StorageService
 from tests.storage.fake_provider import FakeStorageProvider
 
@@ -156,3 +157,20 @@ class TestStorageService:
         service.delete("doc.txt")
 
         assert not provider.exists("doc.txt")
+
+
+    def test_resolve_delegates_to_provider_path(self):
+        provider = Mock()
+        expected = Path("/tmp/document.pdf")
+    
+        provider.path.return_value = expected
+    
+        service = StorageService(provider)
+    
+        result = service.resolve("startup/document/file.pdf")
+    
+        provider.path.assert_called_once_with(
+            "startup/document/file.pdf",
+        )
+    
+        assert result == expected

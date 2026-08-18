@@ -23,6 +23,9 @@ from app.services.startup_analysis_input_builder import (
 from app.services.startup_analysis_orchestrator import (
     StartupAnalysisOrchestrator,
 )
+from app.services.startup_analysis_document_intelligence import (
+    StartupAnalysisDocumentIntelligenceService,
+)
 
 from app.services.financial_metrics import FinancialMetricsService
 from app.services.startup_analysis import StartupAnalysisService
@@ -42,6 +45,24 @@ def metrics_service():
 def analysis_service():
     return Mock(spec=StartupAnalysisService)
 
+@pytest.fixture
+def document_intelligence_service():
+    """
+    Mock document-intelligence enrichment service.
+
+    Default behavior is pass-through so existing orchestrator
+    tests retain their pre-C4 semantics.
+    """
+    service = Mock(
+        spec=StartupAnalysisDocumentIntelligenceService,
+    )
+
+    service.enrich.side_effect = (
+        lambda startup, analysis_input: analysis_input
+    )
+
+    return service
+
 
 @pytest.fixture
 def startup():
@@ -59,6 +80,16 @@ def analysis_input(startup):
             industry="SaaS",
             sector="Technology",
         ),
+    )
+
+@pytest.fixture
+def enriched_analysis_input(analysis_input):
+    return analysis_input.model_copy(
+        update={
+            "financials": Mock(),
+            "fundraising": Mock(),
+            "business_model": Mock(),
+        }
     )
 
 @pytest.fixture
@@ -128,11 +159,15 @@ def response():
 @pytest.fixture
 def orchestrator(
     input_builder,
+    document_intelligence_service,
     metrics_service,
     analysis_service,
 ):
     return StartupAnalysisOrchestrator(
         input_builder=input_builder,
+        document_intelligence_service=(
+            document_intelligence_service
+        ),
         financial_metrics_service=metrics_service,
         analysis_service=analysis_service,
     )
@@ -392,3 +427,132 @@ def test_orchestrator_executes_stages_in_order(
 
     assert parent.mock_calls == calls
 
+def test_analyze_enriches_input_with_document_intelligence(
+    orchestrator,
+    startup,
+    analysis_input,
+    enriched_analysis_input,
+    input_builder,
+    document_intelligence_service,
+    metrics_service,
+    analysis_service,
+    result,
+    standard_config,
+    response,
+):
+    input_builder.build.return_value = analysis_input
+
+    document_intelligence_service.enrich.side_effect = None
+    document_intelligence_service.enrich.return_value = (
+        enriched_analysis_input
+    )
+
+    analysis_service.analyze_qualitative.return_value = (
+        result,
+        standard_config,
+        response,
+    )
+
+    execution = orchestrator.analyze(
+        startup,
+    )
+
+    input_builder.build.assert_called_once_with(
+        startup,
+    )
+
+    document_intelligence_service.enrich.assert_called_once_with(
+        startup,
+        analysis_input,
+    )
+
+    metrics_service.calculate.assert_called_once_with(
+        financials=enriched_analysis_input.financials,
+        fundraising=enriched_analysis_input.fundraising,
+        business_model=enriched_analysis_input.business_model,
+    )
+
+    analysis_service.analyze_qualitative.assert_called_once_with(
+        analysis_input=enriched_analysis_input,
+        metrics=metrics_service.calculate.return_value,
+        mode=StartupAnalysisMode.STANDARD,
+    )
+
+    assert execution.input is enriched_analysis_input
+
+def test_orchestrator_executes_c4_stages_in_order(
+    orchestrator,
+    startup,
+    analysis_input,
+    enriched_analysis_input,
+    input_builder,
+    document_intelligence_service,
+    metrics_service,
+    analysis_service,
+    result,
+    standard_config,
+    response,
+):
+    parent = Mock()
+
+    input_builder.build.return_value = analysis_input
+
+    document_intelligence_service.enrich.side_effect = None
+    document_intelligence_service.enrich.return_value = (
+        enriched_analysis_input
+    )
+
+    metrics = Mock()
+    metrics_service.calculate.return_value = metrics
+
+    analysis_service.analyze_qualitative.return_value = (
+        result,
+        standard_config,
+        response,
+    )
+
+    parent.attach_mock(
+        input_builder.build,
+        "build_input",
+    )
+
+    parent.attach_mock(
+        document_intelligence_service.enrich,
+        "document_intelligence",
+    )
+
+    parent.attach_mock(
+        metrics_service.calculate,
+        "calculate_metrics",
+    )
+
+    parent.attach_mock(
+        analysis_service.analyze_qualitative,
+        "analyze_qualitative",
+    )
+
+    orchestrator.analyze(
+        startup,
+        mode=StartupAnalysisMode.STANDARD,
+    )
+
+    assert parent.mock_calls == [
+        call.build_input(startup),
+
+        call.document_intelligence(
+            startup,
+            analysis_input,
+        ),
+
+        call.calculate_metrics(
+            financials=enriched_analysis_input.financials,
+            fundraising=enriched_analysis_input.fundraising,
+            business_model=enriched_analysis_input.business_model,
+        ),
+
+        call.analyze_qualitative(
+            analysis_input=enriched_analysis_input,
+            metrics=metrics,
+            mode=StartupAnalysisMode.STANDARD,
+        ),
+    ]

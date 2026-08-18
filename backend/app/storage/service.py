@@ -57,11 +57,10 @@ class StorageService:
         self,
         storage_path: str,
     ) -> Path:
-        """
-        Resolve a storage path to an absolute filesystem path.
-        """
+        """Resolve a storage path to an absolute filesystem path."""
     
-        return self._backend.resolve(storage_path)
+        return self._provider.path(storage_path)
+
 
     # ------------------------------------------------------------------
     # Commands

@@ -4,6 +4,9 @@ from app.models.analysis import StartupAnalysisMode
 from app.models.startup import Startup
 from app.services.financial_metrics import FinancialMetricsService
 from app.services.startup_analysis import StartupAnalysisService
+from app.services.startup_analysis_document_intelligence import (
+    StartupAnalysisDocumentIntelligenceService,
+)
 from app.services.startup_analysis_execution import (
     StartupAnalysisExecution,
 )
@@ -19,13 +22,24 @@ class StartupAnalysisOrchestrator:
         self,
         *,
         input_builder: StartupAnalysisInputBuilder | None = None,
+        document_intelligence_service: (
+            StartupAnalysisDocumentIntelligenceService | None
+        ) = None,
         financial_metrics_service=FinancialMetricsService,
         analysis_service: StartupAnalysisService | None = None,
     ) -> None:
         self._input_builder = (
             input_builder or StartupAnalysisInputBuilder()
         )
-        self._financial_metrics_service = financial_metrics_service
+
+        self._document_intelligence_service = (
+            document_intelligence_service
+        )
+
+        self._financial_metrics_service = (
+            financial_metrics_service
+        )
+
         self._analysis_service = (
             analysis_service or StartupAnalysisService()
         )
@@ -39,6 +53,14 @@ class StartupAnalysisOrchestrator:
         """Execute the complete startup-analysis workflow."""
 
         analysis_input = self._input_builder.build(startup)
+
+        if self._document_intelligence_service is not None:
+            analysis_input = (
+                self._document_intelligence_service.enrich(
+                    startup,
+                    analysis_input,
+                )
+            )
 
         metrics = self._financial_metrics_service.calculate(
             financials=analysis_input.financials,

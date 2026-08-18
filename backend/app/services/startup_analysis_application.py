@@ -38,6 +38,21 @@ from app.services.startup_analysis_persistence import (
     StartupAnalysisPersistenceService,
 )
 
+from app.chunking.text import TextChunker
+from app.core.config.settings import settings
+from app.intelligence.factory import create_intelligence_factory
+from app.processors.factory import create_processor_factory
+from app.services.document import DocumentService
+from app.services.document_processing import DocumentProcessingService
+from app.services.investment_intelligence import (
+    InvestmentIntelligenceService,
+)
+from app.services.startup_analysis_document_intelligence import (
+    StartupAnalysisDocumentIntelligenceService,
+)
+from app.storage.local import LocalStorageProvider
+from app.storage.service import StorageService
+
 
 class StartupAnalysisApplicationService:
     """
@@ -64,7 +79,13 @@ class StartupAnalysisApplicationService:
         self._orchestrator = (
             orchestrator
             if orchestrator is not None
-            else StartupAnalysisOrchestrator()
+            else StartupAnalysisOrchestrator(
+                document_intelligence_service=(
+                    create_startup_analysis_document_intelligence(
+                        session,
+                    )
+                ),
+            )
         )
 
         self._persistence_service = (
@@ -135,6 +156,33 @@ class StartupAnalysisApplicationService:
 
         return analysis
 
+
+    def create_startup_analysis_document_intelligence(
+        session: Session,
+    ) -> StartupAnalysisDocumentIntelligenceService:
+        documents = DocumentService(session)
+    
+        storage = StorageService(
+            LocalStorageProvider(
+                settings.storage_root,
+            )
+        )
+    
+        processing = DocumentProcessingService(
+            documents=documents,
+            storage=storage,
+            processors=create_processor_factory(),
+            chunker=TextChunker(),
+        )
+    
+        intelligence = InvestmentIntelligenceService(
+            factory=create_intelligence_factory(),
+        )
+    
+        return StartupAnalysisDocumentIntelligenceService(
+            document_processing=processing,
+            intelligence=intelligence,
+        )
 
 __all__ = [
     "StartupAnalysisApplicationService",
