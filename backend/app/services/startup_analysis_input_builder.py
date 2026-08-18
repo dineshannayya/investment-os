@@ -5,10 +5,12 @@ from __future__ import annotations
 from enum import Enum
 
 from app.models.founder import Founder
+from app.models.opportunity import Opportunity
 from app.models.startup import Startup
 from app.schemas.analysis import (
     CompanyAnalysis,
     FounderAnalysis,
+    FundraisingAnalysis,
     StartupAnalysisInput,
 )
 
@@ -25,6 +27,12 @@ class StartupAnalysisInputBuilder:
 
     Fields that are not represented by the current persistence model remain
     ``None`` rather than being inferred or fabricated.
+
+    Opportunity handling:
+    * only OPEN opportunities are considered current fundraising rounds;
+    * zero OPEN opportunities results in ``fundraising=None``;
+    * exactly one OPEN opportunity is normalized;
+    * multiple OPEN opportunities are treated as an explicit ambiguity.
     """
 
     def build(self, startup: Startup) -> StartupAnalysisInput:
@@ -36,8 +44,11 @@ class StartupAnalysisInputBuilder:
                 self._build_founder(founder)
                 for founder in (startup.founders or [])
             ],
-            # Product, market, traction, financial, fundraising, business
-            # model, and evidence require dedicated source data. They are
+            fundraising=self._build_fundraising(
+                startup.opportunities or []
+            ),
+            # Product, market, traction, financial, business model,
+            # and evidence require dedicated source data. They are
             # intentionally left unset until those sources are integrated.
         )
 
@@ -79,6 +90,58 @@ class StartupAnalysisInputBuilder:
         )
 
     @staticmethod
+    def _build_fundraising(
+        opportunities: list[Opportunity],
+    ) -> FundraisingAnalysis | None:
+        """Normalize the current OPEN fundraising opportunity.
+
+        The Startup model may contain multiple historical opportunities,
+        while ``StartupAnalysisInput`` currently accepts only one
+        ``FundraisingAnalysis``.
+
+        Selection policy:
+        * no OPEN opportunity -> ``None``
+        * one OPEN opportunity -> use it
+        * multiple OPEN opportunities -> raise ``ValueError`` rather than
+          silently selecting an arbitrary fundraising round.
+        """
+        open_opportunities = [
+            opportunity
+            for opportunity in opportunities
+            if StartupAnalysisInputBuilder._enum_value(
+                opportunity.status
+            ) == "OPEN"
+        ]
+
+        if not open_opportunities:
+            return None
+
+        if len(open_opportunities) > 1:
+            raise ValueError(
+                "Startup has multiple OPEN fundraising opportunities; "
+                "cannot determine the current fundraising round "
+                "unambiguously."
+            )
+
+        opportunity = open_opportunities[0]
+
+        return FundraisingAnalysis(
+            current_round=opportunity.round_name,
+            amount_raising=opportunity.target_raise,
+            # committed_amount represents commitments, not necessarily
+            # capital already raised. Therefore it must not be mapped to
+            # amount_raised.
+            amount_raised=None,
+            pre_money_valuation=opportunity.pre_money_valuation,
+            post_money_valuation=opportunity.post_money_valuation,
+            valuation_cap=opportunity.valuation_cap,
+            instrument=StartupAnalysisInputBuilder._enum_value(
+                opportunity.instrument
+            ),
+            investor_commitments=opportunity.committed_amount,
+        )
+
+    @staticmethod
     def _build_experience(founder: Founder) -> str | None:
         """Normalize the available founder experience fields into text."""
         parts: list[str] = []
@@ -101,8 +164,10 @@ class StartupAnalysisInputBuilder:
         """Return an enum's value while accepting plain strings in tests."""
         if value is None:
             return None
+
         if isinstance(value, Enum):
             return str(value.value)
+
         return str(value)
 
 

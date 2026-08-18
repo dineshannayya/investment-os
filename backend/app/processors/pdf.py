@@ -12,7 +12,9 @@ from pypdf import PdfReader
 from app.processors.base import (
     DocumentContent,
     DocumentProcessor,
+    DocumentSegment,
 )
+
 
 
 class PdfProcessor(DocumentProcessor):
@@ -50,12 +52,40 @@ class PdfProcessor(DocumentProcessor):
         reader = PdfReader(path)
 
         pages: list[str] = []
-
+        
         for page in reader.pages:
-            text = page.extract_text() or ""
-            pages.append(text)
+            page_text = (page.extract_text() or "").strip()
+            pages.append(page_text)
 
+        
         text = "\n\n".join(pages)
+        
+        segments: list[DocumentSegment] = []
+        
+        offset = 0
+        
+        for index, page_text in enumerate(pages):
+            start_offset = offset
+            end_offset = start_offset + len(page_text)
+        
+            segments.append(
+                DocumentSegment(
+                    index=index,
+                    text=page_text,
+                    start_offset=start_offset,
+                    end_offset=end_offset,
+                    metadata={
+                        "type": "page",
+                        "page": index + 1,
+                    },
+                )
+            )
+        
+            offset = end_offset
+        
+            # Account for the "\n\n" separator used by the joined document text.
+            if index < len(pages) - 1:
+                offset += 2
 
         metadata = {}
 
@@ -93,4 +123,5 @@ class PdfProcessor(DocumentProcessor):
             text=text,
             page_count=len(reader.pages),
             metadata=metadata,
+            segments=tuple(segments),
         )

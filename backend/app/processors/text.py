@@ -10,6 +10,7 @@ from uuid import UUID
 from app.processors.base import (
     DocumentContent,
     DocumentProcessor,
+    DocumentSegment,
 )
 
 
@@ -48,20 +49,38 @@ class TextProcessor(DocumentProcessor):
         """
         Extract text from a plain text document.
         """
-
+    
         text, encoding = self._read_text(path)
-
+    
+        title = path.stem
+    
+        metadata = {
+            "filename": path.name,
+            "extension": path.suffix.lower(),
+            "encoding": encoding,
+        }
+    
+        segments = (
+            DocumentSegment(
+                index=0,
+                text=text,
+                start_offset=0,
+                end_offset=len(text),
+                metadata={
+                    "type": "document",
+                },
+            ),
+        )
+    
         return DocumentContent(
             document_id=document_id,
-            title=path.stem,
+            title=title,
             text=text,
             page_count=1,
-            metadata={
-                "filename": path.name,
-                "extension": path.suffix.lower(),
-                "encoding": encoding,
-            },
+            metadata=metadata,
+            segments=segments,
         )
+
 
     @staticmethod
     def _read_text(path: Path) -> str:

@@ -150,6 +150,21 @@ class TestDocxProcessor:
         assert "Paragraph Two" in document.text
         assert "Paragraph Three" in document.text
 
+        assert len(document.segments) == 1
+
+        segment = document.segments[0]
+
+        assert segment.index == 0
+        assert segment.text == document.text
+        assert segment.metadata["type"] == "document"
+        assert segment.start_offset == 0
+        assert segment.end_offset == len(document.text)
+
+        assert (
+            document.text[segment.start_offset:segment.end_offset]
+            == segment.text
+        )
+
     def test_empty_document(
         self,
         tmp_path,
@@ -170,6 +185,16 @@ class TestDocxProcessor:
 
         assert document.text == ""
         assert document.page_count == 1
+
+        assert len(document.segments) == 1
+        
+        segment = document.segments[0]
+        
+        assert segment.index == 0
+        assert segment.text == ""
+        assert segment.start_offset == 0
+        assert segment.end_offset == 0
+        assert segment.metadata["type"] == "document"
 
     def test_document_title(
         self,

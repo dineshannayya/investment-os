@@ -8,9 +8,11 @@ from uuid import uuid4
 
 import pytest
 
-from app.processors.base import DocumentContent
 from app.processors.text import TextProcessor
-
+from app.processors.base import (
+    DocumentContent,
+    DocumentSegment,
+)
 
 class TestTextProcessor:
     """Tests for TextProcessor."""
@@ -130,6 +132,22 @@ class TestTextProcessor:
         assert document.metadata["extension"] == ".txt"
         assert document.metadata["encoding"] == "utf-8"
 
+        assert len(document.segments) == 1
+        
+        segment = document.segments[0]
+        
+        assert segment.index == 0
+        assert segment.text == document.text
+        assert segment.metadata["type"] == "document"
+        assert segment.start_offset == 0
+        assert segment.end_offset == len(document.text)
+        
+        assert (
+            document.text[segment.start_offset:segment.end_offset]
+            == segment.text
+        )
+
+
     def test_process_markdown_file(
         self,
         tmp_path,
@@ -154,6 +172,16 @@ class TestTextProcessor:
         assert "# Heading" in document.text
         assert document.metadata["extension"] == ".md"
 
+        assert len(document.segments) == 1
+        
+        segment = document.segments[0]
+        
+        assert segment.text == document.text
+        assert segment.metadata["type"] == "document"
+        assert segment.start_offset == 0
+        assert segment.end_offset == len(document.text)
+
+
     def test_process_empty_file(
         self,
         tmp_path,
@@ -177,6 +205,16 @@ class TestTextProcessor:
         assert document.text == ""
         assert document.page_count == 1
 
+        assert len(document.segments) == 1
+        
+        segment = document.segments[0]
+        
+        assert segment.text == ""
+        assert segment.start_offset == 0
+        assert segment.end_offset == 0
+        assert segment.metadata["type"] == "document"
+
+
     def test_process_latin1_file(
         self,
         tmp_path,
@@ -199,6 +237,16 @@ class TestTextProcessor:
         )
 
         assert document.text == text
+
+        assert len(document.segments) == 1
+        
+        segment = document.segments[0]
+        
+        assert segment.text == text
+        assert segment.start_offset == 0
+        assert segment.end_offset == len(text)
+        assert segment.metadata["type"] == "document"
+
 
     def test_document_id_preserved(
         self,

@@ -12,8 +12,8 @@ from docx import Document as WordDocument
 from app.processors.base import (
     DocumentContent,
     DocumentProcessor,
+    DocumentSegment,
 )
-
 
 class DocxProcessor(DocumentProcessor):
     """
@@ -57,6 +57,18 @@ class DocxProcessor(DocumentProcessor):
 
         text = "\n".join(paragraphs)
 
+        segments = (
+            DocumentSegment(
+                index=0,
+                text=text,
+                start_offset=0,
+                end_offset=len(text),
+                metadata={
+                    "type": "document",
+                },
+            ),
+        )
+
         core = document.core_properties
 
         title = (
@@ -98,10 +110,12 @@ class DocxProcessor(DocumentProcessor):
         if core.modified:
             metadata["modified"] = core.modified.isoformat()
 
+
         return DocumentContent(
             document_id=document_id,
             title=title,
             text=text,
             page_count=1,
             metadata=metadata,
+            segments=segments,
         )

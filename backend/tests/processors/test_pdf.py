@@ -114,6 +114,22 @@ class TestPdfProcessor:
 
         assert "Investment OS" in document.text
         assert document.page_count == 1
+        assert len(document.segments) == 1
+        
+        segment = document.segments[0]
+        
+        assert segment.index == 0
+        assert segment.text == document.text
+        assert segment.metadata["type"] == "page"
+        assert segment.metadata["page"] == 1
+        assert segment.start_offset == 0
+        assert segment.end_offset == len(segment.text)
+        
+        assert (
+            document.text[segment.start_offset:segment.end_offset]
+            == segment.text
+        )
+
 
     def test_process_multiple_pages(
         self,
@@ -142,6 +158,39 @@ class TestPdfProcessor:
         assert "Page One" in document.text
         assert "Page Two" in document.text
         assert "Page Three" in document.text
+
+        assert len(document.segments) == 3
+        
+        assert document.segments[0].index == 0
+        assert document.segments[0].text == "Page One"
+        assert document.segments[0].metadata["type"] == "page"
+        assert document.segments[0].metadata["page"] == 1
+        
+        assert document.segments[1].index == 1
+        assert document.segments[1].text == "Page Two"
+        assert document.segments[1].metadata["type"] == "page"
+        assert document.segments[1].metadata["page"] == 2
+        
+        assert document.segments[2].index == 2
+        assert document.segments[2].text == "Page Three"
+        assert document.segments[2].metadata["type"] == "page"
+        assert document.segments[2].metadata["page"] == 3
+
+        for segment in document.segments:
+            assert (
+                document.text[
+                    segment.start_offset:segment.end_offset
+                ]
+                == segment.text
+            )
+
+        assert document.segments[0].start_offset == 0
+        assert document.segments[1].start_offset > (
+            document.segments[0].end_offset
+        )
+        assert document.segments[2].start_offset > (
+            document.segments[1].end_offset
+        )
 
     def test_pdf_title_metadata(
         self,

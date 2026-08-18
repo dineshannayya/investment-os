@@ -251,3 +251,19 @@ def test_rejects_unsupported_mode(settings):
             "unsupported",
             config=settings,
         )
+
+
+@pytest.mark.parametrize(
+    "temperature",
+    [0.0, 2.0],
+)
+def test_accepts_temperature_boundaries(temperature):
+    config = StartupAnalysisConfig(
+        mode=StartupAnalysisMode.STANDARD,
+        model_name="Qwen3-8B-Q4_K_M",
+        thinking_enabled=False,
+        max_tokens=768,
+        temperature=temperature,
+    )
+
+    assert config.temperature == temperature

@@ -202,6 +202,22 @@ test-api:
 test-all:
 	$(DOCKER) pytest tests -v --cov=app
 
+regression:
+	# Existing deterministic regression
+	$(DOCKER) pytest tests -v --cov=app --cov-report=term-missing
+
+	# Existing Qwen smoke
+	docker compose exec backend python -u \
+	    -m scripts.startup_analysis_qwen_smoke
+	
+    # real Startup → Qwen → DB → History
+	docker compose exec backend python -u \
+	-m scripts.startup_analysis_real_e2e
+
+	# Existing benchmark when performance validation is required
+	docker compose exec backend python -u \
+	    -m scripts.startup_analysis_qwen_benchmark
+
 # --------------------------------
 # Database
 # --------------------------------

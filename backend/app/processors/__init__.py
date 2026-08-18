@@ -3,6 +3,7 @@ Document processing framework.
 """
 
 from app.processors.base import (
+    DocumentSegment,   
     DocumentContent,
     DocumentProcessor,
 )
@@ -15,6 +16,7 @@ from app.processors.pdf import PdfProcessor
 from app.processors.text import TextProcessor
 
 __all__ = [
+    "DocumentSegment",
     "DocumentContent",
     "DocumentProcessor",
     "ProcessorFactory",

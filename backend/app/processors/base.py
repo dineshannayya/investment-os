@@ -13,23 +13,27 @@ from uuid import UUID
 # ============================================================================
 # Processor Result
 # ============================================================================
+@dataclass(slots=True, frozen=True)
+class DocumentSegment:
+    """A structured segment of extracted document content."""
+
+    index: int
+    text: str
+    start_offset: int
+    end_offset: int
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(slots=True)
 class DocumentContent:
-    """
-    Normalized document extracted from any file type.
-    """
+    """Normalized document extracted from any file type."""
 
     document_id: UUID
-
     text: str
-
     title: str | None = None
-
     page_count: int = 1
-
     metadata: dict[str, Any] = field(default_factory=dict)
+    segments: tuple[DocumentSegment, ...] = ()
 
 
 # ============================================================================
