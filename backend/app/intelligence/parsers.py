@@ -43,19 +43,30 @@ class MoneyParser:
     Parse monetary values from text.
     """
 
+    # Require an explicit monetary signal so bare numbers such as
+    # ``2025`` are not interpreted as money.
     _PATTERN = re.compile(
         r"""
-        (?P<currency>₹|\$|USD|INR|EUR)?
-        \s*
-        (?P<value>\d+(?:,\d{2,3})*(?:\.\d+)?)
-        \s*
-        (?P<unit>
-            Cr|Crore|Crores|
-            L|Lakh|Lakhs|
-            M|Million|
-            B|Billion|
-            K|Thousand
-        )?
+        (?:
+            (?P<currency>₹|\$|USD|INR|EUR)
+            \s*
+            (?P<value>\d+(?:,\d{2,3})*(?:\.\d+)?)
+            \s*
+            (?P<unit>
+                Cr|Crore|Crores|
+                L|Lakh|Lakhs|
+                M|Million|
+                B|Billion|
+                K|Thousand
+            )?
+        |
+            (?P<value_unit>\d+(?:,\d{2,3})*(?:\.\d+)?)
+            \s*
+            (?P<unit_only>
+                Cr|Crores?|Lakhs?|Millions?|Billions?|Thousands?|
+                [LBK]
+            )\b
+        )
         """,
         re.IGNORECASE | re.VERBOSE,
     )
@@ -97,12 +108,24 @@ class MoneyParser:
         """
         Convert a regex match into a Money object.
         """
-    
-        value = Decimal(
-            match.group("value").replace(",", "")
+        raw_value = (
+            match.group("value")
+            or match.group("value_unit")
         )
-    
-        unit = match.group("unit")
+        
+        if raw_value is None:
+            raise ValueError(
+                "MoneyParser matched without a numeric value"
+            )
+        
+        value = Decimal(
+            raw_value.replace(",", "")
+        )
+        
+        unit = (
+            match.group("unit")
+            or match.group("unit_only")
+        )    
     
         if unit:
             value *= cls._MULTIPLIERS[

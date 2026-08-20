@@ -11,6 +11,7 @@ from app.intelligence.entities import EntityExtractor
 from app.intelligence.financial import FinancialExtractor
 from app.intelligence.metadata import MetadataExtractor
 from app.intelligence.risk import RiskExtractor
+from app.intelligence.signals import SignalExtractor
 
 
 class IntelligenceFactory:
@@ -84,6 +85,7 @@ def create_intelligence_factory() -> IntelligenceFactory:
         MetadataExtractor(),
         EntityExtractor(),
         FinancialExtractor(),
+        SignalExtractor(),
         RiskExtractor(),
     ):
         factory.register(extractor)

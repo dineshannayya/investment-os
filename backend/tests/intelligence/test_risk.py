@@ -381,4 +381,128 @@ Established technology.
         assert risks.market_risks == ()
         assert risks.technology_risks == ()
         assert risks.legal_risks == ()
+
+    #Test 1 — Word-boundary behavior
+    def test_keyword_boundary(self):
+        text = "The company has a stable financial position."
     
+    
+        risks = RiskExtractor().extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+    
+    
+        assert risks.financial_risks == ()
+    
+
+    #9. Better new tests
+    def test_extract_customer_concentration_explicit(self):
+        text = "Revenue is highly concentrated in one customer."
+    
+    
+        risks = RiskExtractor().extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+    
+    
+        assert "customer_concentration" in risks.market_risks
+    
+    # Major customer should not automatically mean concentration
+    def test_major_customer_alone_is_not_customer_concentration(self):
+        text = "The company has a major customer in the semiconductor industry."
+    
+    
+        risks = RiskExtractor().extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+    
+    
+        assert "customer_concentration" not in risks.market_risks
+
+    #10. Manufacturing false-positive test
+    def test_foundry_alone_is_not_manufacturing_dependency(self):
+        text = "The company manufactures its chips at a leading foundry."
+    
+    
+        risks = RiskExtractor().extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+    
+    
+        assert "manufacturing_dependency" not in risks.technology_risks
+    
+    
+    def test_single_foundry_dependency(self):
+        text = "Production depends on a single foundry."
+    
+    
+        risks = RiskExtractor().extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+    
+    
+        assert "manufacturing_dependency" in risks.technology_risks
+
+    #11. Regulatory false-positive test
+    def test_regulated_market_alone_is_not_regulatory_risk(self):
+        text = "The company operates in a regulated market."
+    
+    
+        risks = RiskExtractor().extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+    
+    
+        assert "regulatory_approval" not in risks.legal_risks
+    
+    def test_regulatory_approval_required(self):
+        text = "FDA regulatory approval is required before launch."
+    
+    
+        risks = RiskExtractor().extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+    
+    
+        assert "regulatory_approval" in risks.legal_risks
+
+    # 12. Production-style regression test
+    def test_semiconductor_startup_risk_profile(self):
+        text = """
+        Risks
+    
+    
+        The company is still validating its technology at production scale.
+    
+    
+        Production depends on a single foundry.
+    
+    
+        Revenue is concentrated in one major customer.
+    
+    
+        Additional capital will be required to fund development.
+    
+    
+        Regulatory approval is required before commercial deployment.
+        """
+    
+    
+        risks = RiskExtractor().extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+    
+    
+        assert "unproven_technology" in risks.technology_risks
+        assert "manufacturing_dependency" in risks.technology_risks
+        assert "customer_concentration" in risks.market_risks
+        assert "regulatory_approval" in risks.legal_risks
+                    

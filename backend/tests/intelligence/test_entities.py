@@ -89,6 +89,20 @@ Startup: Investment OS
 
         assert entities.company_name == "Investment OS"
 
+    def test_extract_organization_keyword(self):
+        text = """
+Organization: BigEndian Semiconductor
+"""
+
+        extractor = EntityExtractor()
+
+        entities = extractor.extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+
+        assert entities.company_name == "BigEndian Semiconductor"
+
     def test_company_not_found(self):
         extractor = EntityExtractor()
 
@@ -98,6 +112,36 @@ Startup: Investment OS
         )
 
         assert entities.company_name is None
+
+    def test_empty_company_value(self):
+        text = """
+Company:
+"""
+
+        extractor = EntityExtractor()
+
+        entities = extractor.extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+
+        assert entities.company_name is None
+
+    def test_company_whitespace_normalized(self):
+        text = """
+Company:   SemSure    Technologies   Pvt Ltd
+"""
+
+        extractor = EntityExtractor()
+
+        entities = extractor.extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+
+        assert entities.company_name == (
+            "SemSure Technologies Pvt Ltd"
+        )
 
     # ------------------------------------------------------------------
     # Founders
@@ -120,6 +164,22 @@ Founders: Alice, Bob
             "Bob",
         )
 
+    def test_extract_singular_founder(self):
+        text = """
+Founder: Alice
+"""
+
+        extractor = EntityExtractor()
+
+        entities = extractor.extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+
+        assert entities.founders == (
+            "Alice",
+        )
+
     def test_duplicate_founders_removed(self):
         text = """
 Founders: Alice, Bob, Alice
@@ -135,6 +195,40 @@ Founders: Alice, Bob, Alice
         assert entities.founders == (
             "Alice",
             "Bob",
+        )
+
+    def test_duplicate_founders_case_insensitive(self):
+        text = """
+Founders: Alice, alice, Bob
+"""
+
+        extractor = EntityExtractor()
+
+        entities = extractor.extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+
+        assert entities.founders == (
+            "Alice",
+            "Bob",
+        )
+
+    def test_founder_whitespace_normalized(self):
+        text = """
+Founders:   Alice   Smith  ;   Bob   Kumar
+"""
+
+        extractor = EntityExtractor()
+
+        entities = extractor.extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+
+        assert entities.founders == (
+            "Alice Smith",
+            "Bob Kumar",
         )
 
     # ------------------------------------------------------------------
@@ -158,11 +252,43 @@ Investors: Lets Venture, Campus Angels
             "Campus Angels",
         )
 
+    def test_extract_singular_investor(self):
+        text = """
+Investor: Lets Venture
+"""
+
+        extractor = EntityExtractor()
+
+        entities = extractor.extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+
+        assert entities.investors == (
+            "Lets Venture",
+        )
+
     # ------------------------------------------------------------------
     # Accelerators
     # ------------------------------------------------------------------
 
     def test_extract_accelerators(self):
+        text = """
+Accelerator: NSRCEL
+"""
+
+        extractor = EntityExtractor()
+
+        entities = extractor.extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+
+        assert entities.accelerators == (
+            "NSRCEL",
+        )
+
+    def test_extract_singular_accelerator(self):
         text = """
 Accelerator: NSRCEL
 """
@@ -199,6 +325,39 @@ Location: Bengaluru, India
             "India",
         )
 
+    def test_extract_singular_location(self):
+        text = """
+Location: Bengaluru
+"""
+
+        extractor = EntityExtractor()
+
+        entities = extractor.extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+
+        assert entities.locations == (
+            "Bengaluru",
+        )
+
+    def test_extract_plural_locations(self):
+        text = """
+Locations: Bengaluru, India
+"""
+
+        extractor = EntityExtractor()
+
+        entities = extractor.extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+
+        assert entities.locations == (
+            "Bengaluru",
+            "India",
+        )
+
     # ------------------------------------------------------------------
     # Sector
     # ------------------------------------------------------------------
@@ -206,6 +365,39 @@ Location: Bengaluru, India
     def test_extract_sector(self):
         text = """
 Sector: Healthcare, AI
+"""
+
+        extractor = EntityExtractor()
+
+        entities = extractor.extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+
+        assert entities.sectors == (
+            "Healthcare",
+            "AI",
+        )
+
+    def test_extract_singular_sector(self):
+        text = """
+Sector: Healthcare
+"""
+
+        extractor = EntityExtractor()
+
+        entities = extractor.extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+
+        assert entities.sectors == (
+            "Healthcare",
+        )
+
+    def test_extract_plural_sectors(self):
+        text = """
+Sectors: Healthcare, AI
 """
 
         extractor = EntityExtractor()
@@ -241,6 +433,22 @@ Products: Smart Camera, Edge Gateway
             "Edge Gateway",
         )
 
+    def test_extract_singular_product(self):
+        text = """
+Product: Vision SoC
+"""
+
+        extractor = EntityExtractor()
+
+        entities = extractor.extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+
+        assert entities.products == (
+            "Vision SoC",
+        )
+
     # ------------------------------------------------------------------
     # Technologies
     # ------------------------------------------------------------------
@@ -261,6 +469,65 @@ Technologies: AI, RISC-V
             "AI",
             "RISC-V",
         )
+
+    def test_extract_singular_technology(self):
+        text = """
+Technology: Computer Vision
+"""
+
+        extractor = EntityExtractor()
+
+        entities = extractor.extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+
+        assert entities.technologies == (
+            "Computer Vision",
+        )
+
+    def test_duplicate_technologies_case_insensitive(self):
+        text = """
+Technologies: AI, ai, RISC-V, RISC-V
+"""
+
+        extractor = EntityExtractor()
+
+        entities = extractor.extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+
+        assert entities.technologies == (
+            "AI",
+            "RISC-V",
+        )
+
+    # ------------------------------------------------------------------
+    # Empty values
+    # ------------------------------------------------------------------
+
+    def test_empty_entity_values_are_ignored(self):
+        text = """
+Company:
+Founders:
+Investors:
+Products:
+Technology:
+"""
+
+        extractor = EntityExtractor()
+
+        entities = extractor.extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+
+        assert entities.company_name is None
+        assert entities.founders == ()
+        assert entities.investors == ()
+        assert entities.products == ()
+        assert entities.technologies == ()
 
     # ------------------------------------------------------------------
     # Combined extraction
@@ -363,3 +630,32 @@ Founders: Alice
         )
 
         assert 0.0 <= entities.confidence <= 1.0
+
+    def test_confidence_increases_with_entity_fields(self):
+        extractor = EntityExtractor()
+
+        one_field = extractor.extract(
+            self.create_document(
+                "Company: SemSure"
+            ),
+            self.create_chunks(
+                "Company: SemSure"
+            ),
+        )
+
+        two_fields = extractor.extract(
+            self.create_document(
+                """
+Company: SemSure
+Founders: Alice
+"""
+            ),
+            self.create_chunks(
+                """
+Company: SemSure
+Founders: Alice
+"""
+            ),
+        )
+
+        assert two_fields.confidence > one_field.confidence

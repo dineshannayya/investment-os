@@ -13,6 +13,7 @@ import pytest
 from app.intelligence.models import (
     DocumentMetadata,
     FinancialMetrics,
+    IntelligenceEvidence,
     InvestmentEntities,
     InvestmentProfile,
 )
@@ -162,6 +163,62 @@ class TestFinancialMetrics:
         with pytest.raises(FrozenInstanceError):
             metrics.currency = "USD"
 
+# ============================================================================
+# IntelligenceEvidence
+# ============================================================================
+
+
+class TestIntelligenceEvidence:
+    """Tests for IntelligenceEvidence."""
+
+    def test_create(self):
+        evidence = IntelligenceEvidence(
+            extractor="financials",
+            field_name="revenue",
+            chunk_index=12,
+            start_offset=1842,
+            end_offset=1850,
+            text="FY2025 revenue was ₹12 crore",
+            metadata={
+                "page": 3,
+                "section": "Financial Performance",
+            },
+        )
+
+        assert evidence.extractor == "financials"
+        assert evidence.field_name == "revenue"
+        assert evidence.chunk_index == 12
+        assert evidence.start_offset == 1842
+        assert evidence.end_offset == 1850
+        assert evidence.text == (
+            "FY2025 revenue was ₹12 crore"
+        )
+        assert evidence.metadata == {
+            "page": 3,
+            "section": "Financial Performance",
+        }
+
+    def test_defaults(self):
+        evidence = IntelligenceEvidence(
+            extractor="financials",
+        )
+
+        assert evidence.extractor == "financials"
+        assert evidence.field_name is None
+        assert evidence.chunk_index is None
+        assert evidence.start_offset is None
+        assert evidence.end_offset is None
+        assert evidence.text == ""
+        assert evidence.metadata == {}
+
+    def test_immutable(self):
+        evidence = IntelligenceEvidence(
+            extractor="financials",
+            field_name="revenue",
+        )
+
+        with pytest.raises(FrozenInstanceError):
+            evidence.extractor = "risk"
 
 # ============================================================================
 # InvestmentProfile
@@ -188,11 +245,23 @@ class TestInvestmentProfile:
             valuation=Decimal("240000000"),
         )
 
+        evidence = (
+            IntelligenceEvidence(
+                extractor="financials",
+                field_name="valuation",
+                chunk_index=4,
+                start_offset=120,
+                end_offset=135,
+                text="Valuation: ₹24 Cr",
+            ),
+        )
+
         profile = InvestmentProfile(
             document_id=document_id,
             metadata=metadata,
             entities=entities,
             financials=financials,
+            evidence=evidence,
             extras={
                 "source": "upload",
             },
@@ -205,6 +274,8 @@ class TestInvestmentProfile:
         assert profile.financials is financials
         assert profile.extras["source"] == "upload"
         assert profile.confidence == pytest.approx(0.96)
+        assert profile.evidence == evidence
+        assert profile.evidence[0].field_name == "valuation"
 
     def test_defaults(self):
         profile = InvestmentProfile(
@@ -216,6 +287,7 @@ class TestInvestmentProfile:
 
         assert profile.extras == {}
         assert profile.confidence == 1.0
+        assert profile.evidence == ()
 
     def test_immutable(self):
         profile = InvestmentProfile(

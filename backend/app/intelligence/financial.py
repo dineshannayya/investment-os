@@ -6,7 +6,10 @@ from __future__ import annotations
 
 from app.chunking.base import Chunk
 from app.intelligence.base import IntelligenceExtractor
-from app.intelligence.models import FinancialMetrics
+from app.intelligence.models import (
+    FinancialMetrics,
+    IntelligenceEvidence,
+)
 from app.intelligence.parsers import (
     DurationParser,
     MoneyParser,
@@ -57,6 +60,12 @@ class FinancialExtractor(
             ),
         ),
         (
+            "ebitda",
+            (
+                "ebitda",
+            ),
+        ),
+        (
             "arr",
             (
                 "arr",
@@ -93,6 +102,7 @@ class FinancialExtractor(
             "raise_amount": None,
             "valuation": None,
             "revenue": None,
+            "ebitda": None,
             "arr": None,
             "burn_rate": None,
         }
@@ -102,7 +112,7 @@ class FinancialExtractor(
         #
         for occurrence in MoneyParser.find_all(text):
     
-            context = self._context(
+            context = self._line_context(
                 text,
                 occurrence.start,
                 occurrence.end,
@@ -152,6 +162,7 @@ class FinancialExtractor(
             raise_amount=values["raise_amount"],
             valuation=values["valuation"],
             revenue=values["revenue"],
+            ebitda=values["ebitda"],
             arr=values["arr"],
             burn_rate=values["burn_rate"],
             margin=margin,
@@ -171,6 +182,7 @@ class FinancialExtractor(
             raise_amount=metrics.raise_amount,
             valuation=metrics.valuation,
             revenue=metrics.revenue,
+            ebitda=metrics.ebitda,
             arr=metrics.arr,
             burn_rate=metrics.burn_rate,
             margin=metrics.margin,
@@ -178,28 +190,107 @@ class FinancialExtractor(
             confidence=confidence,
         )    
 
+    def extract_evidence(
+        self,
+        document: DocumentContent,
+        chunks: list[Chunk],
+        result: FinancialMetrics,
+    ) -> tuple[IntelligenceEvidence, ...]:
+        """Return source evidence supporting extracted financial metrics."""
+    
+        text = document.text
+        evidence: list[IntelligenceEvidence] = []
+    
+        # Map populated metrics to the corresponding source occurrence.
+        remaining_fields = {
+            field_name
+            for field_name, _ in self.METRIC_MAPPING
+            if getattr(result, field_name) is not None
+        }
+    
+        for occurrence in MoneyParser.find_all(text):
+            if not remaining_fields:
+                break
+    
+            context = self._line_context(
+                text,
+                occurrence.start,
+                occurrence.end,
+            ).lower()
+    
+            for field_name, keywords in self.METRIC_MAPPING:
+                if field_name not in remaining_fields:
+                    continue
+    
+                if not self._contains(context, keywords):
+                    continue
+    
+                if getattr(result, field_name) != occurrence.money.amount:
+                    continue
+    
+                chunk = self._find_chunk(
+                    chunks,
+                    occurrence.start,
+                    occurrence.end,
+                )
+    
+                evidence.append(
+                    IntelligenceEvidence(
+                        extractor=self.name,
+                        field_name=field_name,
+                        chunk_index=(
+                            chunk.index if chunk is not None else None
+                        ),
+                        start_offset=occurrence.start,
+                        end_offset=occurrence.end,
+                        text=self._line_context(
+                            text,
+                            occurrence.start,
+                            occurrence.end,
+                        ),
+                    )
+                )
+    
+                remaining_fields.remove(field_name)
+                break
+    
+        return tuple(evidence)
+
+
     # ==============================================================
     # Helpers
     # ==============================================================
 
-    def _context(
+    def _find_chunk(
+        self,
+        chunks: list[Chunk],
+        start: int,
+        end: int,
+    ) -> Chunk | None:
+        """Return the chunk containing the source occurrence."""
+    
+        for chunk in chunks:
+            if (
+                chunk.start_offset <= start
+                and end <= chunk.end_offset
+            ):
+                return chunk
+    
+        return None
+
+
+    def _line_context(
         self,
         text: str,
         start: int,
         end: int,
     ) -> str:
-
-        begin = max(
-            0,
-            start - self.CONTEXT_WINDOW,
-        )
-
-        finish = min(
-            len(text),
-            end + self.CONTEXT_WINDOW,
-        )
-
-        return text[begin:finish]
+        """Return only the source line containing the monetary occurrence."""
+        line_start = text.rfind("\n", 0, start) + 1
+        line_end = text.find("\n", end)
+        if line_end == -1:
+            line_end = len(text)
+        return text[line_start:line_end]
 
     def _contains(
         self,

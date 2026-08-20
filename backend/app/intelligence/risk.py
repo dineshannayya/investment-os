@@ -10,6 +10,8 @@ from app.chunking.base import Chunk
 from app.intelligence.base import IntelligenceExtractor
 from app.intelligence.models import RiskAssessment
 from app.processors import DocumentContent
+import re
+
 
 
 @dataclass(slots=True, frozen=True)
@@ -38,6 +40,10 @@ FOUNDER_RULES = (
         keywords=(
             "solo founder",
             "single founder",
+            "founder dependency",
+            "founder concentration",
+            "key person dependency",
+            "key-person dependency",
         ),
     ),
     RiskRule(
@@ -63,8 +69,11 @@ FINANCIAL_RULES = (
         value="high_burn",
         severity="high",
         keywords=(
-            "high burn",
             "burn rate",
+            "high burn",
+            "high burn rate",
+            "burn rate is high",
+            "elevated burn",
         ),
     ),
     RiskRule(
@@ -74,6 +83,10 @@ FINANCIAL_RULES = (
         keywords=(
             "runway 6 months",
             "less than 6 months runway",
+            "less than six months runway",
+            "runway is less than 6 months",
+            "limited runway",
+            "low runway",
         ),
     ),
     RiskRule(
@@ -112,6 +125,9 @@ EXECUTION_RULES = (
         keywords=(
             "key hires",
             "hiring plan",
+            "critical hires",
+            "hiring dependency",
+            "dependent on hiring",
         ),
     ),
 )
@@ -130,6 +146,9 @@ MARKET_RULES = (
         keywords=(
             "competitive market",
             "strong competition",
+            "highly competitive market",
+            "intense competition",
+            "significant competition",
         ),
     ),
     RiskRule(
@@ -138,7 +157,13 @@ MARKET_RULES = (
         severity="high",
         keywords=(
             "single customer",
-            "major customer",
+            "single-customer dependency",
+            "customer concentration",
+            "high customer concentration",
+            "revenue depends on a single customer",
+            "revenue concentrated in one customer",
+            "revenue is highly concentrated in one customer",
+            "revenue is concentrated in one major customer",
         ),
     ),
 )
@@ -156,7 +181,12 @@ TECHNOLOGY_RULES = (
         severity="high",
         keywords=(
             "experimental",
+            "experimental technology",
             "unproven",
+            "unproven technology",
+            "technology not yet validated",
+            "not yet validated",
+            "still validating its technology",
         ),
     ),
     RiskRule(
@@ -164,9 +194,14 @@ TECHNOLOGY_RULES = (
         value="manufacturing_dependency",
         severity="high",
         keywords=(
-            "foundry",
-            "fabrication",
             "manufacturing partner",
+            "manufacturing dependency",
+            "depends on a manufacturing partner",
+            "dependent on a manufacturing partner",
+            "depends on a single foundry",
+            "dependent on a single foundry",
+            "single-source foundry",
+            "single foundry dependency",
         ),
     ),
 )
@@ -184,6 +219,7 @@ LEGAL_RULES = (
         severity="high",
         keywords=(
             "patent pending",
+            "patents pending",
         ),
     ),
     RiskRule(
@@ -192,6 +228,9 @@ LEGAL_RULES = (
         severity="high",
         keywords=(
             "regulatory approval",
+            "regulatory approval required",
+            "regulatory clearance",
+            "regulatory approval pending",
             "fda",
             "cdsco",
         ),
@@ -214,6 +253,15 @@ class RiskExtractor(
         *TECHNOLOGY_RULES,
         *LEGAL_RULES,
     )
+
+    @staticmethod
+    def _contains_keyword(
+        text: str,
+        keyword: str,
+    ) -> bool:
+        pattern = rf"(?<!\w){re.escape(keyword.lower())}(?!\w)"
+        return re.search(pattern, text) is not None
+
 
     @property
     def name(self) -> str:
@@ -239,10 +287,11 @@ class RiskExtractor(
         for rule in self.RULES:
 
             if any(
-                keyword in text
+                self._contains_keyword(text, keyword)
                 for keyword in rule.keywords
             ):
                 values[rule.field].add(rule.value)
+
 
         risks = RiskAssessment(
             founder_risks=tuple(

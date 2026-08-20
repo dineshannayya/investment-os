@@ -21,37 +21,43 @@ class EntityExtractor(IntelligenceExtractor[InvestmentEntities]):
     """
 
     COMPANY_PATTERNS = (
-        re.compile(r"(?im)^company\s*:\s*(.+)$"),
-        re.compile(r"(?im)^startup\s*:\s*(.+)$"),
-        re.compile(r"(?im)^organization\s*:\s*(.+)$"),
+        re.compile(
+            r"(?im)^[ \t]*company[ \t]*:[ \t]*([^\r\n]*)$"
+        ),
+        re.compile(
+            r"(?im)^[ \t]*startup[ \t]*:[ \t]*([^\r\n]*)$"
+        ),
+        re.compile(
+            r"(?im)^[ \t]*organization[ \t]*:[ \t]*([^\r\n]*)$"
+        ),
     )
-
+    
     FOUNDER_PATTERN = re.compile(
-        r"(?im)^founders?\s*:\s*(.+)$"
+        r"(?im)^[ \t]*founders?[ \t]*:[ \t]*([^\r\n]*)$"
     )
-
+    
     INVESTOR_PATTERN = re.compile(
-        r"(?im)^investors?\s*:\s*(.+)$"
+        r"(?im)^[ \t]*investors?[ \t]*:[ \t]*([^\r\n]*)$"
     )
-
+    
     ACCELERATOR_PATTERN = re.compile(
-        r"(?im)^accelerators?\s*:\s*(.+)$"
+        r"(?im)^[ \t]*accelerators?[ \t]*:[ \t]*([^\r\n]*)$"
     )
-
+    
     LOCATION_PATTERN = re.compile(
-        r"(?im)^location\s*:\s*(.+)$"
+        r"(?im)^[ \t]*locations?[ \t]*:[ \t]*([^\r\n]*)$"
     )
-
+    
     SECTOR_PATTERN = re.compile(
-        r"(?im)^sector\s*:\s*(.+)$"
+        r"(?im)^[ \t]*sectors?[ \t]*:[ \t]*([^\r\n]*)$"
     )
-
+    
     PRODUCT_PATTERN = re.compile(
-        r"(?im)^products?\s*:\s*(.+)$"
+        r"(?im)^[ \t]*products?[ \t]*:[ \t]*([^\r\n]*)$"
     )
-
+    
     TECHNOLOGY_PATTERN = re.compile(
-        r"(?im)^technolog(?:y|ies)\s*:\s*(.+)$"
+        r"(?im)^[ \t]*technolog(?:y|ies)[ \t]*:[ \t]*([^\r\n]*)$"
     )
 
     SPLIT_PATTERN = re.compile(r"\s*,\s*|\s*;\s*")
@@ -67,7 +73,13 @@ class EntityExtractor(IntelligenceExtractor[InvestmentEntities]):
     ) -> InvestmentEntities:
         """
         Extract entities from the document.
+
+        Extraction remains deterministic and label-driven. ``chunks`` is
+        accepted as part of the IntelligenceExtractor contract but is not
+        used for inference in this iteration.
         """
+
+        del chunks
 
         text = document.text
 
@@ -108,29 +120,45 @@ class EntityExtractor(IntelligenceExtractor[InvestmentEntities]):
     # Private helpers
     # ------------------------------------------------------------------
 
+    @staticmethod
+    def _normalize_value(value: str) -> str:
+        """
+        Normalize whitespace without changing the entity's content.
+        """
+
+        return " ".join(value.strip().split())
+
+    @classmethod
     def _extract_company(
-        self,
+        cls,
         text: str,
     ) -> str | None:
         """
         Extract the primary company/startup name.
         """
 
-        for pattern in self.COMPANY_PATTERNS:
+        for pattern in cls.COMPANY_PATTERNS:
             match = pattern.search(text)
 
             if match:
-                return match.group(1).strip()
+                value = cls._normalize_value(match.group(1))
+
+                if value:
+                    return value
 
         return None
 
+    @classmethod
     def _extract_list(
-        self,
+        cls,
         pattern: re.Pattern[str],
         text: str,
     ) -> tuple[str, ...]:
         """
         Extract a comma/semicolon separated list.
+
+        Values are normalized and duplicate values are removed while
+        preserving their original order.
         """
 
         match = pattern.search(text)
@@ -138,37 +166,48 @@ class EntityExtractor(IntelligenceExtractor[InvestmentEntities]):
         if match is None:
             return ()
 
-        values = []
+        values: list[str] = []
+        seen: set[str] = set()
 
-        for value in self.SPLIT_PATTERN.split(match.group(1)):
-            value = value.strip()
+        for raw_value in cls.SPLIT_PATTERN.split(match.group(1)):
+            value = cls._normalize_value(raw_value)
 
-            if value and value not in values:
-                values.append(value)
+            if not value:
+                continue
+
+            normalized_key = value.casefold()
+
+            if normalized_key in seen:
+                continue
+
+            seen.add(normalized_key)
+            values.append(value)
 
         return tuple(values)
 
+    @classmethod
     def _calculate_confidence(
-        self,
+        cls,
         text: str,
     ) -> float:
         """
         Calculate a simple confidence score.
 
-        Confidence increases with the number of recognised
-        investment entity fields.
+        Confidence increases with the number of recognized investment
+        entity fields. The scoring model remains intentionally simple
+        and deterministic.
         """
 
         patterns = (
-            self.COMPANY_PATTERNS
+            cls.COMPANY_PATTERNS
             + (
-                self.FOUNDER_PATTERN,
-                self.INVESTOR_PATTERN,
-                self.ACCELERATOR_PATTERN,
-                self.LOCATION_PATTERN,
-                self.SECTOR_PATTERN,
-                self.PRODUCT_PATTERN,
-                self.TECHNOLOGY_PATTERN,
+                cls.FOUNDER_PATTERN,
+                cls.INVESTOR_PATTERN,
+                cls.ACCELERATOR_PATTERN,
+                cls.LOCATION_PATTERN,
+                cls.SECTOR_PATTERN,
+                cls.PRODUCT_PATTERN,
+                cls.TECHNOLOGY_PATTERN,
             )
         )
 

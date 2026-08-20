@@ -202,6 +202,7 @@ test-api:
 test-all:
 	$(DOCKER) pytest tests -v --cov=app
 
+
 regression:
 	# Existing deterministic regression
 	$(DOCKER) pytest tests -v --cov=app --cov-report=term-missing
@@ -218,6 +219,8 @@ regression:
 	docker compose exec backend python -u \
 	    -m scripts.startup_analysis_qwen_benchmark
 
+sanity:
+	docker compose exec -T backend     python -u -m scripts.startup_analysis_real_e2e
 # --------------------------------
 # Database
 # --------------------------------

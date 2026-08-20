@@ -9,7 +9,9 @@ from uuid import uuid4
 
 from app.chunking.base import Chunk
 from app.intelligence.financial import FinancialExtractor
+from app.intelligence.parsers import MoneyParser
 from app.processors import DocumentContent
+from app.intelligence.models import IntelligenceEvidence
 
 
 class TestFinancialExtractor:
@@ -39,6 +41,27 @@ class TestFinancialExtractor:
                 metadata={},
             )
         ]
+
+    # ==============================================================
+    # Money Parser Safety
+    # ==============================================================
+
+    def test_money_parser_ignores_plain_year(self):
+        occurrences = MoneyParser.find_all("FY2025 revenue: INR 12 crore.")
+        assert len(occurrences) == 1
+        assert occurrences[0].money.amount == Decimal("120000000")
+
+    def test_money_parser_requires_currency_or_unit(self):
+        assert MoneyParser.find_all("2025 50 18 100") == []
+
+    def test_money_parser_accepts_unit_without_currency(self):
+        occurrences = MoneyParser.find_all("Revenue 12 crore.")
+        assert len(occurrences) == 1
+        assert occurrences[0].money.amount == Decimal("120000000")
+
+    def test_money_parser_does_not_parse_months_as_money(self):
+        occurrences = MoneyParser.find_all("Runway is 18 months.")
+        assert occurrences == []
 
     # ==============================================================
     # Properties
@@ -169,6 +192,8 @@ Current valuation ₹25 Cr.
 
 Annual revenue ₹8 Cr.
 
+EBITDA ₹2 Cr.
+
 ARR ₹10 Cr.
 
 Monthly burn rate ₹40 Lakhs.
@@ -186,6 +211,7 @@ EBITDA margin 28%.
         assert metrics.raise_amount == Decimal("50000000")
         assert metrics.valuation == Decimal("250000000")
         assert metrics.revenue == Decimal("80000000")
+        assert metrics.ebitda == Decimal("20000000")
         assert metrics.arr == Decimal("100000000")
         assert metrics.burn_rate == Decimal("4000000")
 
@@ -206,6 +232,7 @@ EBITDA margin 28%.
         assert metrics.raise_amount is None
         assert metrics.valuation is None
         assert metrics.revenue is None
+        assert metrics.ebitda is None
         assert metrics.arr is None
         assert metrics.burn_rate is None
         assert metrics.margin is None
@@ -315,6 +342,40 @@ Margin 30%.
         assert metrics.arr is None
 
     # ==============================================================
+    # False Positive / Context Isolation
+    # ==============================================================
+
+    def test_year_is_not_parsed_as_revenue(self):
+        text = "FY2025 revenue: INR 12 crore."
+        metrics = FinancialExtractor().extract(self.create_document(text), self.create_chunks(text))
+        assert metrics.revenue == Decimal("120000000")
+
+    def test_cash_balance_does_not_become_burn_rate(self):
+        text = """
+Cash balance: INR 8 crore.
+Monthly burn: INR 0.5 crore.
+"""
+        metrics = FinancialExtractor().extract(self.create_document(text), self.create_chunks(text))
+        assert metrics.burn_rate == Decimal("5000000")
+
+    def test_extract_ebitda(self):
+        text = "FY2025 EBITDA: INR 2 crore."
+        metrics = FinancialExtractor().extract(self.create_document(text), self.create_chunks(text))
+        assert metrics.ebitda == Decimal("20000000")
+
+    def test_adjacent_financial_metrics_do_not_cross_contaminate(self):
+        text = """
+Revenue: INR 12 crore.
+EBITDA: INR 2 crore.
+Cash balance: INR 8 crore.
+Monthly burn: INR 0.5 crore.
+"""
+        metrics = FinancialExtractor().extract(self.create_document(text), self.create_chunks(text))
+        assert metrics.revenue == Decimal("120000000")
+        assert metrics.ebitda == Decimal("20000000")
+        assert metrics.burn_rate == Decimal("5000000")
+
+    # ==============================================================
     # Mixed Currency Documents    
     # ==============================================================
     def test_first_metric_wins(self):
@@ -368,4 +429,285 @@ Margin 30%.
         assert metrics.revenue is None
         assert metrics.arr is None
         assert metrics.burn_rate is None
+   
+    # ==============================================================
+    # Evidence / Provenance
+    # ==============================================================
     
+    def test_extract_evidence_for_revenue(self):
+        text = "Annual revenue reached ₹8 Cr."
+    
+        document = self.create_document(text)
+        chunks = self.create_chunks(text)
+    
+        extractor = FinancialExtractor()
+    
+        metrics = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            metrics,
+        )
+    
+        assert len(evidence) == 1
+    
+        item = evidence[0]
+    
+        assert isinstance(item, IntelligenceEvidence)
+        assert item.extractor == "financials"
+        assert item.field_name == "revenue"
+        assert item.chunk_index == 0
+        assert item.start_offset == text.index("₹8 Cr.")
+        assert text[
+            item.start_offset:item.end_offset
+        ] == "₹8 Cr"
+
+        assert item.text == text
+
+    def test_extract_evidence_for_multiple_metrics(self):
+        text = """
+Raised ₹5 Cr in Seed round.
+Current valuation ₹25 Cr.
+Annual revenue ₹8 Cr.
+EBITDA ₹2 Cr.
+ARR ₹10 Cr.
+Monthly burn rate ₹40 Lakhs.
+"""
+    
+        document = self.create_document(text)
+        chunks = self.create_chunks(text)
+    
+        extractor = FinancialExtractor()
+    
+        metrics = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            metrics,
+        )
+    
+        assert [item.field_name for item in evidence] == [
+            "raise_amount",
+            "valuation",
+            "revenue",
+            "ebitda",
+            "arr",
+            "burn_rate",
+        ]
+    
+        assert all(
+            item.extractor == "financials"
+            for item in evidence
+        )
+    
+        assert all(
+            item.chunk_index == 0
+            for item in evidence
+        )
+    
+    def test_evidence_offsets_match_source_text(self):
+        text = (
+            "Company raised ₹5 Cr in Seed funding."
+        )
+    
+        document = self.create_document(text)
+        chunks = self.create_chunks(text)
+    
+        extractor = FinancialExtractor()
+    
+        metrics = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            metrics,
+        )
+    
+        assert len(evidence) == 1
+    
+        item = evidence[0]
+    
+        assert text[
+            item.start_offset:item.end_offset
+        ] == "₹5 Cr"
+    
+    def test_evidence_contains_source_line(self):
+        text = (
+            "Company raised ₹5 Cr in Seed funding."
+        )
+    
+        document = self.create_document(text)
+        chunks = self.create_chunks(text)
+    
+        extractor = FinancialExtractor()
+    
+        metrics = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            metrics,
+        )
+    
+        assert evidence[0].text == text
+    
+    def test_evidence_follows_first_match_policy(self):
+        text = """
+Revenue ₹5 Cr.
+Revenue ₹8 Cr.
+"""
+    
+        document = self.create_document(text)
+        chunks = self.create_chunks(text)
+    
+        extractor = FinancialExtractor()
+    
+        metrics = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            metrics,
+        )
+    
+        revenue_evidence = [
+            item
+            for item in evidence
+            if item.field_name == "revenue"
+        ]
+    
+        assert len(revenue_evidence) == 1
+        assert revenue_evidence[0].text == (
+            "Revenue ₹5 Cr."
+        )
+    
+    def test_no_evidence_for_unclassified_money(self):
+        text = """
+Cash balance ₹10 Cr.
+Office rent ₹20 Lakhs.
+"""
+    
+        document = self.create_document(text)
+        chunks = self.create_chunks(text)
+    
+        extractor = FinancialExtractor()
+    
+        metrics = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            metrics,
+        )
+    
+        assert evidence == ()
+    
+    def test_no_evidence_for_empty_document(self):
+        document = self.create_document("")
+        chunks = self.create_chunks("")
+    
+        extractor = FinancialExtractor()
+    
+        metrics = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            metrics,
+        )
+    
+        assert evidence == ()
+    
+    def test_evidence_resolves_containing_chunk(self):
+        first = "Company overview.\n"
+        second = "Annual revenue ₹8 Cr."
+    
+        text = first + second
+    
+        chunks = [
+            Chunk(
+                index=0,
+                text=first,
+                start_offset=0,
+                end_offset=len(first),
+                metadata={},
+            ),
+            Chunk(
+                index=1,
+                text=second,
+                start_offset=len(first),
+                end_offset=len(text),
+                metadata={},
+            ),
+        ]
+    
+        document = self.create_document(text)
+    
+        extractor = FinancialExtractor()
+    
+        metrics = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            metrics,
+        )
+    
+        assert len(evidence) == 1
+        assert evidence[0].field_name == "revenue"
+        assert evidence[0].chunk_index == 1
+
+    def test_evidence_distinguishes_occurrence_from_context(self):
+        text = "Annual revenue reached ₹8 Cr."
+    
+        document = self.create_document(text)
+        chunks = self.create_chunks(text)
+    
+        extractor = FinancialExtractor()
+    
+        metrics = extractor.extract(document, chunks)
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            metrics,
+        )
+    
+        assert len(evidence) == 1
+    
+        item = evidence[0]
+    
+        assert text[
+            item.start_offset:item.end_offset
+        ] == "₹8 Cr"
+    
+        assert item.text == (
+            "Annual revenue reached ₹8 Cr."
+        )
+         

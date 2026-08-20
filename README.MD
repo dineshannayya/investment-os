@@ -58,3 +58,40 @@ Do not use Markdown code fences.
 | **Database access**                       | `StartupAnalysisRepository`              | Save/load/query historical analyses                  |
 | **Overall orchestration**                 | `StartupAnalysisOrchestrator`            | Coordinates the above; owns no analysis data         |
 
+C.6.x framework implementation
+
+                         Document
+                            │
+                            ▼
+                  DocumentProcessingService
+                            │
+                            ▼
+                 DocumentContent + Chunks
+                            │
+                            ▼
+              InvestmentIntelligenceService
+                            │
+                            ▼
+                 IntelligenceFactory
+                            │
+             ┌──────────────┼──────────────┐
+             ▼              ▼              ▼
+         Metadata        Entities       Financials
+             │              │              │
+             ├──────────────┼──────────────┤
+             ▼              ▼              ▼
+          Signals          Risks        Future...
+             │
+             ▼
+       InvestmentProfile
+             │
+       ┌─────┴───────────────┐
+       ▼                     ▼
+ component confidence    quality/coverage
+       │                     │
+       └──────────┬──────────┘
+                  ▼
+       Startup Analysis Input
+                  │
+                  ▼
+             Qwen Analysis

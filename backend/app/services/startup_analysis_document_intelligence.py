@@ -1,32 +1,8 @@
-"""
-Document intelligence enrichment for Startup Analysis.
-
-This service bridges the document-processing/intelligence pipeline
-into StartupAnalysisInput.
-
-Responsibilities
-----------------
-- Process startup documents.
-- Chunk processed documents.
-- Run InvestmentIntelligenceService.
-- Aggregate document intelligence.
-- Map supported intelligence fields into StartupAnalysisInput.
-
-Non-responsibilities
---------------------
-- Startup normalization.
-- Financial metric calculation.
-- LLM invocation.
-- Evidence provenance resolution.
-- Persistence.
-
-Evidence remains untouched in 3.7.6.3.C.4.
-Evidence population is handled by the dedicated provenance milestone.
-"""
+"""Document intelligence enrichment for Startup Analysis."""
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 
 from app.intelligence.models import (
     FinancialMetrics as IntelligenceFinancialMetrics,
@@ -52,6 +28,11 @@ from app.services.investment_intelligence import (
 class StartupAnalysisDocumentIntelligenceService:
     """
     Enrich StartupAnalysisInput with document-derived intelligence.
+
+    ``profile_observer`` is an optional diagnostic hook. It is intentionally
+    disabled by default and does not alter production behaviour. It exists so
+    the real E2E path can inspect the exact InvestmentProfile produced by the
+    intelligence layer before profile-to-analysis-input mapping occurs.
     """
 
     def __init__(
@@ -59,22 +40,18 @@ class StartupAnalysisDocumentIntelligenceService:
         *,
         document_processing: DocumentProcessingService,
         intelligence: InvestmentIntelligenceService,
+        profile_observer: Callable[[InvestmentProfile], None] | None = None,
     ) -> None:
         self._document_processing = document_processing
         self._intelligence = intelligence
+        self._profile_observer = profile_observer
 
     def enrich(
         self,
         startup: Startup,
         analysis_input: StartupAnalysisInput,
     ) -> StartupAnalysisInput:
-        """
-        Enrich analysis input from all startup documents.
-
-        If the startup has no documents, the original input is returned
-        unchanged.
-        """
-
+        """Enrich analysis input from all startup documents."""
         documents = tuple(startup.documents or [])
 
         if not documents:
@@ -92,17 +69,21 @@ class StartupAnalysisDocumentIntelligenceService:
 
     def _analyze_document(self, document_id):
         """Process, chunk, and analyze one stored document."""
-
         content, chunks = (
             self._document_processing.process_and_chunk(
                 document_id,
             )
         )
 
-        return self._intelligence.analyze(
+        profile = self._intelligence.analyze(
             content,
             chunks,
         )
+
+        if self._profile_observer is not None:
+            self._profile_observer(profile)
+
+        return profile
 
     @classmethod
     def _merge_profiles(
@@ -111,7 +92,6 @@ class StartupAnalysisDocumentIntelligenceService:
         profiles: tuple[InvestmentProfile, ...],
     ) -> StartupAnalysisInput:
         """Merge document profiles into the analysis input."""
-
         product = cls._build_product(profiles)
         market = cls._build_market(profiles)
         traction = cls._build_traction(profiles)
@@ -127,12 +107,7 @@ class StartupAnalysisDocumentIntelligenceService:
             traction=traction or analysis_input.traction,
             financials=financials or analysis_input.financials,
             fundraising=analysis_input.fundraising,
-            business_model=(
-                business_model
-                or analysis_input.business_model
-            ),
-            # Evidence is intentionally preserved.
-            # 3.7.6.3.C.4 does not create evidence.
+            business_model=business_model or analysis_input.business_model,
             evidence=list(analysis_input.evidence),
         )
 
@@ -141,8 +116,6 @@ class StartupAnalysisDocumentIntelligenceService:
         cls,
         profiles: Iterable[InvestmentProfile],
     ) -> ProductAnalysis | None:
-        """Build product information from extracted entities."""
-
         products = cls._unique_strings(
             value
             for profile in profiles
@@ -159,16 +132,8 @@ class StartupAnalysisDocumentIntelligenceService:
             return None
 
         return ProductAnalysis(
-            product_description=(
-                ", ".join(products)
-                if products
-                else None
-            ),
-            technology=(
-                ", ".join(technologies)
-                if technologies
-                else None
-            ),
+            product_description=(", ".join(products) if products else None),
+            technology=(", ".join(technologies) if technologies else None),
         )
 
     @classmethod
@@ -176,8 +141,6 @@ class StartupAnalysisDocumentIntelligenceService:
         cls,
         profiles: Iterable[InvestmentProfile],
     ) -> MarketAnalysis | None:
-        """Build market information from extracted signals."""
-
         markets = cls._unique_strings(
             value
             for profile in profiles
@@ -194,15 +157,9 @@ class StartupAnalysisDocumentIntelligenceService:
             return None
 
         return MarketAnalysis(
-            market_description=(
-                ", ".join(markets)
-                if markets
-                else None
-            ),
+            market_description=(", ".join(markets) if markets else None),
             geographic_market=(
-                ", ".join(geographies)
-                if geographies
-                else None
+                ", ".join(geographies) if geographies else None
             ),
         )
 
@@ -211,13 +168,6 @@ class StartupAnalysisDocumentIntelligenceService:
         cls,
         profiles: Iterable[InvestmentProfile],
     ) -> TractionAnalysis | None:
-        """
-        Build traction information from directly extracted revenue.
-
-        No customer/user figures are fabricated because the current
-        intelligence model does not provide them.
-        """
-
         revenue = cls._first_non_none(
             profile.financials.revenue
             for profile in profiles
@@ -226,37 +176,29 @@ class StartupAnalysisDocumentIntelligenceService:
         if revenue is None:
             return None
 
-        return TractionAnalysis(
-            revenue=revenue,
-        )
+        return TractionAnalysis(revenue=revenue)
 
     @classmethod
     def _build_financials(
         cls,
         profiles: Iterable[InvestmentProfile],
     ) -> FinancialAnalysis | None:
-        """Build financial analysis from extracted financial facts."""
-
         revenue = cls._first_non_none(
             profile.financials.revenue
             for profile in profiles
         )
-
         ebitda = cls._first_non_none(
             profile.financials.ebitda
             for profile in profiles
         )
-
         margin = cls._first_non_none(
             profile.financials.margin
             for profile in profiles
         )
-
         burn_rate = cls._first_non_none(
             profile.financials.burn_rate
             for profile in profiles
         )
-
         runway_months = cls._first_non_none(
             profile.financials.runway_months
             for profile in profiles
@@ -287,8 +229,6 @@ class StartupAnalysisDocumentIntelligenceService:
         cls,
         profiles: Iterable[InvestmentProfile],
     ) -> BusinessModelAnalysis | None:
-        """Build business-model information from extracted signals."""
-
         business_models = cls._unique_strings(
             value
             for profile in profiles
@@ -304,17 +244,13 @@ class StartupAnalysisDocumentIntelligenceService:
 
     @staticmethod
     def _first_non_none(values):
-        """Return the first non-None value."""
         for value in values:
             if value is not None:
                 return value
-
         return None
 
     @staticmethod
     def _unique_strings(values) -> tuple[str, ...]:
-        """Return non-empty strings while preserving order."""
-
         result: list[str] = []
         seen: set[str] = set()
 
@@ -323,7 +259,6 @@ class StartupAnalysisDocumentIntelligenceService:
                 continue
 
             normalized = str(value).strip()
-
             if not normalized or normalized in seen:
                 continue
 

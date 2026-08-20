@@ -422,4 +422,118 @@ DeepTech.
         assert "india" in signals.geographies
     
         assert "deeptech" in signals.themes
-        
+
+    # A. Word-boundary protection
+    def test_ai_does_not_match_inside_word(self):
+        text = "The company operates in capital markets."
+    
+        signals = SignalExtractor().extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+    
+        assert "ai" not in signals.technologies        
+    
+    # B. Semiconductor vocabulary
+    def test_extract_fabless_semiconductor(self):
+        text = """
+        Fabless semiconductor company developing custom silicon
+        and RISC-V SoCs.
+        """
+    
+        signals = SignalExtractor().extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+    
+        assert "semiconductor" in signals.industry
+    
+    # C. Edge AI
+    def test_extract_edge_ai(self):
+        text = """
+        Edge AI inference platform using neural networks
+        for on-device intelligence.
+        """
+    
+        signals = SignalExtractor().extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+    
+        assert "ai" in signals.technologies
+        assert "edge_ai" in signals.themes
+    
+    # D. Computer vision
+    def test_extract_video_analytics(self):
+        text = """
+        Computer vision and video analytics platform
+        for intelligent cameras.
+        """
+    
+        signals = SignalExtractor().extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+    
+        assert "computer_vision" in signals.technologies
+    
+    # E. Surveillance market
+    
+    def test_extract_surveillance_market(self):
+        text = """
+        AI platform for video surveillance and security cameras.
+        """
+    
+        signals = SignalExtractor().extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+    
+        assert "surveillance" in signals.markets
+    
+    # F. Hardware business model shouldn't rely on device
+    def test_device_alone_does_not_imply_hardware_business_model(self):
+        text = """
+        Software runs on customer devices.
+        """
+    
+        signals = SignalExtractor().extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+    
+        assert "hardware" not in signals.business_models
+    
+    # 11. Add a real E2E-style regression test
+    def test_semiconductor_ai_surveillance_startup(self):
+        text = """
+        Real E2E Semiconductor AI builds edge AI inference
+        solutions for surveillance.
+    
+        The company is developing EdgeVision-100,
+        an AI vision SoC.
+    
+        The company develops semiconductor hardware
+        and software for on-device AI.
+    
+        Target applications include intelligent
+        surveillance and security cameras.
+    
+        Enterprise customers are the target market.
+        """
+    
+        signals = SignalExtractor().extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+    
+        assert "semiconductor" in signals.industry
+        assert "ai" in signals.technologies
+        assert "computer_vision" in signals.technologies
+        assert "hardware" in signals.business_models
+        assert "b2b" in signals.business_models
+        assert "enterprise" in signals.markets
+        assert "surveillance" in signals.markets
+        assert "edge_ai" in signals.themes
+        assert "surveillance" in signals.themes
+    

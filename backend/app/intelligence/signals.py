@@ -10,6 +10,7 @@ from app.chunking.base import Chunk
 from app.intelligence.base import IntelligenceExtractor
 from app.intelligence.models import InvestmentSignals
 from app.processors import DocumentContent
+import re
 
 
 @dataclass(slots=True, frozen=True)
@@ -76,6 +77,7 @@ class SignalExtractor(
             field="industry",
             value="healthcare",
             keywords=(
+                "healthcare",
                 "hospital",
                 "clinic",
                 "patient",
@@ -92,6 +94,11 @@ class SignalExtractor(
                 "asic",
                 "chip",
                 "risc-v",
+                "silicon",
+                "fabless",
+                "integrated circuit",
+                "microcontroller",
+                "microprocessor",
             ),
         ),
         SignalRule(
@@ -131,9 +138,12 @@ class SignalExtractor(
             value="hardware",
             keywords=(
                 "hardware",
-                "device",
-                "embedded",
-            ),
+                "hardware product",
+                "hardware platform",
+                "embedded hardware",
+                "embedded system",
+                "semiconductor product",
+            )
         ),
         SignalRule(
             field="business_models",
@@ -166,6 +176,11 @@ class SignalExtractor(
                 "generative ai",
                 "llm",
                 "ai",
+                "edge ai",
+                "ai inference",
+                "edge inference",
+                "neural network",
+                "deep learning",
             ),
         ),
         SignalRule(
@@ -174,6 +189,12 @@ class SignalExtractor(
             keywords=(
                 "computer vision",
                 "vision model",
+                "vision ai",
+                "ai vision",
+                "video analytics",
+                "image processing",
+                "visual inference",
+                "video intelligence",
             ),
         ),
         SignalRule(
@@ -224,6 +245,17 @@ class SignalExtractor(
                 "consumer",
             ),
         ),
+        SignalRule(
+            field="markets",
+            value="surveillance",
+            keywords=(
+                "surveillance",
+                "video surveillance",
+                "security camera",
+                "security cameras",
+                "cctv",
+            ),
+        ),
 
         #
         # Themes
@@ -245,11 +277,40 @@ class SignalExtractor(
                 "llm",
             ),
         ),
+        SignalRule(
+            field="themes",
+            value="edge_ai",
+            keywords=(
+                "edge ai",
+                "edge inference",
+                "on-device ai",
+                "on device ai",
+            ),
+        ),
+        SignalRule(
+            field="themes",
+            value="surveillance",
+            keywords=(
+                "surveillance",
+                "video surveillance",
+                "security camera",
+                "cctv",
+            ),
+        ),
     )
 
     @property
     def name(self) -> str:
         return "signals"
+
+    @staticmethod
+    def _contains_keyword(
+        text: str,
+        keyword: str,
+    ) -> bool:
+        pattern = rf"(?<!\w){re.escape(keyword.lower())}(?!\w)"
+        return re.search(pattern, text) is not None
+
 
     def extract(
         self,
@@ -272,7 +333,7 @@ class SignalExtractor(
         for rule in self.RULES:
 
             if not any(
-                keyword in text
+                self._contains_keyword(text, keyword)
                 for keyword in rule.keywords
             ):
                 continue

@@ -8,11 +8,11 @@ from abc import ABC, abstractmethod
 from typing import Generic, TypeVar
 
 from app.chunking.base import Chunk
+from app.intelligence.models import IntelligenceEvidence
 from app.processors import DocumentContent
 
 # Generic result type returned by an extractor.
 T = TypeVar("T")
-
 
 class IntelligenceExtractor(ABC, Generic[T]):
     """
@@ -49,3 +49,18 @@ class IntelligenceExtractor(ABC, Generic[T]):
         The default implementation accepts all documents.
         """
         return True
+
+    def extract_evidence(
+        self,
+        document: DocumentContent,
+        chunks: list[Chunk],
+        result: T,
+    ) -> tuple[IntelligenceEvidence, ...]:
+        """
+        Return source evidence supporting the extracted result.
+
+        Extractors may override this method when they can provide
+        precise provenance. The default implementation returns no
+        evidence.
+        """
+        return ()

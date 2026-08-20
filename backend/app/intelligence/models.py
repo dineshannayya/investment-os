@@ -185,6 +185,30 @@ class RiskAssessment:
 
     confidence: float = 1.0
 
+# ============================================================================
+# Intelligence Evidence
+# ============================================================================
+
+
+@dataclass(slots=True, frozen=True)
+class IntelligenceEvidence:
+    """
+    Source evidence supporting an intelligence extraction.
+    """
+
+    extractor: str
+
+    field_name: str | None = None
+
+    chunk_index: int | None = None
+
+    start_offset: int | None = None
+
+    end_offset: int | None = None
+
+    text: str = ""
+
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 @dataclass(slots=True, frozen=True)
 class InvestmentProfile:
@@ -200,9 +224,11 @@ class InvestmentProfile:
 
     financials: FinancialMetrics
 
-    signals: investmentSignals = field( default_factory=InvestmentSignals,)
+    signals: InvestmentSignals = field( default_factory=InvestmentSignals,)
 
     risks: RiskAssessment = field( default_factory=RiskAssessment,)
+
+    evidence: tuple[IntelligenceEvidence, ...] = ()
 
     extras: dict[str, Any] = field(default_factory=dict)
 

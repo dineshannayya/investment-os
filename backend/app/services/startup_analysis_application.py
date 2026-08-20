@@ -81,7 +81,7 @@ class StartupAnalysisApplicationService:
             if orchestrator is not None
             else StartupAnalysisOrchestrator(
                 document_intelligence_service=(
-                    create_startup_analysis_document_intelligence(
+                    self.create_startup_analysis_document_intelligence(
                         session,
                     )
                 ),
@@ -156,7 +156,7 @@ class StartupAnalysisApplicationService:
 
         return analysis
 
-
+    @staticmethod
     def create_startup_analysis_document_intelligence(
         session: Session,
     ) -> StartupAnalysisDocumentIntelligenceService:
