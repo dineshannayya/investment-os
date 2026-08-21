@@ -4,6 +4,8 @@ Financial intelligence extractor.
 
 from __future__ import annotations
 
+import re
+from decimal import Decimal
 from app.chunking.base import Chunk
 from app.intelligence.base import IntelligenceExtractor
 from app.intelligence.models import (
@@ -12,8 +14,7 @@ from app.intelligence.models import (
 )
 from app.intelligence.parsers import (
     DurationParser,
-    MoneyParser,
-    PercentageParser,
+    MoneyParser
 )
 from app.processors import DocumentContent
 
@@ -149,7 +150,13 @@ class FinancialExtractor(
         #
         # Other metrics
         #
-        margin = PercentageParser.parse(text)
+        margin_result = self._extract_ebitda_margin(text)
+
+        margin = (
+            margin_result[0]
+            if margin_result is not None
+            else None
+        )
     
         runway_months = (
             DurationParser.parse_months(text)
@@ -253,6 +260,38 @@ class FinancialExtractor(
     
                 remaining_fields.remove(field_name)
                 break
+
+        if result.margin is not None:
+            margin_result = self._extract_ebitda_margin(text)
+
+            if margin_result is not None:
+                margin, start, end = margin_result
+
+                if margin == result.margin:
+                    chunk = self._find_chunk(
+                        chunks,
+                        start,
+                        end,
+                    )
+
+                    evidence.append(
+                        IntelligenceEvidence(
+                            extractor=self.name,
+                            field_name="margin",
+                            chunk_index=(
+                                chunk.index
+                                if chunk is not None
+                                else None
+                            ),
+                            start_offset=start,
+                            end_offset=end,
+                            text=self._line_context(
+                                text,
+                                start,
+                                end,
+                            ),
+                        )
+                    )
     
         return tuple(evidence)
 
@@ -260,6 +299,60 @@ class FinancialExtractor(
     # ==============================================================
     # Helpers
     # ==============================================================
+
+    def _extract_ebitda_margin(
+        self,
+        text: str,
+    ) -> tuple[Decimal, int, int] | None:
+        """
+        Extract an EBITDA margin only when the percentage is explicitly
+        associated with EBITDA margin terminology.
+
+        Returns:
+            (margin, start_offset, end_offset)
+            or None when no supported EBITDA-margin expression exists.
+        """
+
+        percentage = r"(?P<value>\d+(?:\.\d+)?)\s*%"
+
+        patterns = (
+            # EBITDA margin: 32.5%
+            rf"\bebitda\s+margin\b"
+            rf"(?:\s+(?:is|was|of|at|reached|increased\s+to|"
+            rf"decreased\s+to))?"
+            rf"\s*[:=]?\s*{percentage}",
+
+            # 32.5% EBITDA margin
+            rf"{percentage}"
+            rf"\s+\bebitda\s+margin\b",
+        )
+
+        for pattern in patterns:
+            match = re.search(
+                pattern,
+                text,
+                flags=re.IGNORECASE,
+            )
+
+            if match is None:
+                continue
+
+            value = Decimal(match.group("value"))
+
+            value_start = match.start("value")
+            value_end = match.end("value")
+
+            # Include the % sign in the evidence span.
+            if value_end < len(text) and text[value_end] == "%":
+                value_end += 1
+
+            return (
+                value,
+                value_start,
+                value_end,
+            )
+
+        return None
 
     def _find_chunk(
         self,

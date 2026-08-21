@@ -783,4 +783,23 @@ def test_startup_analysis_result_rejects_malformed_json():
             '{"company_overview": "Example"'
         )
 
+def test_startup_analysis_model_is_registered():
+    from app.models.analysis import StartupAnalysis
+    from app.models.startup import Startup
+
+    assert StartupAnalysis in Startup.registry._class_registry.values()
+
+
+def test_startup_analyses_relationship_is_configured():
+    from sqlalchemy import inspect
+
+    from app.models.startup import Startup
+
+    mapper = inspect(Startup)
+    relationship = mapper.relationships["analyses"]
+
+    assert relationship.mapper.class_.__name__ == "StartupAnalysis"
+    assert relationship.order_by
+
+
 

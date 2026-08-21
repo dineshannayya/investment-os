@@ -37,6 +37,10 @@ from app.models.enums import (
     StartupStatus,
 )
 
+import uuid
+
+from app.models.founder import Founder
+
 # =============================================================================
 # StartupStage
 # =============================================================================
@@ -88,7 +92,7 @@ def test_founder_role_values():
 
 
 def test_founder_role_count():
-    assert len(FounderRole) == 10
+    assert len(FounderRole) == 11
 
 
 # =============================================================================
@@ -233,3 +237,15 @@ def test_all_enum_names_are_unique():
     for enum_cls in enums:
         names = [member.name for member in enum_cls]
         assert len(names) == len(set(names))
+
+def test_founder_role_includes_cbo():
+    assert FounderRole.CBO.value == "CBO"
+
+def test_founder_accepts_cbo_role():
+    founder = Founder(
+        startup_id=uuid.uuid4(),
+        full_name="Rajendran Kathiravan",
+        designation=FounderRole.CBO,
+    )
+
+    assert founder.designation == FounderRole.CBO

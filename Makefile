@@ -140,6 +140,7 @@ shell:
 # make alembic_revision MSG="add_permissions_table"
 # make alembic_revision MSG="add_user_roles_table"
 # make alembic_revision MSG="add_role_permissions_table"
+# make alembic_revision MSG="add_cbo_founder_role"
 # 
 # 2. Review the generated migration
 # vim alembic/versions/*.py
@@ -179,6 +180,10 @@ alembic_heads:
 
 alembic_check:
 	docker compose exec backend alembic check
+
+# When ever there update docker-compose.yml
+docker_recreate:
+	docker compose up -d --force-recreate backend
 
 # -------------------------------------
 # Tests

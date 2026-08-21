@@ -4,12 +4,15 @@ from unittest.mock import Mock
 from uuid import uuid4
 
 from app.intelligence.models import (
-    FinancialMetrics as IntelligenceFinancialMetrics,
+    IntelligenceEvidence,
     InvestmentEntities,
     InvestmentProfile,
     InvestmentSignals,
+    FinancialMetrics as IntelligenceFinancialMetrics,
 )
+
 from app.schemas.analysis import (
+    AnalysisEvidence,
     CompanyAnalysis,
     FinancialAnalysis,
     StartupAnalysisInput,
@@ -41,6 +44,7 @@ def make_profile(
     margin=None,
     burn_rate=None,
     runway_months=None,
+    evidence=(),
 ):
     return InvestmentProfile(
         document_id=document_id or uuid4(),
@@ -61,6 +65,7 @@ def make_profile(
             geographies=geographies,
             business_models=business_models,
         ),
+        evidence=evidence,
     )
 
 
@@ -292,3 +297,265 @@ def test_evidence_is_preserved_and_not_generated():
     )
 
     assert result.evidence == []
+
+def test_document_evidence_is_converted_and_merged_into_analysis_input():
+    document_id = uuid4()
+
+    intelligence_evidence = (
+        IntelligenceEvidence(
+            extractor="financial_extractor",
+            field_name="revenue",
+            chunk_index=2,
+            start_offset=10,
+            end_offset=32,
+            text="Revenue: ₹2.68 crore",
+            metadata={
+                "page": 3,
+                "section": "Financials",
+            },
+        ),
+    )
+
+    profile = make_profile(
+        document_id=document_id,
+        evidence=intelligence_evidence,
+    )
+
+    startup = SimpleNamespace(
+        id=uuid4(),
+        documents=[
+            SimpleNamespace(id=document_id),
+        ],
+    )
+
+    service, _, _ = make_service(
+        profiles=[profile],
+    )
+
+    result = service.enrich(
+        startup,
+        make_input(),
+    )
+
+    assert len(result.evidence) == 1
+
+    evidence = result.evidence[0]
+
+    assert isinstance(evidence, AnalysisEvidence)
+    assert evidence.document_id == document_id
+    assert evidence.page == 3
+    assert evidence.section == "Financials"
+    assert evidence.source_text == "Revenue: ₹2.68 crore"
+    assert evidence.confidence == Decimal("1.0")
+
+
+def test_existing_and_document_evidence_are_merged():
+    document_id = uuid4()
+
+
+    existing_evidence = (
+        AnalysisEvidence(
+            document_id=None,
+            section="Company",
+            source_text="RestoMart",
+            confidence=Decimal("1.0"),
+        ),
+    )
+    
+    document_evidence = (
+        AnalysisEvidence(
+            document_id=document_id,
+            section="Financials",
+            source_text="Revenue: ₹2.68 crore",
+            confidence=Decimal("0.95"),
+        ),
+    )
+
+    analysis_input = make_input().model_copy(
+        update={
+            "evidence": list(existing_evidence),
+        }
+    )
+
+    profile = make_profile(
+        document_id=document_id,
+        evidence=document_evidence,
+    )
+
+    startup = SimpleNamespace(
+        id=uuid4(),
+        documents=[
+            SimpleNamespace(id=document_id),
+        ],
+    )
+
+    service, _, _ = make_service(
+        profiles=[profile],
+    )
+
+    result = service.enrich(
+        startup,
+        analysis_input,
+    )
+
+    assert result.evidence == [
+        *existing_evidence,
+        *document_evidence,
+    ]
+
+def test_document_evidence_uses_field_name_when_section_missing():
+    document_id = uuid4()
+
+    intelligence_evidence = (
+        IntelligenceEvidence(
+            extractor="financial_extractor",
+            field_name="revenue",
+            chunk_index=2,
+            start_offset=10,
+            end_offset=32,
+            text="Revenue: ₹2.68 crore",
+            metadata={
+                "page": 3,
+            },
+        ),
+    )
+
+    profile = make_profile(
+        document_id=document_id,
+        evidence=intelligence_evidence,
+    )
+
+    startup = SimpleNamespace(
+        id=uuid4(),
+        documents=[
+            SimpleNamespace(id=document_id),
+        ],
+    )
+
+    service, _, _ = make_service(
+        profiles=[profile],
+    )
+
+    result = service.enrich(
+        startup,
+        make_input(),
+    )
+
+    evidence = result.evidence[0]
+
+    assert evidence.section == "revenue"
+
+
+def test_existing_and_document_evidence_are_merged():
+    document_id = uuid4()
+
+    existing_evidence = (
+        AnalysisEvidence(
+            document_id=None,
+            page=None,
+            section="Company",
+            source_text="RestoMart",
+            confidence=Decimal("1.0"),
+        ),
+    )
+
+    document_evidence = (
+        IntelligenceEvidence(
+            extractor="financial_extractor",
+            field_name="revenue",
+            chunk_index=1,
+            start_offset=0,
+            end_offset=25,
+            text="Revenue: ₹2.68 crore",
+            metadata={
+                "page": 2,
+                "section": "Financials",
+            },
+        ),
+    )
+
+    profile = make_profile(
+        document_id=document_id,
+        evidence=document_evidence,
+    )
+
+    analysis_input = make_input().model_copy(
+        update={
+            "evidence": list(existing_evidence),
+        }
+    )
+
+    startup = SimpleNamespace(
+        id=uuid4(),
+        documents=[
+            SimpleNamespace(id=document_id),
+        ],
+    )
+
+    service, _, _ = make_service(
+        profiles=[profile],
+    )
+
+    result = service.enrich(
+        startup,
+        analysis_input,
+    )
+
+    assert len(result.evidence) == 2
+
+    assert result.evidence[0] == existing_evidence[0]
+
+    assert result.evidence[1].document_id == document_id
+    assert result.evidence[1].page == 2
+    assert result.evidence[1].section == "Financials"
+    assert result.evidence[1].source_text == "Revenue: ₹2.68 crore"
+
+
+def test_multiple_document_evidence_items_are_preserved():
+    document_id = uuid4()
+
+    intelligence_evidence = (
+        IntelligenceEvidence(
+            extractor="financial_extractor",
+            field_name="revenue",
+            chunk_index=1,
+            text="Revenue: ₹2.68 crore",
+            metadata={"page": 2, "section": "Financials"},
+        ),
+        IntelligenceEvidence(
+            extractor="financial_extractor",
+            field_name="raise_amount",
+            chunk_index=2,
+            text="Seeking INR 2 crore",
+            metadata={"page": 4, "section": "Fundraising"},
+        ),
+    )
+
+    profile = make_profile(
+        document_id=document_id,
+        evidence=intelligence_evidence,
+    )
+
+    startup = SimpleNamespace(
+        id=uuid4(),
+        documents=[
+            SimpleNamespace(id=document_id),
+        ],
+    )
+
+    service, _, _ = make_service(
+        profiles=[profile],
+    )
+
+    result = service.enrich(
+        startup,
+        make_input(),
+    )
+
+    assert len(result.evidence) == 2
+
+    assert result.evidence[0].section == "Financials"
+    assert result.evidence[0].source_text == "Revenue: ₹2.68 crore"
+
+    assert result.evidence[1].section == "Fundraising"
+    assert result.evidence[1].source_text == "Seeking INR 2 crore"

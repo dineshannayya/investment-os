@@ -122,15 +122,20 @@ class FinancialMetricsService:
             else None
         )
 
-        ebitda_margin = cls._safe_divide(
-            ebitda,
-            revenue,
+        ebitda_margin = (
+            financials.ebitda_margin
+            if financials is not None
+            and financials.ebitda_margin is not None
+            else cls._safe_divide(ebitda, revenue)
         )
 
-        gross_margin = cls._safe_divide(
-            gross_profit,
-            revenue,
+        gross_margin = (
+            financials.gross_margin
+            if financials is not None
+            and financials.gross_margin is not None
+            else cls._safe_divide(gross_profit, revenue)
         )
+
 
         revenue_multiple = cls._safe_divide(
             valuation,
@@ -147,10 +152,13 @@ class FinancialMetricsService:
             cac,
         )
 
-        runway_months = cls._safe_divide(
-            cash,
-            burn_rate,
+        runway_months = (
+            financials.runway_months
+            if financials is not None
+            and financials.runway_months is not None
+            else cls._safe_divide(cash, burn_rate)
         )
+
 
         valuation_to_growth = cls._safe_divide(
             revenue_multiple,

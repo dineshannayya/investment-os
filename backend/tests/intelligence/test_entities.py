@@ -9,6 +9,7 @@ from uuid import uuid4
 from app.chunking.base import Chunk
 from app.intelligence.entities import EntityExtractor
 from app.processors import DocumentContent
+from app.intelligence.models import IntelligenceEvidence
 
 
 class TestEntityExtractor:
@@ -659,3 +660,285 @@ Founders: Alice
         )
 
         assert two_fields.confidence > one_field.confidence
+
+    # ------------------------------------------------------------------
+    # Evidence / Provenance
+    # ------------------------------------------------------------------
+    # 9. Basic company evidence
+    def test_extract_evidence_for_company(self):
+        text = "Company: SemSure"
+    
+        document = self.create_document(text)
+        chunks = self.create_chunks(text)
+    
+        extractor = EntityExtractor()
+    
+        entities = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            entities,
+        )
+    
+        assert len(evidence) == 1
+    
+        item = evidence[0]
+    
+        assert isinstance(item, IntelligenceEvidence)
+        assert item.extractor == "entities"
+        assert item.field_name == "company_name"
+        assert item.chunk_index == 0
+        assert item.text == text
+    
+        assert text[
+            item.start_offset:item.end_offset
+        ] == text
+   
+    # 10. Complete entity evidence
+
+    def test_extract_evidence_for_complete_document(self):
+        text = """
+Company: SemSure
+
+Founders: Alice, Bob
+
+Investors: Lets Venture, Campus Angels
+
+Accelerator: NSRCEL
+
+Location: Bengaluru
+
+Sector: Healthcare
+
+Products: Diagnostic Kit
+
+Technology: AI
+""".strip()
+
+        document = self.create_document(text)
+        chunks = self.create_chunks(text)
+    
+        extractor = EntityExtractor()
+    
+        entities = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            entities,
+        )
+    
+        assert [
+            item.field_name
+            for item in evidence
+        ] == [
+            "company_name",
+            "founders",
+            "investors",
+            "accelerators",
+            "locations",
+            "sectors",
+            "products",
+            "technologies",
+        ]
+    
+        assert all(
+            item.extractor == "entities"
+            for item in evidence
+        ) 
+
+    # 11. Test list evidence
+    def test_list_entity_uses_single_field_evidence(self):
+        text = "Founders: Alice, Bob"
+    
+        document = self.create_document(text)
+        chunks = self.create_chunks(text)
+    
+        extractor = EntityExtractor()
+    
+        entities = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            entities,
+        )
+    
+        assert len(evidence) == 1
+    
+        item = evidence[0]
+    
+        assert item.field_name == "founders"
+        assert item.text == text
+    
+        assert text[
+            item.start_offset:item.end_offset
+        ] == text        
+
+    # 12. Test company keyword precedence
+    def test_company_evidence_follows_company_pattern_precedence(self):
+        text = """
+Startup: Startup Name
+Company: Company Name
+"""
+    
+        document = self.create_document(text)
+        chunks = self.create_chunks(text)
+    
+        extractor = EntityExtractor()
+    
+        entities = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            entities,
+        )
+    
+        assert entities.company_name == "Company Name"
+    
+        company_evidence = [
+            item
+            for item in evidence
+            if item.field_name == "company_name"
+        ]
+    
+        assert len(company_evidence) == 1
+        assert company_evidence[0].text == (
+            "Company: Company Name"
+        )
+    
+    # 13. Test empty fields produce no evidence
+    def test_empty_entity_values_produce_no_evidence(self):
+        text = """
+Company:
+Founders:
+Investors:
+Products:
+Technology:
+"""
+    
+        document = self.create_document(text)
+        chunks = self.create_chunks(text)
+    
+        extractor = EntityExtractor()
+    
+        entities = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            entities,
+        )
+    
+        assert evidence == ()
+    
+    # 14. Test empty document
+    def test_no_evidence_for_empty_document(self):
+        document = self.create_document("")
+        chunks = self.create_chunks("")
+    
+        extractor = EntityExtractor()
+    
+        entities = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            entities,
+        )
+    
+        assert evidence == ()
+    
+    # 15. Test exact offsets vs contextual text
+    def test_evidence_distinguishes_match_from_context(self):
+        text = (
+            "Company: SemSure Technologies Pvt Ltd"
+        )
+    
+        document = self.create_document(text)
+        chunks = self.create_chunks(text)
+    
+        extractor = EntityExtractor()
+    
+        entities = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            entities,
+        )
+    
+        item = evidence[0]
+    
+        assert text[
+            item.start_offset:item.end_offset
+        ] == text
+    
+        assert item.text == text
+    
+    # 16. Test chunk provenance
+    def test_evidence_resolves_containing_chunk(self):
+        first = "Company overview.\n"
+        second = "Company: SemSure\n"
+    
+        text = first + second
+    
+        chunks = [
+            Chunk(
+                index=0,
+                text=first,
+                start_offset=0,
+                end_offset=len(first),
+                metadata={},
+            ),
+            Chunk(
+                index=1,
+                text=second,
+                start_offset=len(first),
+                end_offset=len(text),
+                metadata={},
+            ),
+        ]
+    
+        document = self.create_document(text)
+    
+        extractor = EntityExtractor()
+    
+        entities = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            entities,
+        )
+    
+        assert len(evidence) == 1
+        assert evidence[0].field_name == "company_name"
+        assert evidence[0].chunk_index == 1
+    

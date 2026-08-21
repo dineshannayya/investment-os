@@ -8,7 +8,10 @@ from dataclasses import dataclass
 
 from app.chunking.base import Chunk
 from app.intelligence.base import IntelligenceExtractor
-from app.intelligence.models import RiskAssessment
+from app.intelligence.models import (
+    IntelligenceEvidence,
+    RiskAssessment,
+)
 from app.processors import DocumentContent
 import re
 
@@ -69,11 +72,11 @@ FINANCIAL_RULES = (
         value="high_burn",
         severity="high",
         keywords=(
-            "burn rate",
-            "high burn",
             "high burn rate",
             "burn rate is high",
             "elevated burn",
+            "high burn",
+            "burn rate",
         ),
     ),
     RiskRule(
@@ -194,14 +197,15 @@ TECHNOLOGY_RULES = (
         value="manufacturing_dependency",
         severity="high",
         keywords=(
-            "manufacturing partner",
-            "manufacturing dependency",
-            "depends on a manufacturing partner",
-            "dependent on a manufacturing partner",
-            "depends on a single foundry",
-            "dependent on a single foundry",
+            "single foundry",
             "single-source foundry",
             "single foundry dependency",
+            "manufacturing dependency",
+            "manufacturing partner",
+            "depends on a single foundry",
+            "dependent on a single foundry",
+            "depends on a manufacturing partner",
+            "dependent on a manufacturing partner",
         ),
     ),
 )
@@ -227,12 +231,12 @@ LEGAL_RULES = (
         value="regulatory_approval",
         severity="high",
         keywords=(
+            "fda",
+            "cdsco",
             "regulatory approval",
             "regulatory approval required",
             "regulatory clearance",
             "regulatory approval pending",
-            "fda",
-            "cdsco",
         ),
     ),
 )
@@ -255,14 +259,122 @@ class RiskExtractor(
     )
 
     @staticmethod
+    def _find_keyword(
+        text: str,
+        keyword: str,
+    ) -> re.Match[str] | None:
+        """Return the first source occurrence of a risk keyword."""
+    
+        pattern = rf"(?<!\w){re.escape(keyword.lower())}(?!\w)"
+        return re.search(pattern, text)
+
+    @staticmethod
     def _contains_keyword(
         text: str,
         keyword: str,
     ) -> bool:
-        pattern = rf"(?<!\w){re.escape(keyword.lower())}(?!\w)"
-        return re.search(pattern, text) is not None
+        return (
+            RiskExtractor._find_keyword(
+                text,
+                keyword,
+            )
+            is not None
+        )
 
 
+    @staticmethod
+    def _find_chunk(
+        chunks: list[Chunk],
+        start: int,
+        end: int,
+    ) -> Chunk | None:
+        """Return the chunk containing the source occurrence."""
+    
+        for chunk in chunks:
+            if (
+                chunk.start_offset <= start
+                and end <= chunk.end_offset
+            ):
+                return chunk
+    
+        return None
+
+    @staticmethod
+    def _line_context(
+        text: str,
+        start: int,
+        end: int,
+    ) -> str:
+        """Return the complete source line containing a match."""
+    
+        line_start = text.rfind("\n", 0, start) + 1
+    
+        line_end = text.find("\n", end)
+    
+        if line_end == -1:
+            line_end = len(text)
+    
+        return text[line_start:line_end].strip()
+    
+    def extract_evidence(
+        self,
+        document: DocumentContent,
+        chunks: list[Chunk],
+        result: RiskAssessment,
+    ) -> tuple[IntelligenceEvidence, ...]:
+        """Return source evidence supporting extracted investment risks."""
+    
+        text = document.text.lower()
+        evidence: list[IntelligenceEvidence] = []
+    
+        for rule in self.RULES:
+            values = getattr(result, rule.field)
+    
+            if rule.value not in values:
+                continue
+    
+            match = None
+    
+            for keyword in rule.keywords:
+                match = self._find_keyword(
+                    text,
+                    keyword,
+                )
+    
+                if match is not None:
+                    break
+    
+            if match is None:
+                continue
+    
+            chunk = self._find_chunk(
+                chunks,
+                match.start(),
+                match.end(),
+            )
+    
+            evidence.append(
+                IntelligenceEvidence(
+                    extractor=self.name,
+                    field_name=rule.field,
+                    chunk_index=(
+                        chunk.index
+                        if chunk is not None
+                        else None
+                    ),
+                    start_offset=match.start(),
+                    end_offset=match.end(),
+                    text=self._line_context(
+                        document.text,
+                        match.start(),
+                        match.end(),
+                    ),
+                )
+            )
+    
+        return tuple(evidence)
+    
+    
     @property
     def name(self) -> str:
         return "risks"

@@ -399,3 +399,71 @@ def test_business_model_does_not_affect_current_returned_metrics():
     assert result.revenue_multiple == Decimal("4")
     assert result.ebitda_multiple is None
     assert result.valuation_to_growth is None
+
+# ---------------------------------------------------------------------------
+# Source-provided financial metrics
+# ---------------------------------------------------------------------------
+
+
+def test_source_provided_ebitda_margin_is_preserved():
+    result = calculate(
+        financials=FinancialAnalysis(
+            revenue=Decimal("26800000"),
+            ebitda_margin=Decimal("95"),
+        ),
+    )
+
+    assert result.ebitda_margin == Decimal("95")
+
+
+def test_source_provided_runway_is_preserved():
+    result = calculate(
+        financials=FinancialAnalysis(
+            runway_months=Decimal("24"),
+        ),
+    )
+
+    assert result.runway_months == Decimal("24")
+
+
+def test_ebitda_margin_is_derived_when_source_value_missing():
+    result = calculate(
+        financials=FinancialAnalysis(
+            revenue=Decimal("100000000"),
+            ebitda=Decimal("20000000"),
+        ),
+    )
+
+    assert result.ebitda_margin == Decimal("0.2")
+
+
+def test_runway_is_derived_when_source_value_missing():
+    result = calculate(
+        financials=FinancialAnalysis(
+            cash=Decimal("120000000"),
+            burn_rate=Decimal("10000000"),
+        ),
+    )
+
+    assert result.runway_months == Decimal("12")
+
+def test_source_provided_gross_margin_is_preserved():
+    result = calculate(
+        financials=FinancialAnalysis(
+            revenue=Decimal("100000000"),
+            gross_margin=Decimal("35"),
+        ),
+    )
+
+    assert result.gross_margin == Decimal("35")
+
+def test_gross_margin_is_derived_when_source_value_missing():
+    result = calculate(
+        financials=FinancialAnalysis(
+            revenue=Decimal("100000000"),
+            gross_profit=Decimal("30000000"),
+        ),
+    )
+
+    assert result.gross_margin == Decimal("0.3")
+

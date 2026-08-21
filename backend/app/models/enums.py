@@ -41,6 +41,7 @@ class FounderRole(StrEnum):
     CFO = "CFO"
     CMO = "CMO"
     CPO = "CPO"
+    CBO = "CBO"
     CHAIRMAN = "CHAIRMAN"
     DIRECTOR = "DIRECTOR"
     ADVISOR = "ADVISOR"

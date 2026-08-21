@@ -8,7 +8,10 @@ import re
 
 from app.chunking.base import Chunk
 from app.intelligence.base import IntelligenceExtractor
-from app.intelligence.models import InvestmentEntities
+from app.intelligence.models import (
+    IntelligenceEvidence,
+    InvestmentEntities,
+)
 from app.processors import DocumentContent
 
 
@@ -137,16 +140,19 @@ class EntityExtractor(IntelligenceExtractor[InvestmentEntities]):
         Extract the primary company/startup name.
         """
 
-        for pattern in cls.COMPANY_PATTERNS:
-            match = pattern.search(text)
-
-            if match:
-                value = cls._normalize_value(match.group(1))
-
-                if value:
-                    return value
-
+        match = cls._find_first_match(
+            cls.COMPANY_PATTERNS,
+            text,
+        )
+        
+        if match:
+            value = cls._normalize_value(match.group(1))
+        
+            if value:
+                return value
+        
         return None
+
 
     @classmethod
     def _extract_list(
@@ -184,6 +190,120 @@ class EntityExtractor(IntelligenceExtractor[InvestmentEntities]):
             values.append(value)
 
         return tuple(values)
+
+    def extract_evidence(
+        self,
+        document: DocumentContent,
+        chunks: list[Chunk],
+        result: InvestmentEntities,
+    ) -> tuple[IntelligenceEvidence, ...]:
+        """
+        Return source evidence supporting extracted entity fields.
+        """
+    
+        text = document.text
+        evidence: list[IntelligenceEvidence] = []
+    
+        field_patterns = (
+            ("company_name", self.COMPANY_PATTERNS),
+            ("founders", (self.FOUNDER_PATTERN,)),
+            ("investors", (self.INVESTOR_PATTERN,)),
+            ("accelerators", (self.ACCELERATOR_PATTERN,)),
+            ("locations", (self.LOCATION_PATTERN,)),
+            ("sectors", (self.SECTOR_PATTERN,)),
+            ("products", (self.PRODUCT_PATTERN,)),
+            ("technologies", (self.TECHNOLOGY_PATTERN,)),
+        )
+    
+        for field_name, patterns in field_patterns:
+            value = getattr(result, field_name)
+    
+            if not value:
+                continue
+    
+            match = self._find_first_match(
+                patterns,
+                text,
+            )
+    
+            if match is None:
+                continue
+    
+            chunk = self._find_chunk(
+                chunks,
+                match.start(),
+                match.end(),
+            )
+    
+            evidence.append(
+                IntelligenceEvidence(
+                    extractor=self.name,
+                    field_name=field_name,
+                    chunk_index=(
+                        chunk.index if chunk is not None else None
+                    ),
+                    start_offset=match.start(),
+                    end_offset=match.end(),
+                    text=self._line_context(
+                        text,
+                        match.start(),
+                        match.end(),
+                    ),
+                )
+            )
+    
+        return tuple(evidence)
+
+    @staticmethod
+    def _find_first_match(
+        patterns: tuple[re.Pattern[str], ...],
+        text: str,
+    ) -> re.Match[str] | None:
+        """Return the first matching entity label."""
+    
+        for pattern in patterns:
+            match = pattern.search(text)
+    
+            if match is not None:
+                return match
+    
+        return None
+
+    @staticmethod
+    def _line_context(
+        text: str,
+        start: int,
+        end: int,
+    ) -> str:
+        """Return the complete source line containing a match."""
+    
+        line_start = text.rfind("\n", 0, start) + 1
+    
+        line_end = text.find("\n", end)
+    
+        if line_end == -1:
+            line_end = len(text)
+    
+        return text[line_start:line_end].strip()
+
+
+    @staticmethod
+    def _find_chunk(
+        chunks: list[Chunk],
+        start: int,
+        end: int,
+    ) -> Chunk | None:
+        """Return the chunk containing the source match."""
+    
+        for chunk in chunks:
+            if (
+                chunk.start_offset <= start
+                and end <= chunk.end_offset
+            ):
+                return chunk
+    
+        return None
+
 
     @classmethod
     def _calculate_confidence(

@@ -87,6 +87,8 @@ services:
       - ./backend:/opt/investment-os
       - backend_venv:/opt/investment-os/.venv
       - ./models:/models:ro
+      - ./data:/opt/investment-os/data:ro
+
 
 
     ports:

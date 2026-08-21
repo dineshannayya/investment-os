@@ -166,6 +166,122 @@ class TestFinancialExtractor:
 
         assert metrics.margin == Decimal("32.5")
 
+    def test_unrelated_percentage_is_not_ebitda_margin(self):
+        text = "Revenue grew 95% YoY."
+
+        metrics = FinancialExtractor().extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+
+        assert metrics.margin is None
+
+    def test_ownership_percentage_is_not_ebitda_margin(self):
+        text = "Founder ownership is 95%."
+
+        metrics = FinancialExtractor().extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+
+        assert metrics.margin is None
+
+    def test_ebitda_amount_without_margin_does_not_create_margin(self):
+        text = "EBITDA was ₹2 Cr."
+
+        metrics = FinancialExtractor().extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+
+        assert metrics.ebitda == Decimal("20000000")
+        assert metrics.margin is None
+
+    def test_extract_margin_when_percentage_precedes_ebitda_margin(self):
+        text = "The company achieved a 32.5% EBITDA margin."
+
+        metrics = FinancialExtractor().extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+
+        assert metrics.margin == Decimal("32.5")
+
+    def test_extract_margin_with_space_before_percent(self):
+        text = "EBITDA margin: 32.5 %."
+
+        metrics = FinancialExtractor().extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+
+        assert metrics.margin == Decimal("32.5")
+
+    def test_extract_evidence_for_ebitda_margin(self):
+        text = "EBITDA margin is 32.5%."
+
+        document = self.create_document(text)
+        chunks = self.create_chunks(text)
+
+        extractor = FinancialExtractor()
+
+        metrics = extractor.extract(
+            document,
+            chunks,
+        )
+
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            metrics,
+        )
+
+        margin_evidence = [
+            item
+            for item in evidence
+            if item.field_name == "margin"
+        ]
+
+        assert len(margin_evidence) == 1
+
+        item = margin_evidence[0]
+
+        assert isinstance(item, IntelligenceEvidence)
+        assert item.extractor == "financials"
+        assert item.field_name == "margin"
+        assert item.chunk_index == 0
+
+        assert text[
+            item.start_offset:item.end_offset
+        ] == "32.5%"
+
+        assert item.text == text
+
+    def test_no_margin_evidence_for_unrelated_percentage(self):
+        text = "Revenue grew 95% YoY."
+
+        document = self.create_document(text)
+        chunks = self.create_chunks(text)
+
+        extractor = FinancialExtractor()
+
+        metrics = extractor.extract(
+            document,
+            chunks,
+        )
+
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            metrics,
+        )
+
+        assert metrics.margin is None
+        assert not any(
+            item.field_name == "margin"
+            for item in evidence
+        )
+
     # ==============================================================
     # Runway
     # ==============================================================
@@ -298,7 +414,7 @@ ARR ₹12 Cr.
 
 Runway 24 months.
 
-Margin 30%.
+EBITDA margin 30%.
 """
             ),
             self.create_chunks(
@@ -313,7 +429,7 @@ ARR ₹12 Cr.
 
 Runway 24 months.
 
-Margin 30%.
+EBITDA margin 30%.
 """
             ),
         )
@@ -711,3 +827,19 @@ Office rent ₹20 Lakhs.
             "Annual revenue reached ₹8 Cr."
         )
          
+
+    def test_unrelated_percentages_do_not_become_ebitda_margin(self):
+        text = """
+        Founder ownership: 95%.
+        Revenue growth: 40%.
+        Customer retention: 92%.
+        EBITDA: ₹2 Cr.
+        """
+
+        metrics = FinancialExtractor().extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+
+        assert metrics.ebitda == Decimal("20000000")
+        assert metrics.margin is None

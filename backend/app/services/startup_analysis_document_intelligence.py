@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Iterable
+from decimal import Decimal
 
 from app.intelligence.models import (
     FinancialMetrics as IntelligenceFinancialMetrics,
@@ -18,7 +19,9 @@ from app.schemas.analysis import (
     ProductAnalysis,
     StartupAnalysisInput,
     TractionAnalysis,
+    AnalysisEvidence,
 )
+
 from app.services.document_processing import DocumentProcessingService
 from app.services.investment_intelligence import (
     InvestmentIntelligenceService,
@@ -67,6 +70,30 @@ class StartupAnalysisDocumentIntelligenceService:
             profiles,
         )
 
+    @staticmethod
+    def _build_evidence(
+        profiles: Iterable[InvestmentProfile],
+    ) -> list[AnalysisEvidence]:
+        evidence: list[AnalysisEvidence] = []
+    
+        for profile in profiles:
+            for item in profile.evidence:
+                evidence.append(
+                    AnalysisEvidence(
+                        document_id=profile.document_id,
+                        page=item.metadata.get("page"),
+                        section=(
+                            item.metadata.get("section")
+                            or item.field_name
+                        ),
+                        source_text=item.text,
+                        confidence=Decimal(str(profile.confidence)),
+                    )
+                )
+    
+        return evidence
+
+
     def _analyze_document(self, document_id):
         """Process, chunk, and analyze one stored document."""
         content, chunks = (
@@ -97,6 +124,7 @@ class StartupAnalysisDocumentIntelligenceService:
         traction = cls._build_traction(profiles)
         financials = cls._build_financials(profiles)
         business_model = cls._build_business_model(profiles)
+        evidence = cls._build_evidence(profiles)
 
         return StartupAnalysisInput(
             startup_id=analysis_input.startup_id,
@@ -108,7 +136,11 @@ class StartupAnalysisDocumentIntelligenceService:
             financials=financials or analysis_input.financials,
             fundraising=analysis_input.fundraising,
             business_model=business_model or analysis_input.business_model,
-            evidence=list(analysis_input.evidence),
+            evidence=[
+                *analysis_input.evidence,
+                *evidence,
+            ],
+
         )
 
     @classmethod

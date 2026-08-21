@@ -9,6 +9,7 @@ from uuid import uuid4
 from app.chunking.base import Chunk
 from app.intelligence.signals import SignalExtractor
 from app.processors import DocumentContent
+from app.intelligence.models import IntelligenceEvidence
 
 
 class TestSignalExtractor:
@@ -136,6 +137,54 @@ class TestSignalExtractor:
         )
 
         assert "b2b" in signals.business_models
+
+    def test_extract_b2c(self):
+        text = "Consumer B2C software for end users."
+
+        signals = SignalExtractor().extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+
+        assert "b2c" in signals.business_models
+
+    def test_b2b_rather_than_consumer_does_not_trigger_b2c(self):
+        text = """
+        The company serves restaurants and operates a B2B model
+        rather than a consumer model.
+        """
+
+        signals = SignalExtractor().extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+
+        assert "b2b" in signals.business_models
+        assert "b2c" not in signals.business_models
+        assert "consumer" not in signals.markets
+
+    def test_b2b_not_consumer_does_not_trigger_b2c(self):
+        text = "The company is B2B, not a consumer business."
+
+        signals = SignalExtractor().extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+
+        assert "b2b" in signals.business_models
+        assert "b2c" not in signals.business_models
+        assert "consumer" not in signals.markets
+
+    def test_consumer_without_negation_triggers_b2c_and_market(self):
+        text = "The company sells directly to consumer customers."
+
+        signals = SignalExtractor().extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+
+        assert "b2c" in signals.business_models
+        assert "consumer" in signals.markets
 
     # ==========================================================
     # Technology
@@ -536,4 +585,313 @@ DeepTech.
         assert "surveillance" in signals.markets
         assert "edge_ai" in signals.themes
         assert "surveillance" in signals.themes
+
+    # ==========================================================
+    # Evidence / Provenance
+    # ==========================================================
+    # Test 1 — basic signal evidence
+    def test_extract_evidence_for_stage(self):
+        text = "The company is raising a Seed round."
     
+        document = self.create_document(text)
+        chunks = self.create_chunks(text)
+    
+        extractor = SignalExtractor()
+    
+        signals = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            signals,
+        )
+    
+        assert len(evidence) == 1
+    
+        item = evidence[0]
+    
+        assert isinstance(item, IntelligenceEvidence)
+        assert item.extractor == "signals"
+        assert item.field_name == "stage"
+        assert item.chunk_index == 0
+    
+        assert text[
+            item.start_offset:item.end_offset
+        ].lower() == "seed round"
+    
+        assert item.text == text
+    
+    # 11. Multiple technology evidence
+    def test_extract_evidence_for_multiple_technologies(self):
+        text = "AI powered IoT platform."
+    
+        document = self.create_document(text)
+        chunks = self.create_chunks(text)
+    
+        extractor = SignalExtractor()
+    
+        signals = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            signals,
+        )
+    
+        technology_evidence = [
+            item
+            for item in evidence
+            if item.field_name == "technologies"
+        ]
+    
+        assert len(technology_evidence) == 2
+    
+        matched_text = {
+            text[
+                item.start_offset:item.end_offset
+            ].lower()
+            for item in technology_evidence
+        }
+    
+        assert matched_text == {"ai", "iot"}
+    
+    # 12. Stage precedence evidence
+    def test_evidence_follows_stage_precedence(self):
+        text = """
+    Pre-seed startup.
+    
+    Seed funding.
+    """
+    
+        document = self.create_document(text)
+        chunks = self.create_chunks(text)
+    
+        extractor = SignalExtractor()
+    
+        signals = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            signals,
+        )
+    
+        assert signals.stage == "pre_seed"
+    
+        stage_evidence = [
+            item
+            for item in evidence
+            if item.field_name == "stage"
+        ]
+    
+        assert len(stage_evidence) == 1
+    
+        assert (
+            text[
+                stage_evidence[0].start_offset:
+                stage_evidence[0].end_offset
+            ].lower()
+            == "pre-seed"
+        )
+    
+    # 13. Word-boundary protection
+    def test_no_evidence_for_word_boundary_false_positive(self):
+        text = "The company operates in capital markets."
+    
+        document = self.create_document(text)
+        chunks = self.create_chunks(text)
+    
+        extractor = SignalExtractor()
+    
+        signals = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            signals,
+        )
+    
+        assert "ai" not in signals.technologies
+        assert evidence == ()
+    
+    # 14. Empty document
+    def test_no_signal_evidence_for_empty_document(self):
+        document = self.create_document("")
+        chunks = self.create_chunks("")
+    
+        extractor = SignalExtractor()
+    
+        signals = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            signals,
+        )
+    
+        assert evidence == ()
+    
+    # 15. Evidence must correspond to actual result
+    def test_evidence_only_supports_extracted_signals(self):
+        text = """
+    AI platform.
+    
+    Healthcare diagnostics.
+    """
+    
+        document = self.create_document(text)
+        chunks = self.create_chunks(text)
+    
+        extractor = SignalExtractor()
+    
+        signals = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            signals,
+        )
+    
+        assert "ai" in signals.technologies
+        assert "healthcare" in signals.industry
+    
+        for item in evidence:
+            if item.field_name == "technologies":
+                assert (
+                    text[
+                        item.start_offset:item.end_offset
+                    ].lower()
+                    == "ai"
+                )
+    
+    # 16. Chunk provenance
+    def test_evidence_resolves_containing_chunk(self):
+        first = "Company overview.\n"
+        second = "The company is raising a Seed round.\n"
+    
+        text = first + second
+    
+        chunks = [
+            Chunk(
+                index=0,
+                text=first,
+                start_offset=0,
+                end_offset=len(first),
+                metadata={},
+            ),
+            Chunk(
+                index=1,
+                text=second,
+                start_offset=len(first),
+                end_offset=len(text),
+                metadata={},
+            ),
+        ]
+    
+        document = self.create_document(text)
+    
+        extractor = SignalExtractor()
+    
+        signals = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            signals,
+        )
+    
+        assert len(evidence) == 1
+        assert evidence[0].field_name == "stage"
+        assert evidence[0].chunk_index == 1
+    
+    # 17. Context vs exact match
+    def test_evidence_distinguishes_keyword_from_context(self):
+        text = (
+            "The company is developing an AI platform "
+            "for enterprise customers."
+        )
+    
+        document = self.create_document(text)
+        chunks = self.create_chunks(text)
+    
+        extractor = SignalExtractor()
+    
+        signals = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            signals,
+        )
+    
+        ai_evidence = [
+            item
+            for item in evidence
+            if item.field_name == "technologies"
+        ]
+    
+        assert len(ai_evidence) == 1
+    
+        item = ai_evidence[0]
+    
+        assert text[
+            item.start_offset:item.end_offset
+        ].lower() == "ai"
+    
+        assert item.text == text
+
+    def test_negated_consumer_produces_no_consumer_evidence(self):
+        text = (
+            "The company operates a B2B model "
+            "rather than a consumer model."
+        )
+
+        document = self.create_document(text)
+        chunks = self.create_chunks(text)
+
+        extractor = SignalExtractor()
+
+        signals = extractor.extract(
+            document,
+            chunks,
+        )
+
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            signals,
+        )
+
+        assert "b2b" in signals.business_models
+        assert "b2c" not in signals.business_models
+        assert "consumer" not in signals.markets
+
+        assert not any(
+            item.field_name == "markets"
+            and "consumer" in item.text.lower()
+            for item in evidence
+        )

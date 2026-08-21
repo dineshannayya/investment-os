@@ -8,7 +8,9 @@ from uuid import uuid4
 
 from app.chunking.base import Chunk
 from app.intelligence.risk import RiskExtractor
+from app.intelligence.models import IntelligenceEvidence
 from app.processors import DocumentContent
+
 
 
 class TestRiskExtractor:
@@ -505,4 +507,463 @@ Established technology.
         assert "manufacturing_dependency" in risks.technology_risks
         assert "customer_concentration" in risks.market_risks
         assert "regulatory_approval" in risks.legal_risks
-                    
+
+    # ==========================================================
+    # Evidence / Provenance
+    # ==========================================================
+    # 9. Basic founder evidence
+    def test_extract_evidence_for_solo_founder(self):
+        text = "The company has a solo founder."
+    
+        document = self.create_document(text)
+        chunks = self.create_chunks(text)
+    
+        extractor = RiskExtractor()
+    
+        risks = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            risks,
+        )
+    
+        assert len(evidence) == 1
+    
+        item = evidence[0]
+    
+        assert isinstance(item, IntelligenceEvidence)
+        assert item.extractor == "risks"
+        assert item.field_name == "founder_risks"
+        assert item.chunk_index == 0
+    
+        assert (
+            text[
+                item.start_offset:item.end_offset
+            ].lower()
+            == "solo founder"
+        )
+    
+        assert item.text == text
+    
+    # 10. Evidence for multiple risk categories
+    def test_extract_evidence_for_multiple_risks(self):
+        text = """
+Solo founder.
+
+Pre-revenue startup.
+
+Currently at prototype stage.
+
+Strong competition.
+
+Production depends on a single foundry.
+
+Patent pending.
+"""
+    
+        document = self.create_document(text)
+        chunks = self.create_chunks(text)
+    
+        extractor = RiskExtractor()
+    
+        risks = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            risks,
+        )
+    
+        assert {
+            item.field_name
+            for item in evidence
+        } == {
+            "founder_risks",
+            "financial_risks",
+            "execution_risks",
+            "market_risks",
+            "technology_risks",
+            "legal_risks",
+        }
+    
+        assert all(
+            item.extractor == "risks"
+            for item in evidence
+        )
+    
+    # 11. Test duplicate risk → one evidence record
+    def test_extract_evidence_deduplicates_same_risk(self):
+        text = """
+Prototype stage.
+
+Prototype completed.
+
+Proof of concept.
+"""
+    
+        document = self.create_document(text)
+        chunks = self.create_chunks(text)
+    
+        extractor = RiskExtractor()
+    
+        risks = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            risks,
+        )
+    
+        prototype_evidence = [
+            item
+            for item in evidence
+            if item.field_name == "execution_risks"
+        ]
+    
+        assert len(prototype_evidence) == 1
+        assert (
+            text[
+                prototype_evidence[0].start_offset:
+                prototype_evidence[0].end_offset
+            ].lower()
+            == "prototype"
+        )
+    
+    # 12. Test multiple risks in one category
+    def test_extract_evidence_for_multiple_financial_risks(self):
+        text = """
+Pre-revenue.
+
+High burn rate.
+"""
+    
+        document = self.create_document(text)
+        chunks = self.create_chunks(text)
+    
+        extractor = RiskExtractor()
+    
+        risks = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            risks,
+        )
+    
+        financial_evidence = [
+            item
+            for item in evidence
+            if item.field_name == "financial_risks"
+        ]
+    
+        assert len(financial_evidence) == 2
+    
+        matched = {
+            text[
+                item.start_offset:item.end_offset
+            ].lower()
+            for item in financial_evidence
+        }
+    
+        assert matched == {
+            "pre-revenue",
+            "high burn rate",
+        }
+    
+    # 13. Test false-positive protection
+    def test_no_evidence_for_false_positive_text(self):
+        text = """
+Growing revenue.
+
+Experienced founding team.
+
+Established technology.
+"""
+    
+        document = self.create_document(text)
+        chunks = self.create_chunks(text)
+    
+        extractor = RiskExtractor()
+    
+        risks = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            risks,
+        )
+    
+        assert evidence == ()
+    
+    # 14. Test word boundaries
+    def test_no_evidence_for_word_boundary_false_positive(self):
+        text = "The company has a stable financial position."
+    
+        document = self.create_document(text)
+        chunks = self.create_chunks(text)
+    
+        extractor = RiskExtractor()
+    
+        risks = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            risks,
+        )
+    
+        assert evidence == ()
+    
+    # 15. Test customer concentration
+    def test_customer_concentration_evidence(self):
+        text = (
+            "Revenue is highly concentrated in one customer."
+        )
+    
+        document = self.create_document(text)
+        chunks = self.create_chunks(text)
+    
+        extractor = RiskExtractor()
+    
+        risks = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            risks,
+        )
+    
+        item = next(
+            item
+            for item in evidence
+            if item.field_name == "market_risks"
+        )
+    
+        assert (
+            text[
+                item.start_offset:item.end_offset
+            ].lower()
+            == "revenue is highly concentrated in one customer"
+        )
+    
+        assert item.text == text
+    
+    # 16. Test manufacturing dependency
+    def test_manufacturing_dependency_evidence(self):
+        text = (
+            "Production depends on a single foundry."
+        )
+    
+        document = self.create_document(text)
+        chunks = self.create_chunks(text)
+    
+        extractor = RiskExtractor()
+    
+        risks = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            risks,
+        )
+    
+        item = next(
+            item
+            for item in evidence
+            if item.field_name == "technology_risks"
+        )
+    
+        assert (
+            text[
+                item.start_offset:item.end_offset
+            ].lower()
+            == "single foundry"
+        )
+    
+        assert item.text == text
+    
+    # 17. Test regulatory approval
+    def test_regulatory_approval_evidence(self):
+        text = (
+            "FDA regulatory approval is required before launch."
+        )
+    
+        document = self.create_document(text)
+        chunks = self.create_chunks(text)
+    
+        extractor = RiskExtractor()
+    
+        risks = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            risks,
+        )
+    
+        item = next(
+            item
+            for item in evidence
+            if item.field_name == "legal_risks"
+        )
+    
+        assert (
+            text[
+                item.start_offset:item.end_offset
+            ].lower()
+            == "fda"
+        )
+    
+        assert item.text == text
+    
+    # 18. Test chunk provenance
+    def test_evidence_resolves_containing_chunk(self):
+        first = "Company overview.\n"
+        second = "Production depends on a single foundry.\n"
+    
+        text = first + second
+    
+        chunks = [
+            Chunk(
+                index=0,
+                text=first,
+                start_offset=0,
+                end_offset=len(first),
+                metadata={},
+            ),
+            Chunk(
+                index=1,
+                text=second,
+                start_offset=len(first),
+                end_offset=len(text),
+                metadata={},
+            ),
+        ]
+    
+        document = self.create_document(text)
+    
+        extractor = RiskExtractor()
+    
+        risks = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            risks,
+        )
+    
+        item = next(
+            item
+            for item in evidence
+            if item.field_name == "technology_risks"
+        )
+    
+        assert item.chunk_index == 1
+    
+    # 19. Test exact match vs context
+    def test_evidence_distinguishes_keyword_from_context(self):
+        text = (
+            "Production depends on a single foundry."
+        )
+    
+        document = self.create_document(text)
+        chunks = self.create_chunks(text)
+    
+        extractor = RiskExtractor()
+    
+        risks = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            risks,
+        )
+    
+        item = next(
+            item
+            for item in evidence
+            if item.field_name == "technology_risks"
+        )
+    
+        assert (
+            text[
+                item.start_offset:item.end_offset
+            ].lower()
+            == "single foundry"
+        )
+    
+        assert item.text == text
+    
+    # 20. Semiconductor production-style regression
+    def test_semiconductor_startup_risk_evidence(self):
+        text = """
+The company is still validating its technology at production scale.
+
+Production depends on a single foundry.
+
+Revenue is concentrated in one major customer.
+
+Regulatory approval is required before commercial deployment.
+"""
+    
+        document = self.create_document(text)
+        chunks = self.create_chunks(text)
+    
+        extractor = RiskExtractor()
+    
+        risks = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            risks,
+        )
+    
+        assert {
+            item.field_name
+            for item in evidence
+        } == {
+            "technology_risks",
+            "market_risks",
+            "legal_risks",
+        }
+    
+        assert len(evidence) == 4
+                        
