@@ -3,6 +3,7 @@ Shared ORM enums.
 """
 
 from enum import StrEnum
+from sqlalchemy import Enum
 
 # ============================================================================
 # Startup
@@ -127,3 +128,9 @@ class DocumentStatus(StrEnum):
     PROCESSED = "PROCESSED"
     FAILED = "FAILED"
     ARCHIVED = "ARCHIVED"
+
+class ValuationType(str, Enum):
+    PRE_MONEY = "pre_money"
+    POST_MONEY = "post_money"
+    VALUATION_CAP = "valuation_cap"
+    UNSPECIFIED = "unspecified"

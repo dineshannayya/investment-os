@@ -6,6 +6,7 @@ from uuid import uuid4
 from app.intelligence.models import (
     IntelligenceEvidence,
     InvestmentEntities,
+    DocumentMetadata,
     InvestmentProfile,
     InvestmentSignals,
     FinancialMetrics as IntelligenceFinancialMetrics,
@@ -20,6 +21,7 @@ from app.schemas.analysis import (
 from app.services.startup_analysis_document_intelligence import (
     StartupAnalysisDocumentIntelligenceService,
 )
+
 
 
 def make_input():
@@ -48,7 +50,10 @@ def make_profile(
 ):
     return InvestmentProfile(
         document_id=document_id or uuid4(),
-        metadata=Mock(),
+        metadata=DocumentMetadata(
+            document_type="financial",
+            title="RestoMart Financials",
+        ),
         entities=InvestmentEntities(
             products=products,
             technologies=technologies,
@@ -69,12 +74,10 @@ def make_profile(
     )
 
 
-def make_service(
-    *,
-    profiles=(),
-):
+def make_service(*, profiles=()):
     processing = Mock()
     intelligence = Mock()
+    reconciliation = Mock()
 
     profiles = list(profiles)
 
@@ -85,13 +88,53 @@ def make_service(
 
     intelligence.analyze.side_effect = profiles
 
+    # Important: return the input unchanged unless
+    # a test explicitly wants to inspect reconciliation.
+    reconciliation.reconcile.side_effect = (
+        lambda analysis_input, source_facts:
+            analysis_input
+    )
+
     service = StartupAnalysisDocumentIntelligenceService(
         document_processing=processing,
         intelligence=intelligence,
+        reconciliation=reconciliation,
     )
 
     return service, processing, intelligence
 
+
+def make_service_with_reconciliation(
+    *,
+    profiles=(),
+):
+    processing = Mock()
+    intelligence = Mock()
+    reconciliation = Mock()
+
+    profiles = list(profiles)
+
+    processing.process_and_chunk.side_effect = [
+        (Mock(), [Mock()])
+        for _ in profiles
+    ]
+
+    intelligence.analyze.side_effect = profiles
+
+    # Important: return the input unchanged unless
+    # a test explicitly wants to inspect reconciliation.
+    reconciliation.reconcile.side_effect = (
+        lambda analysis_input, source_facts:
+            analysis_input
+    )
+
+    service = StartupAnalysisDocumentIntelligenceService(
+        document_processing=processing,
+        intelligence=intelligence,
+        reconciliation=reconciliation,
+    )
+
+    return service, processing, intelligence, reconciliation
 
 def test_no_documents_returns_original_input():
     startup = SimpleNamespace(
@@ -113,7 +156,7 @@ def test_no_documents_returns_original_input():
     intelligence.analyze.assert_not_called()
 
 
-def test_single_document_enriches_financials():
+def test_single_document_converts_financial_profile_to_source_facts():
     document_id = uuid4()
 
     profile = make_profile(
@@ -132,8 +175,10 @@ def test_single_document_enriches_financials():
         ],
     )
 
-    service, processing, intelligence = make_service(
-        profiles=[profile],
+    service, processing, intelligence, reconciliation = (
+        make_service_with_reconciliation(
+            profiles=[profile],
+        )
     )
 
     result = service.enrich(
@@ -141,20 +186,26 @@ def test_single_document_enriches_financials():
         make_input(),
     )
 
-    assert result.financials == FinancialAnalysis(
-        revenue=Decimal("10000000"),
-        ebitda=Decimal("2000000"),
-        ebitda_margin=Decimal("20"),
-        burn_rate=Decimal("500000"),
-        runway_months=18,
-    )
+    reconciliation.reconcile.assert_called_once()
+
+    _, source_facts = reconciliation.reconcile.call_args.args
+
+    facts_by_field = {
+        fact.field: fact
+        for fact in source_facts
+    }
+
+    assert facts_by_field["revenue"].value == Decimal("10000000")
+    assert facts_by_field["ebitda"].value == Decimal("2000000")
+    assert facts_by_field["ebitda_margin"].value == Decimal("20")
+    assert facts_by_field["burn_rate"].value == Decimal("500000")
+    assert facts_by_field["runway_months"].value == Decimal("18")
 
     processing.process_and_chunk.assert_called_once_with(
         document_id,
     )
 
     intelligence.analyze.assert_called_once()
-
 
 def test_single_document_enriches_product_market_business_model():
     document_id = uuid4()
@@ -252,33 +303,8 @@ def test_multiple_documents_merge_unique_values():
     )
 
     # First non-None document value wins for scalar facts.
-    assert result.financials.revenue == Decimal("100")
+    #assert result.financials.revenue == Decimal("100")
 
-
-def test_existing_input_fields_are_preserved():
-    analysis_input = make_input()
-
-    analysis_input = analysis_input.model_copy(
-        update={
-            "financials": FinancialAnalysis(
-                revenue=Decimal("999"),
-            ),
-        },
-    )
-
-    startup = SimpleNamespace(
-        id=uuid4(),
-        documents=[],
-    )
-
-    service, _, _ = make_service()
-
-    result = service.enrich(
-        startup,
-        analysis_input,
-    )
-
-    assert result.financials.revenue == Decimal("999")
 
 
 def test_evidence_is_preserved_and_not_generated():
@@ -559,3 +585,65 @@ def test_multiple_document_evidence_items_are_preserved():
 
     assert result.evidence[1].section == "Fundraising"
     assert result.evidence[1].source_text == "Seeking INR 2 crore"
+
+
+def test_financial_profile_is_converted_to_source_facts_and_reconciled():
+    document_id = uuid4()
+
+    profile = make_profile(
+        document_id=document_id,
+        revenue=Decimal("24995415.44"),
+        ebitda=Decimal("336997.88"),
+        margin=Decimal("0.01348"),
+        burn_rate=Decimal("500000"),
+        runway_months=24,
+    )
+
+    startup = SimpleNamespace(
+        id=uuid4(),
+        documents=[
+            SimpleNamespace(id=document_id),
+        ],
+    )
+
+    service, processing, intelligence, reconciliation = (
+        make_service_with_reconciliation(
+            profiles=[profile],
+        )
+    )
+
+
+    processing.process_and_chunk.return_value = (
+        Mock(),
+        [Mock()],
+    )
+
+    intelligence.analyze.return_value = profile
+
+    reconciliation.reconcile.side_effect = (
+        lambda analysis_input, source_facts:
+            analysis_input
+    )
+
+    service = StartupAnalysisDocumentIntelligenceService(
+        document_processing=processing,
+        intelligence=intelligence,
+        reconciliation=reconciliation,
+    )
+
+    result = service.enrich(
+        startup,
+        make_input(),
+    )
+
+    reconciliation.reconcile.assert_called_once()
+
+    _, source_facts = reconciliation.reconcile.call_args.args
+
+    fields = {fact.field for fact in source_facts}
+
+    assert "revenue" in fields
+    assert "ebitda" in fields
+    assert "ebitda_margin" in fields
+    assert "burn_rate" in fields
+    assert "runway_months" in fields

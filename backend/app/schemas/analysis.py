@@ -12,8 +12,9 @@ or final investment decisions. Those belong to later stages.
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import Literal
+from enum import Enum
 from uuid import UUID
+from typing import Any,Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 from app.models.analysis import StartupAnalysisMode
@@ -111,8 +112,6 @@ class MarketAnalysis(AnalysisBase):
 # ---------------------------------------------------------------------------
 
 class TractionAnalysis(AnalysisBase):
-    """Business traction information."""
-
     revenue: Decimal | None = Field(default=None, ge=0)
     revenue_growth_yoy: Decimal | None = None
 
@@ -122,6 +121,18 @@ class TractionAnalysis(AnalysisBase):
 
     repeat_customer_rate: Decimal | None = None
 
+    orders: int | None = Field(default=None, ge=0)
+    churn_rate: Decimal | None = None
+    customer_acquisition_cost: Decimal | None = Field(
+        default=None,
+        ge=0,
+    )
+    average_order_value: Decimal | None = Field(
+        default=None,
+        ge=0,
+    )
+    top_customer_concentration: Decimal | None = None
+
     key_traction_notes: str | None = None
 
 
@@ -130,10 +141,13 @@ class TractionAnalysis(AnalysisBase):
 # ---------------------------------------------------------------------------
 
 class FinancialAnalysis(AnalysisBase):
-    """Financial information available for analysis."""
-
     revenue: Decimal | None = Field(default=None, ge=0)
     revenue_growth_yoy: Decimal | None = None
+
+    gross_sales: Decimal | None = Field(
+        default=None,
+        ge=0,
+    )
 
     gross_profit: Decimal | None = None
     gross_margin: Decimal | None = None
@@ -149,6 +163,7 @@ class FinancialAnalysis(AnalysisBase):
     burn_rate: Decimal | None = Field(default=None, ge=0)
     runway_months: Decimal | None = Field(default=None, ge=0)
 
+    contribution_profit_per_order: Decimal | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -203,6 +218,68 @@ class BusinessModelAnalysis(AnalysisBase):
         ge=0,
     )
 
+# ---------------------------------------------------------------------------
+# Source Intelligence
+# ---------------------------------------------------------------------------
+class SourceStatus(str, Enum):
+    FACT = "fact"
+    DERIVED = "derived"
+    PROJECTION = "projection"
+    ASSUMPTION = "assumption"
+    CONFLICT = "conflict"
+    UNKNOWN = "unknown"
+
+
+class SourceAuthority(str, Enum):
+    MIS = "mis"
+    TRANSACTION_DOCUMENT = "transaction_document"
+    FINANCIAL_MODEL = "financial_model"
+    COMPANY_DOCUMENT = "company_document"
+    INVESTOR_SUMMARY = "investor_summary"
+    LLM = "llm"
+    UNKNOWN = "unknown"
+
+
+class SourceValue(AnalysisBase):
+    """
+    One source-supported value for a normalized investment fact.
+    """
+
+    field: str
+    value: Any = None
+
+    status: SourceStatus = SourceStatus.FACT
+
+    source_document_id: UUID | None = None
+    source_name: str | None = None
+    source_authority: SourceAuthority = SourceAuthority.UNKNOWN
+
+    period: str | None = None
+    section: str | None = None
+
+    confidence: Decimal | None = Field(
+        default=None,
+        ge=0,
+        le=1,
+    )
+
+    source_text: str | None = None
+
+
+class SourceConflict(AnalysisBase):
+    """
+    Material disagreement between source-supported values.
+    """
+
+    field: str
+
+    status: SourceStatus = SourceStatus.CONFLICT
+
+    values: list[SourceValue] = Field(default_factory=list)
+
+    resolution: str | None = None
+
+    requires_diligence: bool = True
 
 # ---------------------------------------------------------------------------
 # Derived Metrics
@@ -269,6 +346,14 @@ class StartupAnalysisInput(AnalysisBase):
         default_factory=list
     )
 
+    source_facts: list[SourceValue] = Field(
+        default_factory=list
+    )
+    
+    source_conflicts: list[SourceConflict] = Field(
+        default_factory=list
+    )
+
 
 # ---------------------------------------------------------------------------
 # Qualitative Result
@@ -305,6 +390,8 @@ class StartupAnalysisResult(AnalysisBase):
         "needs_further_diligence",
         "concerns",
     ] = "insufficient_information"
+
+
 
 # ---------------------------------------------------------------------------
 # Complete Analysis

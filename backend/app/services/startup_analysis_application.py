@@ -52,6 +52,13 @@ from app.services.startup_analysis_document_intelligence import (
 )
 from app.storage.local import LocalStorageProvider
 from app.storage.service import StorageService
+from app.services.source_intelligence_reconciliation import (
+    SourceIntelligenceReconciliationService,
+)
+
+from collections.abc import Callable
+
+from app.intelligence.models import InvestmentProfile
 
 
 class StartupAnalysisApplicationService:
@@ -156,10 +163,18 @@ class StartupAnalysisApplicationService:
 
         return analysis
 
+
     @staticmethod
     def create_startup_analysis_document_intelligence(
         session: Session,
+        *,
+        profile_observer: Callable[[InvestmentProfile], None] | None = None,
+        source_facts_observer: Callable[
+            [list[SourceValue]],
+            None,
+        ] | None = None,
     ) -> StartupAnalysisDocumentIntelligenceService:
+
         documents = DocumentService(session)
     
         storage = StorageService(
@@ -179,10 +194,18 @@ class StartupAnalysisApplicationService:
             factory=create_intelligence_factory(),
         )
     
+        reconciliation = SourceIntelligenceReconciliationService()
+    
         return StartupAnalysisDocumentIntelligenceService(
             document_processing=processing,
             intelligence=intelligence,
+            reconciliation=reconciliation,
+            profile_observer=profile_observer,
+            source_facts_observer=source_facts_observer,
         )
+
+
+
 
 __all__ = [
     "StartupAnalysisApplicationService",

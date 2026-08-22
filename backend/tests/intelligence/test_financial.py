@@ -843,3 +843,134 @@ Office rent ₹20 Lakhs.
 
         assert metrics.ebitda == Decimal("20000000")
         assert metrics.margin is None
+
+    def test_extracts_pre_money_valuation(self):
+        text = "Pre-money valuation: ₹10 Cr."
+    
+        metrics = FinancialExtractor().extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+    
+        assert metrics.valuation == Decimal("100000000")
+        assert metrics.valuation_type.value == "pre_money"
+
+    def test_extracts_post_money_valuation(self):
+        text = "Post-money valuation: ₹12 Cr."
+    
+        metrics = FinancialExtractor().extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+    
+        assert metrics.valuation == Decimal("120000000")
+        assert metrics.valuation_type.value == "post_money"
+
+    def test_extracts_valuation_cap(self):
+        text = "The SAFE has a valuation cap of ₹15 Cr."
+    
+        metrics = FinancialExtractor().extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+    
+        assert metrics.valuation == Decimal("150000000")
+        assert metrics.valuation_type.value == "valuation_cap"
+
+    def test_extracts_unspecified_valuation(self):
+        text = "The company valuation is ₹9.25 Cr."
+    
+        metrics = FinancialExtractor().extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+    
+        assert metrics.valuation == Decimal("92500000")
+        assert metrics.valuation_type.value == "unspecified"    
+
+    def test_does_not_extract_unrelated_amount_as_valuation(self):
+        text = "The company raised ₹5 Cr in its latest round."
+    
+        metrics = FinancialExtractor().extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+    
+        assert metrics.raise_amount == Decimal("50000000")
+        assert metrics.valuation is None
+
+    def test_amount_without_valuation_context_is_not_valuation(self):
+        text = "The company has ₹9.25 Cr in annual revenue."
+    
+        metrics = FinancialExtractor().extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+    
+        assert metrics.revenue == Decimal("92500000")
+        assert metrics.valuation is None
+
+    def test_valued_at_is_unspecified_valuation(self):
+        text = "The company was valued at ₹20 Cr."
+    
+        metrics = FinancialExtractor().extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+    
+        assert metrics.valuation == Decimal("200000000")
+        assert metrics.valuation_type.value == "unspecified"
+
+    def test_valuation_evidence_contains_source_and_type(self):
+        text = "Post-money valuation: ₹12 Cr."
+    
+        document = self.create_document(text)
+        chunks = self.create_chunks(text)
+    
+        extractor = FinancialExtractor()
+    
+        metrics = extractor.extract(
+            document,
+            chunks,
+        )
+    
+        evidence = extractor.extract_evidence(
+            document,
+            chunks,
+            metrics,
+        )
+    
+        valuation_evidence = [
+            item
+            for item in evidence
+            if item.field_name == "valuation"
+        ]
+    
+        assert len(valuation_evidence) == 1
+    
+        item = valuation_evidence[0]
+    
+        assert item.extractor == "financials"
+        assert item.field_name == "valuation"
+        assert item.metadata["valuation_type"] == "post_money"
+        assert "Post-money valuation" in item.text
+
+    def test_valuation_and_other_financials_are_not_confused(self):
+        text = """
+        Revenue: ₹2.68 Cr.
+        The company was valued at ₹9.25 Cr.
+        Founder ownership is 95%.
+        EBITDA: ₹2 Cr.
+        """
+    
+        metrics = FinancialExtractor().extract(
+            self.create_document(text),
+            self.create_chunks(text),
+        )
+    
+        assert metrics.revenue == Decimal("26800000")
+        assert metrics.valuation == Decimal("92500000")
+        assert metrics.valuation_type.value == "unspecified"
+        assert metrics.ebitda == Decimal("20000000")
+        assert metrics.margin is None
+                

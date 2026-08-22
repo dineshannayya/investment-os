@@ -9,6 +9,9 @@ from decimal import Decimal
 from typing import Any
 from uuid import UUID
 
+from app.models.enums import ValuationType
+
+
 # ============================================================================
 # Document Metadata
 # ============================================================================
@@ -103,6 +106,7 @@ class FinancialMetrics:
 
     confidence: float = 1.0
 
+    valuation_type: ValuationType = ValuationType.UNSPECIFIED
 
 # ============================================================================
 # Investment Profile
