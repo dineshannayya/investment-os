@@ -1,0 +1,70 @@
+RESTOMART — FINANCIAL SUMMARY
+
+Currency: INR
+
+Revenue
+-------
+Reported revenue: INR 2.68 crore
+Approximate numeric revenue: INR 26,800,000
+
+Profitability
+-------------
+Operating status: Profitable
+Funding status: Bootstrapped
+
+Gross Margin
+------------
+Earlier gross margin: Approximately 3.1%
+Reported/improved gross margin: Approximately 12%
+Gross-margin improvement: Approximately 8.9 percentage points
+
+Customer Base
+-------------
+Restaurant customers: More than 165
+
+Fulfillment
+-----------
+Reported fulfillment reliability: Approximately 95%
+
+Operating Model
+---------------
+Business model: B2B food supply / restaurant procurement
+Delivery proposition: Approximately 4 hours
+Fulfillment model: Cluster-based micro-fulfillment
+
+Investment Metrics
+------------------
+Discussed valuation cap: INR 9.25 crore
+Numeric valuation: INR 92,500,000
+Minimum investment: INR 2 lakh
+Numeric minimum investment: INR 200,000
+
+Derived Reference Metrics
+-------------------------
+Revenue / valuation: Approximately 0.29x valuation-to-revenue
+Revenue multiple: Approximately 3.45x revenue
+
+Note:
+The revenue multiple is a derived reference metric based on
+INR 9.25 crore valuation and INR 2.68 crore revenue.
+It should be recalculated deterministically by the Investment OS
+financial-metrics layer rather than treated as an LLM-derived fact.
+
+Financial Diligence Gaps
+------------------------
+The available information does not establish:
+- Gross profit in INR
+- EBITDA in INR
+- EBITDA margin
+- Net profit
+- Cash balance
+- Debt
+- Monthly burn
+- Runway
+- Working capital
+- Inventory value
+- Accounts receivable
+- Accounts payable
+- Customer acquisition cost
+- Lifetime value
+- Contribution margin

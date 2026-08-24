@@ -1,0 +1,602 @@
+{
+  "schema_version": "1.0",
+
+  "scorecard": {
+    "name": "Dinesh Personal Investment Scorecard",
+    "version": 1,
+    "description": "Personal startup investment evaluation framework based on evidence, dimension-level scoring, confidence, risk and valuation discipline."
+  },
+
+  "investor_profile": {
+    "name": "Dinesh",
+    "description": "Evaluate startups based on founder quality, market opportunity, product-market fit, defensibility, commercial validation, economics, financial health, governance, valuation and investment risk. Missing information must not automatically be treated as negative evidence."
+  },
+
+  "dimensions": [
+    {
+      "id": "founder_team",
+      "name": "Founder & Team",
+      "weight": 15,
+      "evaluation_spec": {
+        "objective": "Evaluate whether the founding team has the capability, experience, complementary skills and commitment required to execute the proposed business.",
+        "evaluate": [
+          "Domain expertise",
+          "Relevant professional experience",
+          "Previous execution history",
+          "Previous startup experience",
+          "Complementary founder capabilities",
+          "Founder commitment",
+          "Founder ownership and dependency",
+          "Key-person dependency"
+        ],
+        "evidence_required": [
+          "Founder profiles",
+          "Relevant professional experience",
+          "Previous startup or execution history where available",
+          "Founder roles and responsibilities",
+          "Ownership information where available"
+        ],
+        "positive_signals": [
+          "Strong relevant domain expertise",
+          "Complementary founding team",
+          "Demonstrated execution capability",
+          "Relevant startup experience",
+          "Clear founder responsibilities",
+          "Strong founder commitment"
+        ],
+        "negative_signals": [
+          "Major capability gaps",
+          "Single-founder dependency",
+          "Limited relevant experience",
+          "Weak execution history",
+          "Unclear founder commitment",
+          "Excessive key-person dependency"
+        ],
+        "do_not_assume": [
+          "Do not infer execution capability from job title alone",
+          "Do not treat education or employer reputation as proof of startup execution ability",
+          "Do not treat founder claims as verified achievements without supporting evidence",
+          "Do not treat missing founder information as negative evidence"
+        ],
+        "scoring_guidance": {
+          "score_90_100": "Exceptional founder capability, complementary skills and execution evidence.",
+          "score_75_89": "Strong founder and team capability with credible execution evidence.",
+          "score_60_74": "Reasonable capability with identifiable gaps or moderate uncertainty.",
+          "score_40_59": "Material founder or team weaknesses affecting execution confidence.",
+          "score_0_39": "Severe capability, commitment or execution concerns."
+        }
+      },
+      "investor_preferences": {
+        "priority": "high",
+        "notes": "Founder quality is one of the primary investment considerations."
+      }
+    },
+
+    {
+      "id": "market_tam",
+      "name": "Market / TAM",
+      "weight": 10,
+      "evaluation_spec": {
+        "objective": "Evaluate whether the target market is sufficiently large, growing, accessible and structurally attractive to support a meaningful venture outcome.",
+        "evaluate": [
+          "TAM",
+          "SAM",
+          "Target customer segment",
+          "Market growth",
+          "Market accessibility",
+          "Structural tailwinds",
+          "Market structure",
+          "Customer need"
+        ],
+        "evidence_required": [
+          "Target market definition",
+          "TAM or SAM evidence",
+          "Market growth evidence where available",
+          "Target customer definition",
+          "External market validation where available"
+        ],
+        "positive_signals": [
+          "Large addressable market",
+          "Strong market growth",
+          "Clear target customer",
+          "Structural tailwinds",
+          "Strong and persistent customer need",
+          "Credible external market validation"
+        ],
+        "negative_signals": [
+          "Small addressable market",
+          "Declining market",
+          "Weak customer need",
+          "Difficult market accessibility",
+          "Unsupported market assumptions"
+        ],
+        "do_not_assume": [
+          "Founder-provided TAM is not automatically an established fact",
+          "Do not equate TAM with realistic obtainable revenue",
+          "Do not infer market size from current company revenue",
+          "Do not treat missing TAM evidence as proof of a small market"
+        ],
+        "scoring_guidance": {
+          "score_90_100": "Exceptional market opportunity strongly supported by credible evidence.",
+          "score_75_89": "Strong market opportunity with credible supporting evidence.",
+          "score_60_74": "Reasonable market opportunity with meaningful limitations or uncertainty.",
+          "score_40_59": "Weak or insufficiently demonstrated market opportunity.",
+          "score_0_39": "Very limited, declining or poorly supported market opportunity."
+        }
+      },
+      "investor_preferences": {
+        "priority": "medium",
+        "notes": "Market claims should be evidence-driven rather than accepted solely from founder projections."
+      }
+    },
+
+    {
+      "id": "product_pmf",
+      "name": "Product & PMF",
+      "weight": 10,
+      "evaluation_spec": {
+        "objective": "Evaluate whether the product solves a meaningful customer problem and whether available evidence demonstrates product-market fit.",
+        "evaluate": [
+          "Customer problem",
+          "Product differentiation",
+          "Product maturity",
+          "Customer adoption",
+          "Repeat usage",
+          "Retention",
+          "Customer value",
+          "Product-market fit evidence"
+        ],
+        "evidence_required": [
+          "Product description",
+          "Customer problem definition",
+          "Customer adoption evidence",
+          "Usage or repeat-usage evidence where available",
+          "Retention or customer feedback where available"
+        ],
+        "positive_signals": [
+          "Clear and meaningful customer problem",
+          "Strong product differentiation",
+          "Demonstrated customer adoption",
+          "Repeat usage",
+          "Strong retention",
+          "Clear customer value"
+        ],
+        "negative_signals": [
+          "Weak differentiation",
+          "Unclear customer problem",
+          "Limited adoption",
+          "Poor retention",
+          "Weak evidence of customer value"
+        ],
+        "do_not_assume": [
+          "Product existence is not proof of product-market fit",
+          "Revenue is not automatically proof of product-market fit",
+          "Customer count is not automatically proof of customer satisfaction",
+          "Do not treat management claims as PMF evidence without supporting data"
+        ],
+        "scoring_guidance": {
+          "score_90_100": "Exceptional product differentiation and compelling PMF evidence.",
+          "score_75_89": "Strong product with credible evidence of customer value and PMF.",
+          "score_60_74": "Promising product with incomplete or moderate PMF evidence.",
+          "score_40_59": "Weak or insufficient evidence of product-market fit.",
+          "score_0_39": "Poor product-market fit evidence or serious product concerns."
+        }
+      },
+      "investor_preferences": {
+        "priority": "medium",
+        "notes": "Separate product quality from actual customer validation."
+      }
+    },
+
+    {
+      "id": "technology_ip_moat",
+      "name": "Technology / IP Moat",
+      "weight": 10,
+      "evaluation_spec": {
+        "objective": "Evaluate whether the company has a durable technical or intellectual-property advantage that competitors cannot easily reproduce.",
+        "evaluate": [
+          "Technology differentiation",
+          "Proprietary technology",
+          "Patents and IP",
+          "Technical barriers",
+          "Replication difficulty",
+          "Switching costs",
+          "Data or network effects where relevant",
+          "Defensibility"
+        ],
+        "evidence_required": [
+          "Technology description",
+          "Technical differentiation evidence",
+          "Patent or IP information where available",
+          "Evidence of switching costs or technical barriers where applicable"
+        ],
+        "positive_signals": [
+          "Strong technical differentiation",
+          "Protected intellectual property",
+          "High replication difficulty",
+          "Meaningful technical barriers",
+          "Strong switching costs",
+          "Clear defensibility"
+        ],
+        "negative_signals": [
+          "Commodity technology",
+          "Low replication difficulty",
+          "Weak IP protection",
+          "Low switching costs",
+          "Technology easily substituted by competitors"
+        ],
+        "do_not_assume": [
+          "Technology complexity is not automatically a moat",
+          "A patent does not automatically create commercial defensibility",
+          "Proprietary terminology is not evidence of proprietary technology",
+          "Do not infer defensibility without evidence of competitor difficulty"
+        ],
+        "scoring_guidance": {
+          "score_90_100": "Exceptional technology moat strongly supported by evidence.",
+          "score_75_89": "Strong and credible technical defensibility.",
+          "score_60_74": "Moderate technology advantage with identifiable limitations.",
+          "score_40_59": "Limited or uncertain defensibility.",
+          "score_0_39": "Little or no identifiable technology moat."
+        }
+      },
+      "investor_preferences": {
+        "priority": "medium",
+        "notes": "Technology should be evaluated for actual defensibility rather than complexity alone."
+      }
+    },
+
+    {
+      "id": "commercial_traction",
+      "name": "Commercial Traction",
+      "weight": 15,
+      "evaluation_spec": {
+        "objective": "Evaluate the strength, quality and durability of commercial validation demonstrated by revenue, customers, growth, retention and distribution.",
+        "evaluate": [
+          "Revenue",
+          "Revenue growth",
+          "Customer count",
+          "Customer quality",
+          "Repeat business",
+          "Retention",
+          "Channel traction",
+          "Customer concentration",
+          "Revenue quality"
+        ],
+        "evidence_required": [
+          "Revenue evidence",
+          "Customer evidence",
+          "Revenue growth evidence where available",
+          "Retention evidence where available",
+          "Customer concentration information where available"
+        ],
+        "positive_signals": [
+          "Meaningful revenue",
+          "Strong revenue growth",
+          "Quality customers",
+          "Repeat business",
+          "Strong retention",
+          "Effective distribution",
+          "Diversified customer base"
+        ],
+        "negative_signals": [
+          "Weak revenue traction",
+          "Low growth",
+          "Customer concentration",
+          "Poor retention",
+          "Unproven distribution",
+          "Low-quality or non-repeatable revenue"
+        ],
+        "do_not_assume": [
+          "Revenue is not automatically proof of product-market fit",
+          "Customer count does not prove retention",
+          "Revenue growth does not automatically prove healthy economics",
+          "Do not infer diversified revenue without customer-level evidence",
+          "Missing retention data is not automatically evidence of poor retention"
+        ],
+        "scoring_guidance": {
+          "score_90_100": "Exceptional commercial validation with strong quality, growth and durability of revenue.",
+          "score_75_89": "Strong commercial traction with credible customer validation.",
+          "score_60_74": "Meaningful but still developing commercial traction.",
+          "score_40_59": "Limited commercial validation or material traction concerns.",
+          "score_0_39": "Minimal, unreliable or absent commercial validation."
+        }
+      },
+      "investor_preferences": {
+        "priority": "high",
+        "notes": "Revenue quality, customer concentration and repeatability matter in addition to absolute revenue."
+      }
+    },
+
+    {
+      "id": "unit_economics_margins",
+      "name": "Unit Economics & Margins",
+      "weight": 10,
+      "evaluation_spec": {
+        "objective": "Evaluate whether the business can generate attractive and scalable economics as it grows.",
+        "evaluate": [
+          "Gross margin",
+          "Contribution margin",
+          "CAC",
+          "LTV",
+          "LTV/CAC",
+          "Payback period",
+          "Scalability",
+          "Margin trend"
+        ],
+        "evidence_required": [
+          "Revenue and cost information",
+          "Customer acquisition information where available",
+          "Unit-economic metrics where available",
+          "Margin information where available"
+        ],
+        "positive_signals": [
+          "Healthy gross margins",
+          "Attractive contribution economics",
+          "Attractive LTV/CAC",
+          "Reasonable CAC payback",
+          "Improving economics",
+          "Scalable economics"
+        ],
+        "negative_signals": [
+          "Poor margins",
+          "High CAC",
+          "Weak LTV/CAC",
+          "Long payback",
+          "Deteriorating economics",
+          "Structurally weak unit economics"
+        ],
+        "do_not_assume": [
+          "Missing CAC is not proof of high CAC",
+          "Missing LTV is not proof of poor LTV",
+          "Revenue growth is not proof of healthy unit economics",
+          "Do not calculate unit economics from unsupported assumptions"
+        ],
+        "scoring_guidance": {
+          "score_90_100": "Exceptional unit economics with strong evidence of scalable profitability.",
+          "score_75_89": "Strong and scalable economics.",
+          "score_60_74": "Reasonable economics with meaningful gaps or moderate uncertainty.",
+          "score_40_59": "Weak or uncertain economics.",
+          "score_0_39": "Poor or structurally unattractive unit economics."
+        }
+      },
+      "investor_preferences": {
+        "priority": "high",
+        "notes": "Missing unit-economic data should reduce confidence rather than automatically create a negative score."
+      }
+    },
+
+    {
+      "id": "financial_health",
+      "name": "Financial Health",
+      "weight": 5,
+      "evaluation_spec": {
+        "objective": "Evaluate whether the company has sufficient financial resilience and discipline to reach its next meaningful milestone.",
+        "evaluate": [
+          "Revenue",
+          "EBITDA",
+          "Cash",
+          "Burn rate",
+          "Runway",
+          "Working capital",
+          "Debt",
+          "Financial discipline"
+        ],
+        "evidence_required": [
+          "Financial statements or MIS",
+          "Cash and burn information",
+          "Runway information where available",
+          "Debt information where available"
+        ],
+        "positive_signals": [
+          "Adequate runway",
+          "Controlled burn",
+          "Improving profitability",
+          "Strong financial discipline",
+          "Healthy working capital"
+        ],
+        "negative_signals": [
+          "Short runway",
+          "High burn",
+          "Weak financial controls",
+          "Unsustainable losses",
+          "Working-capital stress"
+        ],
+        "do_not_assume": [
+          "Revenue does not prove profitability",
+          "Do not infer runway without cash and burn evidence",
+          "Do not infer financial health from fundraising alone",
+          "Missing financial data is not automatically evidence of poor financial health"
+        ],
+        "scoring_guidance": {
+          "score_90_100": "Excellent financial health and resilience.",
+          "score_75_89": "Strong financial position with good resilience.",
+          "score_60_74": "Acceptable financial position with some limitations.",
+          "score_40_59": "Material financial concerns.",
+          "score_0_39": "Severe financial weakness or sustainability concerns."
+        }
+      },
+      "investor_preferences": {
+        "priority": "medium",
+        "notes": "Use deterministic financial metrics as authoritative inputs; AI interprets rather than recalculates them."
+      }
+    },
+
+    {
+      "id": "governance_cap_table",
+      "name": "Governance & Cap Table",
+      "weight": 10,
+      "evaluation_spec": {
+        "objective": "Evaluate whether ownership, governance and investor protections provide a healthy and investable structure.",
+        "evaluate": [
+          "Founder ownership",
+          "Investor ownership",
+          "Cap table complexity",
+          "Board structure",
+          "ESOP",
+          "SHA",
+          "Investor rights",
+          "Related-party issues",
+          "Founder concentration"
+        ],
+        "evidence_required": [
+          "Cap table",
+          "Shareholder agreement where available",
+          "Board or governance information",
+          "ESOP information where available",
+          "Investor rights documentation where available"
+        ],
+        "positive_signals": [
+          "Healthy founder ownership",
+          "Transparent cap table",
+          "Appropriate governance",
+          "Meaningful ESOP where appropriate",
+          "Clear investor rights",
+          "Reasonable shareholder structure"
+        ],
+        "negative_signals": [
+          "Excessive founder concentration",
+          "Highly complex cap table",
+          "Weak governance",
+          "Unclear investor rights",
+          "Unfavorable related-party structure"
+        ],
+        "do_not_assume": [
+          "Do not infer ownership from job titles",
+          "Missing SHA is not proof of an unfavorable SHA",
+          "Do not assume investor protections without documentation",
+          "Founder concentration is not automatically negative without considering context"
+        ],
+        "scoring_guidance": {
+          "score_90_100": "Excellent governance and transparent, investor-compatible ownership structure.",
+          "score_75_89": "Strong governance with limited concerns.",
+          "score_60_74": "Acceptable governance with identifiable concerns.",
+          "score_40_59": "Material governance or ownership concerns.",
+          "score_0_39": "Severe governance or cap-table concerns."
+        }
+      },
+      "investor_preferences": {
+        "priority": "high",
+        "notes": "Founder concentration, ESOP, governance quality and investor protections should receive explicit attention."
+      }
+    },
+
+    {
+      "id": "valuation_deal_terms",
+      "name": "Valuation & Deal Terms",
+      "weight": 10,
+      "evaluation_spec": {
+        "objective": "Evaluate whether the proposed entry valuation and deal terms are attractive relative to traction, growth, business quality and investment risk.",
+        "evaluate": [
+          "Entry valuation",
+          "Revenue multiple",
+          "Growth relative to valuation",
+          "Comparable valuation where available",
+          "Dilution",
+          "Investment instrument",
+          "Investor rights",
+          "Deal structure",
+          "Liquidation or conversion terms where relevant"
+        ],
+        "evidence_required": [
+          "Current or proposed valuation",
+          "Revenue or ARR where available",
+          "Fundraising terms",
+          "Investment instrument",
+          "Investor rights where available"
+        ],
+        "positive_signals": [
+          "Reasonable valuation relative to traction",
+          "Growth supporting valuation",
+          "Attractive entry price",
+          "Investor-friendly terms",
+          "Clear deal structure",
+          "Appropriate investor protections"
+        ],
+        "negative_signals": [
+          "High valuation relative to traction",
+          "Valuation unsupported by growth",
+          "Unfavorable investor rights",
+          "Excessive dilution",
+          "Unclear deal structure",
+          "Materially unfavorable terms"
+        ],
+        "do_not_assume": [
+          "Low valuation is not automatically attractive",
+          "High valuation is not automatically unattractive",
+          "Do not assume future growth without evidence",
+          "Do not treat founder valuation expectations as fair market value",
+          "Do not infer investor rights when they are undocumented"
+        ],
+        "scoring_guidance": {
+          "score_90_100": "Exceptional entry valuation and highly attractive terms strongly supported by evidence.",
+          "score_75_89": "Attractive valuation and deal terms.",
+          "score_60_74": "Reasonable valuation with notable concerns or uncertainty.",
+          "score_40_59": "Expensive or materially unfavorable valuation or terms.",
+          "score_0_39": "Highly unattractive valuation or deal terms."
+        }
+      },
+      "investor_preferences": {
+        "priority": "high",
+        "notes": "Prefer validated businesses with reasonable entry valuation and documented investor protections."
+      }
+    },
+
+    {
+      "id": "risk_exit_potential",
+      "name": "Risk & Exit Potential",
+      "weight": 5,
+      "evaluation_spec": {
+        "objective": "Identify material cross-dimensional investment risks and evaluate whether a credible pathway exists to an attractive future exit.",
+        "evaluate": [
+          "Regulatory risk",
+          "Execution risk",
+          "Market risk",
+          "Technology risk",
+          "Customer concentration",
+          "Founder dependency",
+          "Funding risk",
+          "Exit pathways",
+          "Strategic attractiveness"
+        ],
+        "evidence_required": [
+          "Identified material risks",
+          "Regulatory information where relevant",
+          "Customer or supplier concentration information where available",
+          "Potential strategic or financial exit pathways where available"
+        ],
+        "positive_signals": [
+          "Manageable risk profile",
+          "Multiple plausible exit pathways",
+          "Strong strategic attractiveness",
+          "Diversified business dependencies",
+          "Clear path to future financing or liquidity"
+        ],
+        "negative_signals": [
+          "Material regulatory risk",
+          "High execution risk",
+          "Customer or supplier concentration",
+          "Founder dependency",
+          "High funding dependency",
+          "Limited exit pathways"
+        ],
+        "do_not_assume": [
+          "Absence of identified risk is not proof of absence of risk",
+          "Do not assume an exit will occur",
+          "Do not infer exit value without supporting evidence",
+          "Do not duplicate a risk merely to increase its apparent importance"
+        ],
+        "scoring_guidance": {
+          "score_90_100": "Low material risk and strong plausible exit potential.",
+          "score_75_89": "Manageable risks with attractive potential exit pathways.",
+          "score_60_74": "Moderate risks and uncertain exit potential.",
+          "score_40_59": "Material risks or weak exit visibility.",
+          "score_0_39": "Severe risks and limited plausible exit pathways."
+        }
+      },
+      "investor_preferences": {
+        "priority": "medium",
+        "notes": "Focus on material investment risks rather than generic startup risks."
+      }
+    }
+  ]
+}

@@ -1,0 +1,125 @@
+RESTOMART — INVESTOR BRIEF
+
+Company
+-------
+
+RestoMart is a B2B food-supply and restaurant technology company
+focused on simplifying procurement for restaurants.
+
+The company operates a curated procurement marketplace combined
+with supply-chain and fulfillment operations.
+
+The business focuses on improving procurement reliability,
+availability, delivery speed, and operating efficiency for
+restaurant customers.
+
+Product and Operating Model
+---------------------------
+
+RestoMart provides restaurants with a curated selection of
+food-supply products and procurement services.
+
+The operating model is based on:
+- Curated SKUs
+- Cluster-based restaurant density
+- Micro-fulfillment centers
+- Rapid delivery
+- Supply-chain coordination
+- Technology-enabled procurement
+
+The target delivery proposition discussed for the business is
+approximately four-hour delivery.
+
+Customers and Traction
+----------------------
+
+RestoMart has more than 165 restaurant customers.
+
+The company has demonstrated repeat usage from restaurant
+customers and operates a B2B model rather than a consumer
+marketplace model.
+
+Reported fulfillment reliability is approximately 95%.
+
+Financial Performance
+---------------------
+
+RestoMart has reported approximately INR 2.68 crore of revenue.
+
+The company has operated as a bootstrapped business and has
+reported profitable operations.
+
+Gross margin has improved materially during the operating period,
+from approximately 3.1% to approximately 12%.
+
+Founders
+--------
+
+The founding team consists of three founders.
+
+CEO:
+- Previous experience at Premji Invest
+- IIM Bangalore
+- Founder ownership: 50%
+
+COO:
+- Previous experience at Amazon and Zinnov
+- IIM Kozhikode
+- Founder ownership: 25%
+
+CBO:
+- Previous experience at PwC and Novartis
+- IIM Kozhikode
+- Founder ownership: 25%
+
+Investment Context
+------------------
+
+The company has been evaluated as a potential angel investment.
+
+The previously discussed valuation cap was approximately INR 9.25 crore.
+
+The current fundraising amount is INR 2 crore.
+
+The minimum investment amount discussed was INR 2 lakh.
+
+The company is bootstrapped and profitable based on the information reviewed.
+
+Key Investment Questions
+------------------------
+
+Important areas for further diligence include:
+1. Sustainability of the reported gross-margin improvement.
+2. Restaurant retention and repeat-order behavior.
+3. Revenue concentration among major restaurant customers.
+4. Customer acquisition cost.
+5. Contribution margin after fulfillment and delivery costs.
+6. Procurement working-capital requirements.
+7. Inventory and wastage economics.
+8. Scalability of cluster-based micro-fulfillment.
+9. Competitive differentiation versus restaurant procurement alternatives.
+10. Whether the current valuation appropriately reflects the growth opportunity and operating risks.
+
+Important Evidence Gaps
+-----------------------
+
+The currently available information does not establish all details required for a complete investment decision.
+
+Areas requiring supporting evidence include:
+- Exact monthly revenue trend
+- Revenue growth rate by period
+- Gross profit calculation
+- Contribution margin
+- Customer retention
+- Customer churn
+- Average order value
+- Orders per restaurant
+- Customer concentration
+- CAC
+- LTV
+- Working-capital cycle
+- Inventory turnover
+- Detailed cash position
+- Detailed liabilities
+- Detailed cap table documentation
+- Formal transaction documents

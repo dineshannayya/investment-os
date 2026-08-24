@@ -1,0 +1,80 @@
+RESTOMART — BUSINESS MODEL AND OPERATIONS
+
+Business
+--------
+RestoMart is a B2B food-supply and restaurant procurement company.
+The company serves restaurants rather than individual consumers.
+The core customer problem is fragmented and operationally inefficient restaurant procurement.
+
+Customer
+--------
+Primary customers: Restaurants
+Reported customer base: More than 165 restaurants
+
+Procurement Model
+-----------------
+RestoMart uses a curated SKU approach.
+The model is intended to improve procurement efficiency, product availability,
+inventory management, delivery reliability, and supply-chain economics.
+
+Cluster Strategy
+----------------
+The operating model uses restaurant density within geographic clusters.
+Higher customer density can improve delivery, fulfillment, inventory positioning,
+customer service, and route-planning economics.
+
+Micro-Fulfillment
+-----------------
+RestoMart uses micro-fulfillment centers as part of its operating model.
+The centers support localized inventory and rapid fulfillment.
+The target delivery proposition is approximately four hours.
+
+Fulfillment
+-----------
+Reported fulfillment reliability: Approximately 95%.
+The business model therefore places significant emphasis on operational execution
+and supply-chain reliability.
+
+Wastage
+-------
+The business has been described as having very low wastage.
+This is relevant because inventory loss and spoilage can materially affect gross margin.
+
+Unit Economics
+--------------
+The most important unit-economic variables include:
+- Restaurant acquisition cost
+- Average order value
+- Orders per restaurant
+- Gross margin per order
+- Delivery cost per order
+- Fulfillment cost
+- Inventory carrying cost
+- Wastage
+- Restaurant retention
+- Contribution margin
+
+Key Scalability Question
+------------------------
+The central operating question is whether the cluster-density and micro-fulfillment
+model becomes increasingly efficient as restaurant density increases.
+
+The investment analysis should distinguish:
+1. Revenue growth
+2. Gross-margin improvement
+3. Contribution-margin improvement
+4. Customer retention
+5. Fulfillment efficiency
+
+Competitive Considerations
+--------------------------
+Potential competitive pressure can come from:
+- Traditional distributors
+- Wholesale markets
+- Restaurant procurement aggregators
+- Digital B2B marketplaces
+- Direct supplier relationships
+- Large food-supply platforms
+
+The available source information does not establish a complete competitive landscape
+or quantified competitor comparison.

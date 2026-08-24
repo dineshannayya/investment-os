@@ -1,0 +1,78 @@
+RESTOMART — FUNDRAISING INFORMATION
+
+Investment Context
+------------------
+RestoMart has been considered as a potential angel investment.
+The company is bootstrapped and has reported profitable operations.
+
+Current Fundraising
+-------------------
+Current amount being raised: INR 2 crore
+Numeric amount being raised: INR 20,000,000
+
+Valuation
+---------
+Previously discussed valuation cap: INR 9.25 crore
+Numeric valuation: INR 92,500,000
+
+Investment Size
+---------------
+Previously discussed minimum investment: INR 2 lakh
+Numeric minimum investment: INR 200,000
+
+Founder Ownership
+-----------------
+CEO: 50%
+COO: 25%
+CBO: 25%
+Total founder ownership represented: 100%
+
+Investment Considerations
+-------------------------
+Positive factors:
+- Bootstrapped operating history
+- Reported profitability
+- More than 165 restaurant customers
+- Revenue of approximately INR 2.68 crore
+- Gross-margin improvement from approximately 3.1% to approximately 12%
+- Approximately 95% fulfillment reliability
+- Potential operating leverage from customer cluster density
+
+Key Risks:
+- Low-margin nature of food-supply operations
+- Supply-chain execution risk
+- Working-capital requirements
+- Customer retention risk
+- Customer concentration risk
+- Competitive pressure
+- Difficulty scaling micro-fulfillment economically
+- Need to validate contribution margin
+- Need to validate sustainability of gross-margin improvement
+
+Required Diligence Before Investment
+------------------------------------
+The following should be obtained and independently validated:
+1. Audited financial statements.
+2. Monthly revenue for at least the last 24 months.
+3. Gross-profit and contribution-margin calculation.
+4. Bank statements.
+5. Customer-level revenue concentration.
+6. Customer retention and churn.
+7. Order frequency.
+8. Average order value.
+9. CAC and customer acquisition channels.
+10. Working-capital cycle.
+11. Inventory ageing.
+12. Wastage data.
+13. Detailed founder/shareholder cap table.
+14. Current liabilities and debt.
+15. Formal fundraising documentation.
+16. Current valuation and transaction terms.
+
+Investment View
+--------------
+The available information is sufficiently interesting for further diligence but should
+not by itself be treated as sufficient evidence for an investment decision.
+
+The most important validation is whether reported revenue growth, profitability, and
+gross-margin improvement translate into sustainable contribution economics at scale.

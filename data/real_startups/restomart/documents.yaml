@@ -1,0 +1,25 @@
+documents:
+  - filename: restomart_investor_brief.txt
+    title: "RestoMart Investor Brief"
+    document_type: OTHER
+    description: >
+      Consolidated company, product, market, traction, founder,
+      and operating information for RestoMart.
+  - filename: restomart_financials.txt
+    title: "RestoMart Financial Summary"
+    document_type: FINANCIAL_MODEL
+    description: >
+      Financial performance, revenue, profitability, gross margin,
+      operating metrics, and unit-economic information.
+  - filename: restomart_business_model.txt
+    title: "RestoMart Business Model and Operations"
+    document_type: BUSINESS_PLAN
+    description: >
+      Business model, restaurant procurement workflow, supply chain,
+      fulfillment model, customer base, and operating economics.
+  - filename: restomart_fundraise.txt
+    title: "RestoMart Fundraising Information"
+    document_type: OTHER
+    description: >
+      Fundraising terms, valuation, investment size, ownership,
+      and investor-relevant transaction information.
