@@ -28,7 +28,7 @@ from app.models.analysis import StartupAnalysisMode
 ANALYSIS_VERSION = "3.7.5"
 
 STANDARD_MAX_TOKENS = 768
-DEEP_MAX_TOKENS = 1024
+DEEP_MAX_TOKENS = 2048
 
 
 @dataclass(frozen=True, slots=True)

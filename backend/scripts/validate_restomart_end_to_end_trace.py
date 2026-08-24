@@ -2,27 +2,15 @@
 """
 C.7.7.7 — Production RestoMart End-to-End Source → Analysis Trace.
 
-This is a production diagnostic script.
+Production diagnostic / acceptance script.
 
-It intentionally lives under scripts/ rather than tests/ because:
-
-    * it exercises the real document-processing pipeline;
-    * it exercises the real InvestmentProfile generation;
-    * it exercises source reconciliation;
-    * it can optionally invoke the real Qwen provider;
-    * it may take several minutes when Qwen is enabled.
-
-The script NEVER persists a StartupAnalysis.
-
-Production path validated:
+This script validates the real production path:
 
     Startup
       ↓
+    Production documents
+      ↓
     DocumentProcessingService
-      ↓
-    DocumentContent + Chunk[]
-      ↓
-    InvestmentIntelligenceService
       ↓
     InvestmentProfile
       ↓
@@ -42,31 +30,15 @@ Production path validated:
       ↓
     StartupAnalysisResult
 
-Usage:
-
-    docker compose exec -T backend \
-        python -u scripts/validate_restomart_end_to_end_trace.py
-
-Or explicitly:
-
-    docker compose exec -T backend \
-        python -u scripts/validate_restomart_end_to_end_trace.py \
-        --startup-id dbb520d7-0979-4db3-8464-523f5710455f
-
-Without Qwen:
-
-    docker compose exec -T backend \
-        python -u scripts/validate_restomart_end_to_end_trace.py \
-        --no-llm
-
-With Qwen:
-
-    docker compose exec -T backend \
-        python -u scripts/validate_restomart_end_to_end_trace.py \
-        --llm
+Important:
+    - This script does NOT persist StartupAnalysis.
+    - It does NOT reconstruct document intelligence.
+    - It does NOT replace production reconciliation.
+    - It observes the InvestmentProfile boundary using the
+      production factory's diagnostic profile_observer hook.
+    - SourceValue[] and SourceConflict[] are obtained from the
+      actual reconciled StartupAnalysisInput returned by production.
 """
-
-#!/usr/bin/env python3
 
 from __future__ import annotations
 
@@ -80,19 +52,9 @@ from typing import Any
 from uuid import UUID
 
 
-# ---------------------------------------------------------------------------
+# ============================================================================
 # Repository import path
-# ---------------------------------------------------------------------------
-#
-# When executed as:
-#
-#     python scripts/validate_restomart_end_to_end_trace.py
-#
-# Python places scripts/ on sys.path, not the repository root.
-#
-# Add the repository root explicitly so production imports such as
-# `from app...` work exactly like they do under pytest.
-#
+# ============================================================================
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 
@@ -100,14 +62,14 @@ if str(REPOSITORY_ROOT) not in sys.path:
     sys.path.insert(0, str(REPOSITORY_ROOT))
 
 
-# ---------------------------------------------------------------------------
+# ============================================================================
 # Application imports
-# ---------------------------------------------------------------------------
+# ============================================================================
 
 from sqlalchemy import select
 
-from app.core.config import settings
 from app.core.database.session import create_session
+from app.core.config import settings
 
 from app.models.analysis import StartupAnalysisMode
 from app.models.startup import Startup
@@ -141,9 +103,10 @@ from app.services.startup_analysis_parser import (
 from app.llm.models import LLMRequest
 from app.llm.providers.qwen import QwenProvider
 
-# ---------------------------------------------------------------------------
+
+# ============================================================================
 # Constants
-# ---------------------------------------------------------------------------
+# ============================================================================
 
 DEFAULT_STARTUP_ID = (
     "dbb520d7-0979-4db3-8464-523f5710455f"
@@ -167,32 +130,32 @@ EXPECTED_DOCUMENT_INTELLIGENCE_COMPONENTS = (
     "risks",
 )
 
-# ---------------------------------------------------------------------------
-# Source-intelligence field → canonical StartupAnalysisInput path
-#
-# IMPORTANT:
-# SourceValue.field names are producer/source vocabulary.
-# StartupAnalysisInput fields are canonical application vocabulary.
-# They must not be assumed to have identical names.
-# ---------------------------------------------------------------------------
+
+# ============================================================================
+# Source-intelligence vocabulary → canonical analysis vocabulary
+# ============================================================================
 
 CANONICAL_FIELD_MAP: dict[str, tuple[str, ...]] = {
     "revenue": (
         "financials",
         "revenue",
     ),
+
     "valuation": (
         "fundraising",
         "valuation_cap",
     ),
+
     "raise_amount": (
         "fundraising",
         "amount_raising",
     ),
+
     "runway_months": (
         "financials",
         "runway_months",
     ),
+
     "business_model": (
         "business_model",
         "business_model",
@@ -200,14 +163,15 @@ CANONICAL_FIELD_MAP: dict[str, tuple[str, ...]] = {
 }
 
 
-# ---------------------------------------------------------------------------
+# ============================================================================
 # Trace state
-# ---------------------------------------------------------------------------
-
+# ============================================================================
 
 @dataclass
 class TraceState:
-    """State captured while walking the production pipeline."""
+    """
+    State captured while walking the production pipeline.
+    """
 
     profiles: list[Any]
 
@@ -228,10 +192,9 @@ class TraceState:
     analysis_result: StartupAnalysisResult | None = None
 
 
-# ---------------------------------------------------------------------------
-# Output helpers
-# ---------------------------------------------------------------------------
-
+# ============================================================================
+# Reporter
+# ============================================================================
 
 class TraceReporter:
     """Simple deterministic terminal reporter."""
@@ -273,12 +236,14 @@ class TraceReporter:
             print("RESULT : FAIL")
             print()
             print("Failures:")
+
             for failure in self.failures:
                 print(f"  - {failure}")
 
             if self.warnings:
                 print()
                 print("Warnings:")
+
                 for warning in self.warnings:
                     print(f"  - {warning}")
 
@@ -288,6 +253,7 @@ class TraceReporter:
             print("RESULT : PASS WITH WARNINGS")
             print()
             print("Warnings:")
+
             for warning in self.warnings:
                 print(f"  - {warning}")
 
@@ -297,30 +263,36 @@ class TraceReporter:
         return 0
 
 
-# ---------------------------------------------------------------------------
+# ============================================================================
 # Generic helpers
-# ---------------------------------------------------------------------------
+# ============================================================================
 
 def get_canonical_value(
     analysis_input: StartupAnalysisInput,
     path: tuple[str, ...],
-):
+) -> Any:
     """
-    Resolve a canonical value from StartupAnalysisInput using an explicit
-    semantic field path.
+    Resolve a canonical StartupAnalysisInput value.
 
     Example:
+
         ("fundraising", "valuation_cap")
     """
-    current = analysis_input
+
+    current: Any = analysis_input
 
     for attribute in path:
         if current is None:
             return None
 
-        current = getattr(current, attribute, None)
+        current = getattr(
+            current,
+            attribute,
+            None,
+        )
 
     return current
+
 
 def _json_safe(value: Any) -> Any:
     """Convert common application values into JSON-safe values."""
@@ -380,47 +352,24 @@ def _dump_model(value: Any) -> dict[str, Any]:
     return {}
 
 
-def _get_nested(
-    obj: Any,
-    *names: str,
-) -> Any:
-    """Return the first existing nested attribute."""
-
-    current = obj
-
-    for name in names:
-        if current is None:
-            return None
-
-        if isinstance(current, dict):
-            current = current.get(name)
-        else:
-            current = getattr(
-                current,
-                name,
-                None,
-            )
-
-    return current
-
 def _normalize_business_models(
     value: Any,
 ) -> set[str]:
     """
-    Normalize business-model values for handshake comparison.
+    Normalize business-model values.
 
-    SourceValue[] may contain multiple scalar values such as:
+    Examples:
 
         "b2b"
         "marketplace"
 
-    while StartupAnalysisInput may contain the canonical combined
-    representation:
+    and:
 
         "b2b, marketplace"
 
-    The validator compares semantic membership rather than raw
-    string equality.
+    both become:
+
+        {"b2b", "marketplace"}
     """
 
     if value is None:
@@ -447,8 +396,9 @@ def _normalize_business_models(
         str(value).strip().lower()
     }
 
+
 def _normalise_scalar(value: Any) -> Any:
-    """Normalize numeric values for comparison."""
+    """Normalize scalar values for semantic comparison."""
 
     if value is None:
         return None
@@ -477,18 +427,49 @@ def _values_equal(
     left: Any,
     right: Any,
 ) -> bool:
-    """Compare values without making semantic assumptions."""
+    """Compare scalar values without semantic loss."""
 
-    left_normalized = _normalise_scalar(left)
-    right_normalized = _normalise_scalar(right)
+    return (
+        _normalise_scalar(left)
+        == _normalise_scalar(right)
+    )
 
-    return left_normalized == right_normalized
+
+def _value_text_candidates(value: Any) -> set[str]:
+    """
+    Produce representations likely to appear in a textual LLM payload.
+
+    This avoids making the validator depend on one particular Decimal
+    formatting choice.
+    """
+
+    if value is None:
+        return set()
+
+    candidates = {
+        str(value),
+        str(_json_safe(value)),
+    }
+
+    if isinstance(value, Decimal):
+        candidates.add(
+            format(value, "f")
+        )
+
+        candidates.add(
+            str(value.normalize())
+        )
+
+    return {
+        candidate
+        for candidate in candidates
+        if candidate
+    }
 
 
-# ---------------------------------------------------------------------------
+# ============================================================================
 # Startup loading
-# ---------------------------------------------------------------------------
-
+# ============================================================================
 
 def load_startup(
     session,
@@ -498,23 +479,23 @@ def load_startup(
 
     return session.execute(
         select(Startup).where(
-            Startup.id == startup_id
+            Startup.id == startup_id,
         )
     ).scalar_one_or_none()
 
 
-# ---------------------------------------------------------------------------
+# ============================================================================
 # Profile observer
-# ---------------------------------------------------------------------------
-
+# ============================================================================
 
 def build_profile_observer(
     state: TraceState,
 ):
     """
-    Create the diagnostic observer.
+    Create the diagnostic InvestmentProfile observer.
 
-    This observer does not modify the production profile.
+    This observes the production boundary without changing production
+    behavior.
     """
 
     def observe(profile: Any) -> None:
@@ -523,21 +504,196 @@ def build_profile_observer(
     return observe
 
 
-# ---------------------------------------------------------------------------
-# InvestmentProfile validation
-# ---------------------------------------------------------------------------
+# ============================================================================
+# Startup / source inventory
+# ============================================================================
 
+def print_startup_inventory(
+    reporter: TraceReporter,
+    startup: Startup,
+) -> None:
+    """Print the persisted RestoMart source inventory."""
+
+    reporter.section(
+        "1. STARTUP / SOURCE INVENTORY"
+    )
+
+    reporter.info(
+        "startup_id",
+        startup.id,
+    )
+
+    reporter.info(
+        "startup_name",
+        startup.name,
+    )
+
+    documents = startup.documents or []
+
+    reporter.info(
+        "document_count",
+        len(documents),
+    )
+
+    if startup.name != EXPECTED_STARTUP_NAME:
+        reporter.warn(
+            f"Expected '{EXPECTED_STARTUP_NAME}', "
+            f"found '{startup.name}'."
+        )
+    else:
+        reporter.pass_(
+            f"Startup identity verified: {EXPECTED_STARTUP_NAME}."
+        )
+
+    if not documents:
+        reporter.fail(
+            "Startup has no production source documents."
+        )
+        return
+
+    reporter.pass_(
+        f"{len(documents)} production source document(s) found."
+    )
+
+    for document in documents:
+        print()
+        print(f"DOCUMENT {document.id}")
+        print("-" * 88)
+
+        reporter.info(
+            "title",
+            getattr(
+                document,
+                "title",
+                None,
+            ),
+        )
+
+        reporter.info(
+            "filename",
+            getattr(
+                document,
+                "filename",
+                None,
+            ),
+        )
+
+        reporter.info(
+            "mime_type",
+            getattr(
+                document,
+                "mime_type",
+                None,
+            ),
+        )
+
+        reporter.info(
+            "storage_path",
+            getattr(
+                document,
+                "storage_path",
+                None,
+            ),
+        )
+
+
+# ============================================================================
+# Document → InvestmentProfile
+# ============================================================================
+
+def process_documents_for_observation(
+    reporter: TraceReporter,
+    state: TraceState,
+    startup: Startup,
+    document_intelligence: Any,
+) -> None:
+    """
+    Run the actual production document-intelligence enrichment.
+
+    This deliberately calls the production service.
+    """
+
+    reporter.section(
+        "2. DOCUMENT → INVESTMENT PROFILE"
+    )
+
+    if not startup.documents:
+        reporter.fail(
+            "RestoMart has no documents."
+        )
+        return
+
+    if state.baseline_input is None:
+        reporter.fail(
+            "Baseline StartupAnalysisInput is missing."
+        )
+        return
+
+    try:
+        state.enriched_input = (
+            document_intelligence.enrich(
+                startup,
+                state.baseline_input,
+            )
+        )
+    except Exception as exc:
+        reporter.fail(
+            "Production document-intelligence enrichment failed: "
+            f"{type(exc).__name__}: {exc}"
+        )
+        return
+
+    reporter.pass_(
+        "Production document-intelligence enrichment completed."
+    )
+
+    # ------------------------------------------------------------------
+    # IMPORTANT:
+    #
+    # Source facts and conflicts are taken from the actual production
+    # result rather than from a second diagnostic observer.
+    # ------------------------------------------------------------------
+
+    state.source_facts = list(
+        state.enriched_input.source_facts or []
+    )
+
+    state.source_conflicts = list(
+        state.enriched_input.source_conflicts or []
+    )
+
+    reporter.info(
+        "profiles_observed",
+        len(state.profiles),
+    )
+
+    reporter.info(
+        "source_facts",
+        len(state.source_facts),
+    )
+
+    reporter.info(
+        "source_conflicts",
+        len(state.source_conflicts),
+    )
+
+
+# ============================================================================
+# InvestmentProfile validation
+# ============================================================================
 
 def validate_profiles(
     reporter: TraceReporter,
     state: TraceState,
     startup: Startup,
 ) -> None:
-    """Validate the InvestmentProfile boundary."""
+    """Validate the InvestmentProfile production boundary."""
 
     reporter.section(
         "3. INVESTMENT PROFILE HANDSHAKE"
     )
+
+    documents = startup.documents or []
 
     if not state.profiles:
         reporter.fail(
@@ -549,21 +705,29 @@ def validate_profiles(
         f"Observed {len(state.profiles)} InvestmentProfile(s)."
     )
 
+    if len(state.profiles) != len(documents):
+        reporter.fail(
+            "InvestmentProfile count does not match "
+            f"document count: "
+            f"{len(state.profiles)} profiles vs "
+            f"{len(documents)} documents."
+        )
+    else:
+        reporter.pass_(
+            "InvestmentProfile count matches document count."
+        )
+
     startup_document_ids = {
         document.id
-        for document in (
-            startup.documents or []
-        )
+        for document in documents
     }
 
-    if not startup_document_ids:
-        reporter.warn(
-            "Startup has no documents attached."
-        )
-        return
-
     observed_document_ids = {
-        profile.document_id
+        getattr(
+            profile,
+            "document_id",
+            None,
+        )
         for profile in state.profiles
     }
 
@@ -589,11 +753,20 @@ def validate_profiles(
     ):
         reporter.info(
             f"profile[{index}].document_id",
-            profile.document_id,
+            getattr(
+                profile,
+                "document_id",
+                None,
+            ),
         )
 
         evidence_count = len(
-            profile.evidence or ()
+            getattr(
+                profile,
+                "evidence",
+                None,
+            )
+            or ()
         )
 
         reporter.info(
@@ -638,40 +811,24 @@ def validate_profiles(
             )
 
 
-# ---------------------------------------------------------------------------
-# SourceValue inspection
-# ---------------------------------------------------------------------------
-
-
-def source_value_matches(
-    source_value: Any,
-    field: str,
-) -> bool:
-    """Determine whether a SourceValue represents a field."""
-
-    return (
-        getattr(
-            source_value,
-            "field",
-            None,
-        )
-        == field
-    )
-
+# ============================================================================
+# SourceValue helpers
+# ============================================================================
 
 def get_source_values(
     state: TraceState,
     field: str,
 ) -> list[Any]:
-    """Return observed source facts for a field."""
+    """Return SourceValue facts for a producer field."""
 
     return [
         source_value
         for source_value in state.source_facts
-        if source_value_matches(
+        if getattr(
             source_value,
-            field,
-        )
+            "field",
+            None,
+        ) == field
     ]
 
 
@@ -718,6 +875,24 @@ def print_source_value(
     )
 
     reporter.info(
+        "source_name",
+        getattr(
+            source_value,
+            "source_name",
+            None,
+        ),
+    )
+
+    reporter.info(
+        "source_authority",
+        getattr(
+            source_value,
+            "source_authority",
+            None,
+        ),
+    )
+
+    reporter.info(
         "section",
         getattr(
             source_value,
@@ -741,43 +916,31 @@ def print_source_value(
             source_value,
             "source_text",
             None,
-        ),
+        )
     )
 
 
-# ---------------------------------------------------------------------------
-# Canonical StartupAnalysisInput validation
-# ---------------------------------------------------------------------------
-
-
-def get_canonical_fact(
-    analysis_input: StartupAnalysisInput,
-    field: str,
-) -> Any:
-    """
-    Resolve the canonical StartupAnalysisInput value for a
-    SourceValue field using CANONICAL_FIELD_MAP.
-    """
-
-    path = CANONICAL_FIELD_MAP.get(field)
-
-    if path is None:
-        return None
-
-    return get_canonical_value(
-        analysis_input,
-        path,
-    )
-
+# ============================================================================
+# Source → canonical reconciliation
+# ============================================================================
 
 def validate_reconciliation(
     reporter: TraceReporter,
     state: TraceState,
 ) -> None:
-    """Validate SourceValue → StartupAnalysisInput."""
+    """
+    Validate SourceValue → StartupAnalysisInput.
+
+    Missing source information is a warning.
+
+    Information loss after a source fact exists is a failure.
+
+    Material reconciliation conflicts are failures for this production
+    acceptance trace.
+    """
 
     reporter.section(
-        "5. SOURCE RECONCILIATION HANDSHAKE"
+        "4. SOURCE VALUE → CANONICAL ANALYSIS INPUT"
     )
 
     if not state.source_facts:
@@ -796,9 +959,23 @@ def validate_reconciliation(
     )
 
     if state.source_conflicts:
-        reporter.warn(
-            "Source conflicts were detected; "
-            "they are intentionally preserved for diligence."
+        reporter.fail(
+            "Material source conflicts were detected."
+        )
+
+        for conflict in state.source_conflicts:
+            reporter.info(
+                "conflict.field",
+                getattr(
+                    conflict,
+                    "field",
+                    None,
+                ),
+            )
+
+    else:
+        reporter.pass_(
+            "No source reconciliation conflicts detected."
         )
 
     if state.enriched_input is None:
@@ -816,72 +993,84 @@ def validate_reconciliation(
             state,
             field,
         )
-    
+
         print()
         print(f"FACT: {field}")
         print("." * 88)
-    
+
         reporter.info(
             "source_value_count",
             len(source_values),
         )
-    
-        canonical_path = CANONICAL_FIELD_MAP.get(field)
-    
+
+        canonical_path = CANONICAL_FIELD_MAP.get(
+            field
+        )
+
         if canonical_path is None:
-            reporter.warn(
+            reporter.fail(
                 f"No canonical mapping defined for '{field}'."
             )
             continue
-    
+
         reporter.info(
             "canonical_path",
             ".".join(canonical_path),
         )
-    
+
         # --------------------------------------------------------------
-        # Missing source information is not a reconciliation failure.
+        # Missing source information.
+        #
+        # This is not a reconciliation failure.
         # --------------------------------------------------------------
-    
+
         if not source_values:
+            canonical_value = get_canonical_value(
+                state.enriched_input,
+                canonical_path,
+            )
+
             reporter.info(
                 "canonical_value",
-                None,
+                canonical_value,
             )
-    
-            reporter.warn(
-                f"No SourceValue found for '{field}'."
-            )
-    
+
+            if canonical_value is None:
+                reporter.warn(
+                    f"No SourceValue found for '{field}'."
+                )
+            else:
+                reporter.warn(
+                    f"No SourceValue found for '{field}', "
+                    f"but canonical value exists at "
+                    f"'{'.'.join(canonical_path)}'."
+                )
+
             continue
-    
-        # --------------------------------------------------------------
-        # SourceValue exists — canonical value must now exist.
-        # --------------------------------------------------------------
-    
+
         canonical_value = get_canonical_value(
             state.enriched_input,
             canonical_path,
         )
-    
+
         reporter.info(
             "canonical_value",
             canonical_value,
         )
-    
+
         for source_value in source_values:
             print_source_value(
                 reporter,
                 source_value,
             )
-    
+
         # --------------------------------------------------------------
         # Business model is semantically multi-valued.
         # --------------------------------------------------------------
-    
+
         if field == "business_model":
             source_models: set[str] = set()
-    
+
             for source_value in source_values:
                 source_models.update(
                     _normalize_business_models(
@@ -892,21 +1081,23 @@ def validate_reconciliation(
                         )
                     )
                 )
-    
-            canonical_models = _normalize_business_models(
-                canonical_value
+
+            canonical_models = (
+                _normalize_business_models(
+                    canonical_value
+                )
             )
-    
+
             reporter.info(
                 "normalized_source_models",
                 sorted(source_models),
             )
-    
+
             reporter.info(
                 "normalized_canonical_models",
                 sorted(canonical_models),
             )
-    
+
             if source_models == canonical_models:
                 reporter.pass_(
                     "business_model: SourceValue values "
@@ -917,13 +1108,13 @@ def validate_reconciliation(
                     "business_model: canonical values differ "
                     "from normalized SourceValue values."
                 )
-    
+
             continue
-    
+
         # --------------------------------------------------------------
         # Scalar source facts.
         # --------------------------------------------------------------
-    
+
         if canonical_value is None:
             reporter.fail(
                 f"'{field}' existed in SourceValue[] but was not "
@@ -931,7 +1122,7 @@ def validate_reconciliation(
                 f"'{'.'.join(canonical_path)}'."
             )
             continue
-    
+
         matching_values = [
             source_value
             for source_value in source_values
@@ -944,7 +1135,7 @@ def validate_reconciliation(
                 canonical_value,
             )
         ]
-    
+
         if matching_values:
             reporter.pass_(
                 f"{field} → "
@@ -958,19 +1149,18 @@ def validate_reconciliation(
             )
 
 
-# ---------------------------------------------------------------------------
-# Baseline vs enriched input
-# ---------------------------------------------------------------------------
-
+# ============================================================================
+# Baseline → enriched input
+# ============================================================================
 
 def validate_baseline_and_enriched_input(
     reporter: TraceReporter,
     state: TraceState,
 ) -> None:
-    """Show the actual baseline → enrichment boundary."""
+    """Validate the baseline → document-intelligence boundary."""
 
     reporter.section(
-        "4. DOCUMENT INTELLIGENCE → ANALYSIS INPUT"
+        "5. BASELINE → ENRICHED ANALYSIS INPUT"
     )
 
     baseline = state.baseline_input
@@ -996,8 +1186,13 @@ def validate_baseline_and_enriched_input(
         "Enriched StartupAnalysisInput created."
     )
 
-    baseline_payload = _dump_model(baseline)
-    enriched_payload = _dump_model(enriched)
+    baseline_payload = _dump_model(
+        baseline
+    )
+
+    enriched_payload = _dump_model(
+        enriched
+    )
 
     for field in (
         "company",
@@ -1029,11 +1224,21 @@ def validate_baseline_and_enriched_input(
                 f"  {field:<20} enriched/changed"
             )
 
+    if not enriched.source_facts:
+        reporter.fail(
+            "Enriched StartupAnalysisInput contains "
+            "no source_facts."
+        )
+    else:
+        reporter.pass_(
+            "Enriched StartupAnalysisInput contains "
+            f"{len(enriched.source_facts)} source fact(s)."
+        )
 
-# ---------------------------------------------------------------------------
-# Financial metrics
-# ---------------------------------------------------------------------------
 
+# ============================================================================
+# Deterministic financial metrics
+# ============================================================================
 
 def calculate_metrics(
     reporter: TraceReporter,
@@ -1051,10 +1256,12 @@ def calculate_metrics(
         )
         return
 
-    state.metrics = FinancialMetricsService.calculate(
-        financials=state.enriched_input.financials,
-        fundraising=state.enriched_input.fundraising,
-        business_model=state.enriched_input.business_model,
+    state.metrics = (
+        FinancialMetricsService.calculate(
+            financials=state.enriched_input.financials,
+            fundraising=state.enriched_input.fundraising,
+            business_model=state.enriched_input.business_model,
+        )
     )
 
     reporter.pass_(
@@ -1074,16 +1281,15 @@ def calculate_metrics(
     )
 
 
-# ---------------------------------------------------------------------------
-# LLM payload
-# ---------------------------------------------------------------------------
-
+# ============================================================================
+# Canonical input → LLM payload
+# ============================================================================
 
 def build_llm_payload(
     reporter: TraceReporter,
     state: TraceState,
 ) -> None:
-    """Build the exact production prompt."""
+    """Build and validate the exact production startup-analysis messages."""
 
     reporter.section(
         "7. CANONICAL INPUT → LLM PAYLOAD"
@@ -1122,9 +1328,6 @@ def build_llm_payload(
         print("-" * 88)
         print(message.content)
 
-    # Verify canonical facts are present in the
-    # actual user message rather than constructing
-    # another payload ourselves.
     user_messages = [
         message
         for message in state.messages
@@ -1139,20 +1342,29 @@ def build_llm_payload(
 
     user_content = user_messages[-1].content
 
+    # --------------------------------------------------------------
+    # Verify that canonical fields actually reach the real payload.
+    # --------------------------------------------------------------
+
     for field in EXPECTED_FACTS:
-        canonical_value = get_canonical_fact(
+        canonical_value = get_canonical_value(
             state.enriched_input,
-            field,
+            CANONICAL_FIELD_MAP[field],
         )
 
+        # Missing source/canonical value is already handled by the
+        # reconciliation stage.
         if canonical_value is None:
             continue
 
-        value_text = str(
-            _json_safe(canonical_value)
+        value_candidates = _value_text_candidates(
+            canonical_value
         )
 
-        if value_text in user_content:
+        if any(
+            candidate in user_content
+            for candidate in value_candidates
+        ):
             reporter.pass_(
                 f"LLM payload contains canonical {field}."
             )
@@ -1161,18 +1373,49 @@ def build_llm_payload(
                 f"LLM payload lost canonical {field}."
             )
 
+    # --------------------------------------------------------------
+    # Deterministic metrics must also reach the payload.
+    # --------------------------------------------------------------
 
-# ---------------------------------------------------------------------------
-# Qwen execution
-# ---------------------------------------------------------------------------
+    metrics_payload = _dump_model(
+        state.metrics
+    )
 
+    for metric_name, metric_value in (
+        metrics_payload.items()
+    ):
+        if metric_value is None:
+            continue
+
+        candidates = _value_text_candidates(
+            metric_value
+        )
+
+        if any(
+            candidate in user_content
+            for candidate in candidates
+        ):
+            reporter.pass_(
+                f"LLM payload contains deterministic metric "
+                f"'{metric_name}'."
+            )
+        else:
+            reporter.warn(
+                f"LLM payload does not visibly contain "
+                f"metric '{metric_name}'."
+            )
+
+
+# ============================================================================
+# Real Qwen execution
+# ============================================================================
 
 def run_llm(
     reporter: TraceReporter,
     state: TraceState,
     mode: StartupAnalysisMode,
 ) -> None:
-    """Execute the real Qwen provider."""
+    """Execute the real production Qwen provider."""
 
     reporter.section(
         "8. REAL QWEN EXECUTION"
@@ -1272,16 +1515,15 @@ def run_llm(
     print(response.text)
 
 
-# ---------------------------------------------------------------------------
-# Result parsing
-# ---------------------------------------------------------------------------
-
+# ============================================================================
+# LLM response → StartupAnalysisResult
+# ============================================================================
 
 def parse_llm_result(
     reporter: TraceReporter,
     state: TraceState,
 ) -> None:
-    """Run the production response parser."""
+    """Run the production StartupAnalysisParser."""
 
     reporter.section(
         "9. LLM RESPONSE → ANALYSIS RESULT"
@@ -1344,145 +1586,9 @@ def parse_llm_result(
         )
 
 
-# ---------------------------------------------------------------------------
-# Startup / document trace
-# ---------------------------------------------------------------------------
-
-
-def print_startup_inventory(
-    reporter: TraceReporter,
-    startup: Startup,
-) -> None:
-    """Print the persisted RestoMart source inventory."""
-
-    reporter.section(
-        "1. STARTUP / SOURCE INVENTORY"
-    )
-
-    reporter.info(
-        "startup_id",
-        startup.id,
-    )
-
-    reporter.info(
-        "startup_name",
-        startup.name,
-    )
-
-    reporter.info(
-        "document_count",
-        len(startup.documents or []),
-    )
-
-    if startup.name != EXPECTED_STARTUP_NAME:
-        reporter.warn(
-            f"Expected '{EXPECTED_STARTUP_NAME}', "
-            f"found '{startup.name}'."
-        )
-
-    for document in (
-        startup.documents or []
-    ):
-        print()
-        print(
-            f"DOCUMENT {document.id}"
-        )
-        print("-" * 88)
-
-        reporter.info(
-            "title",
-            getattr(
-                document,
-                "title",
-                None,
-            ),
-        )
-
-        reporter.info(
-            "filename",
-            getattr(
-                document,
-                "filename",
-                None,
-            ),
-        )
-
-        reporter.info(
-            "mime_type",
-            getattr(
-                document,
-                "mime_type",
-                None,
-            ),
-        )
-
-        reporter.info(
-            "storage_path",
-            getattr(
-                document,
-                "storage_path",
-                None,
-            ),
-        )
-
-
-def process_documents_for_observation(
-    reporter: TraceReporter,
-    state: TraceState,
-    startup: Startup,
-    document_intelligence: Any,
-) -> None:
-    """
-    Run the actual production document-intelligence enrichment.
-
-    This deliberately calls the production service rather than
-    reimplementing document processing.
-    """
-
-    reporter.section(
-        "2. PRODUCTION DOCUMENT → INVESTMENT PROFILE"
-    )
-
-    if not startup.documents:
-        reporter.fail(
-            "RestoMart has no documents."
-        )
-        return
-
-    if state.baseline_input is None:
-        reporter.fail(
-            "Baseline input is missing."
-        )
-        return
-
-    try:
-        state.enriched_input = (
-            document_intelligence.enrich(
-                startup,
-                state.baseline_input,
-            )
-        )
-    except Exception as exc:
-        reporter.fail(
-            "Production document-intelligence enrichment failed: "
-            f"{type(exc).__name__}: {exc}"
-        )
-        return
-
-    reporter.pass_(
-        "Production document-intelligence enrichment completed."
-    )
-
-    reporter.info(
-        "profiles_observed",
-        len(state.profiles),
-    )
-
-
-# ---------------------------------------------------------------------------
-# Main validation
-# ---------------------------------------------------------------------------
-
+# ============================================================================
+# Argument parsing
+# ============================================================================
 
 def parse_args() -> argparse.Namespace:
     """Parse command-line arguments."""
@@ -1491,7 +1597,8 @@ def parse_args() -> argparse.Namespace:
         description=(
             "Validate the production RestoMart "
             "Document → InvestmentProfile → "
-            "Reconciliation → LLM handshake."
+            "SourceValue → Reconciliation → "
+            "LLM → StartupAnalysisResult flow."
         )
     )
 
@@ -1531,6 +1638,10 @@ def parse_args() -> argparse.Namespace:
 
     return parser.parse_args()
 
+
+# ============================================================================
+# Main
+# ============================================================================
 
 def main() -> int:
     """Run the complete production trace."""
@@ -1580,7 +1691,9 @@ def main() -> int:
 
     reporter.info(
         "LLM execution",
-        "ENABLED" if run_llm_enabled else "DISABLED",
+        "ENABLED"
+        if run_llm_enabled
+        else "DISABLED",
     )
 
     reporter.info(
@@ -1592,7 +1705,7 @@ def main() -> int:
 
     try:
         # --------------------------------------------------------------
-        # 1. Load startup
+        # 1. Startup / source inventory
         # --------------------------------------------------------------
 
         startup = load_startup(
@@ -1616,24 +1729,26 @@ def main() -> int:
         )
 
         # --------------------------------------------------------------
-        # 2. Baseline analysis input
+        # 2. Baseline StartupAnalysisInput
         # --------------------------------------------------------------
 
         reporter.section(
             "BASELINE ANALYSIS INPUT"
         )
 
+        state = TraceState(
+            profiles=[],
+            source_facts=[],
+            source_conflicts=[],
+        )
+
         builder = StartupAnalysisInputBuilder()
 
         try:
-            state = TraceState(
-                profiles=[],
-                source_facts=[],
-                source_conflicts=[],
-            )
-
-            state.baseline_input = builder.build(
-                startup
+            state.baseline_input = (
+                builder.build(
+                    startup
+                )
             )
         except Exception as exc:
             reporter.fail(
@@ -1647,59 +1762,23 @@ def main() -> int:
         )
 
         # --------------------------------------------------------------
-        # 3. Production document intelligence
-        # --------------------------------------------------------------
-        #
-        # Use the real production factory.
-        #
-        # The profile_observer is a diagnostic-only hook. It allows this
-        # script to observe the InvestmentProfile boundary without
-        # reconstructing or bypassing the production dependency graph.
+        # 3. Production document-intelligence factory
         # --------------------------------------------------------------
 
         reporter.section(
-            "3. PRODUCTION DOCUMENT INTELLIGENCE FACTORY"
+            "PRODUCTION DOCUMENT INTELLIGENCE FACTORY"
         )
 
-    
-        def observe_profile(profile: Any) -> None:
-            state.profiles.append(profile)
-
-        #Debug 
-        def observe_source_facts(
-            source_facts: list[SourceValue],
-        ) -> None:
-            state.source_facts.extend(source_facts)
-        
-            print()
-            print("-" * 88)
-            print("C.7.7.7.B.8 — VALUATION SOURCE FACTS ENTERING RECONCILIATION")
-            print("-" * 88)
-        
-            for fact in source_facts:
-                if fact.field in {
-                    "valuation",
-                    "valuation_cap",
-                    "pre_money_valuation",
-                    "post_money_valuation",
-                }:
-                    print(
-                        f"field={fact.field!r} "
-                        f"value={fact.value!r} "
-                        f"status={fact.status!r} "
-                        f"authority={fact.source_authority!r} "
-                        f"source={fact.source_name!r} "
-                        f"document={fact.source_document_id!r}"
-                    )
-
+        profile_observer = (
+            build_profile_observer(state)
+        )
 
         try:
             document_intelligence = (
                 StartupAnalysisApplicationService
                 .create_startup_analysis_document_intelligence(
                     session,
-                    profile_observer=observe_profile,
-                    source_facts_observer=observe_source_facts,
+                    profile_observer=profile_observer,
                 )
             )
         except Exception as exc:
@@ -1714,7 +1793,7 @@ def main() -> int:
         )
 
         # --------------------------------------------------------------
-        # Execute the actual production document-intelligence path.
+        # 4. Execute real document-intelligence path
         # --------------------------------------------------------------
 
         process_documents_for_observation(
@@ -1725,7 +1804,7 @@ def main() -> int:
         )
 
         # --------------------------------------------------------------
-        # 4. InvestmentProfile boundary
+        # 5. InvestmentProfile boundary
         # --------------------------------------------------------------
 
         validate_profiles(
@@ -1735,7 +1814,7 @@ def main() -> int:
         )
 
         # --------------------------------------------------------------
-        # 5. Source reconciliation
+        # 6. SourceValue → canonical reconciliation
         # --------------------------------------------------------------
 
         validate_reconciliation(
@@ -1744,7 +1823,7 @@ def main() -> int:
         )
 
         # --------------------------------------------------------------
-        # 6. Baseline → enriched analysis input
+        # 7. Baseline → enriched input
         # --------------------------------------------------------------
 
         validate_baseline_and_enriched_input(
@@ -1753,7 +1832,7 @@ def main() -> int:
         )
 
         # --------------------------------------------------------------
-        # 7. Deterministic financial metrics
+        # 8. Deterministic financial metrics
         # --------------------------------------------------------------
 
         calculate_metrics(
@@ -1762,7 +1841,7 @@ def main() -> int:
         )
 
         # --------------------------------------------------------------
-        # 8. Canonical input → production LLM payload
+        # 9. Canonical input → LLM payload
         # --------------------------------------------------------------
 
         build_llm_payload(
@@ -1771,7 +1850,7 @@ def main() -> int:
         )
 
         # --------------------------------------------------------------
-        # 9. Optional real Qwen execution
+        # 10. Optional real Qwen execution
         # --------------------------------------------------------------
 
         if run_llm_enabled:
@@ -1787,8 +1866,9 @@ def main() -> int:
             )
         else:
             reporter.section(
-                "8/9. LLM EXECUTION"
+                "10. LLM EXECUTION"
             )
+
             reporter.info(
                 "status",
                 "SKIPPED (--no-llm)",
