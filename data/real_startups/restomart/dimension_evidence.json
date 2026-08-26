@@ -1,0 +1,200 @@
+{
+  "schema_version": "1.0",
+  "startup": "RestoMart",
+  "dimensions": {
+    "founder_team": {
+      "evidence": [
+        {
+          "evidence_ref": "investor_brief_founders",
+          "observation": "The founding team consists of three founders. The CEO has previous experience at Premji Invest, the COO at Amazon and Zinnov, and the CBO at PwC and Novartis.",
+          "source_type": "investor_brief"
+        },
+        {
+          "evidence_ref": "fundraise_founder_ownership",
+          "observation": "Founder ownership is represented as CEO 50%, COO 25%, and CBO 25%.",
+          "source_type": "fundraising_document"
+        }
+      ]
+    },
+
+    "market_tam": {
+      "evidence": [
+        {
+          "evidence_ref": "business_model_customer",
+          "observation": "RestoMart is a B2B food-supply and restaurant procurement company serving restaurants rather than individual consumers.",
+          "source_type": "business_model_document"
+        },
+        {
+          "evidence_ref": "investor_brief_market",
+          "observation": "The company focuses on simplifying procurement for restaurants through a curated procurement marketplace combined with supply-chain and fulfillment operations.",
+          "source_type": "investor_brief"
+        }
+      ]
+    },
+
+    "product_pmf": {
+      "evidence": [
+        {
+          "evidence_ref": "investor_brief_product",
+          "observation": "RestoMart provides restaurants with a curated selection of food-supply products and procurement services intended to improve procurement reliability, availability, delivery speed and operating efficiency.",
+          "source_type": "investor_brief"
+        },
+        {
+          "evidence_ref": "investor_brief_repeat_usage",
+          "observation": "The company has demonstrated repeat usage from restaurant customers.",
+          "source_type": "investor_brief"
+        },
+        {
+          "evidence_ref": "financials_customer_base",
+          "observation": "RestoMart reports more than 165 restaurant customers.",
+          "source_type": "financial_document"
+        }
+      ]
+    },
+
+    "technology_ip_moat": {
+      "evidence": [
+        {
+          "evidence_ref": "business_model_operating_model",
+          "observation": "The operating model uses curated SKUs, restaurant-density clusters, micro-fulfillment centers, rapid delivery and supply-chain coordination.",
+          "source_type": "business_model_document"
+        },
+        {
+          "evidence_ref": "business_model_cluster_strategy",
+          "observation": "Higher restaurant density within geographic clusters is intended to improve delivery, fulfillment, inventory positioning, customer service and route-planning economics.",
+          "source_type": "business_model_document"
+        },
+        {
+          "evidence_ref": "business_model_micro_fulfillment",
+          "observation": "RestoMart uses micro-fulfillment centers to support localized inventory and rapid fulfillment, with a target delivery proposition of approximately four hours.",
+          "source_type": "business_model_document"
+        }
+      ]
+    },
+
+    "commercial_traction": {
+      "evidence": [
+        {
+          "evidence_ref": "financials_revenue",
+          "observation": "Reported revenue is approximately INR 2.68 crore.",
+          "source_type": "financial_document"
+        },
+        {
+          "evidence_ref": "financials_customer_base",
+          "observation": "RestoMart reports more than 165 restaurant customers.",
+          "source_type": "financial_document"
+        },
+        {
+          "evidence_ref": "investor_brief_repeat_usage",
+          "observation": "The company has demonstrated repeat usage from restaurant customers.",
+          "source_type": "investor_brief"
+        },
+        {
+          "evidence_ref": "financials_fulfillment",
+          "observation": "Reported fulfillment reliability is approximately 95%.",
+          "source_type": "financial_document"
+        }
+      ]
+    },
+
+    "unit_economics_margins": {
+      "evidence": [
+        {
+          "evidence_ref": "financials_gross_margin",
+          "observation": "Gross margin reportedly improved from approximately 3.1% to approximately 12%.",
+          "source_type": "financial_document"
+        },
+        {
+          "evidence_ref": "business_model_unit_economics",
+          "observation": "Important unit-economic variables include restaurant acquisition cost, average order value, orders per restaurant, gross margin per order, delivery cost per order, fulfillment cost, inventory carrying cost, wastage, restaurant retention and contribution margin.",
+          "source_type": "business_model_document"
+        },
+        {
+          "evidence_ref": "business_model_scalability",
+          "observation": "A central operating question is whether the cluster-density and micro-fulfillment model becomes increasingly efficient as restaurant density increases.",
+          "source_type": "business_model_document"
+        }
+      ]
+    },
+
+    "financial_health": {
+      "evidence": [
+        {
+          "evidence_ref": "financials_revenue",
+          "observation": "Reported revenue is approximately INR 2.68 crore.",
+          "source_type": "financial_document"
+        },
+        {
+          "evidence_ref": "financials_profitability",
+          "observation": "The company is reported as profitable and bootstrapped.",
+          "source_type": "financial_document"
+        },
+        {
+          "evidence_ref": "financials_gross_margin",
+          "observation": "Gross margin reportedly improved from approximately 3.1% to approximately 12%.",
+          "source_type": "financial_document"
+        }
+      ]
+    },
+
+    "governance_cap_table": {
+      "evidence": [
+        {
+          "evidence_ref": "fundraise_founder_ownership",
+          "observation": "Founder ownership is represented as CEO 50%, COO 25%, and CBO 25%.",
+          "source_type": "fundraising_document"
+        },
+        {
+          "evidence_ref": "founders_2025",
+          "observation": "Three founders are identified with CEO, COO and CBO roles.",
+          "source_type": "startup_database"
+        }
+      ]
+    },
+
+    "valuation_deal_terms": {
+      "evidence": [
+        {
+          "evidence_ref": "fundraise_valuation",
+          "observation": "Previously discussed valuation cap is INR 9.25 crore.",
+          "source_type": "fundraising_document"
+        },
+        {
+          "evidence_ref": "fundraise_raise",
+          "observation": "The current fundraising amount is INR 2 crore.",
+          "source_type": "fundraising_document"
+        },
+        {
+          "evidence_ref": "fundraise_minimum",
+          "observation": "The previously discussed minimum investment is INR 2 lakh.",
+          "source_type": "fundraising_document"
+        },
+        {
+          "evidence_ref": "financials_revenue",
+          "observation": "Reported revenue is approximately INR 2.68 crore.",
+          "source_type": "financial_document"
+        }
+      ]
+    },
+
+    "risk_exit_potential": {
+      "evidence": [
+        {
+          "evidence_ref": "fundraise_key_risks",
+          "observation": "Identified risks include low-margin food-supply operations, supply-chain execution risk, working-capital requirements, customer retention risk, customer concentration risk, competitive pressure and difficulty scaling micro-fulfillment economically.",
+          "source_type": "fundraising_document"
+        },
+        {
+          "evidence_ref": "business_model_scalability",
+          "observation": "A central operating question is whether the cluster-density and micro-fulfillment model becomes increasingly efficient as restaurant density increases.",
+          "source_type": "business_model_document"
+        },
+        {
+          "evidence_ref": "investor_brief_competition",
+          "observation": "Potential competitive pressure can come from traditional distributors, wholesale markets, restaurant procurement aggregators, digital B2B marketplaces, direct supplier relationships and large food-supply platforms.",
+          "source_type": "business_model_document"
+        }
+      ]
+    }
+  }
+}

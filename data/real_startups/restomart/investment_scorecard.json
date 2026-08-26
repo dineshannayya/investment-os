@@ -11,6 +11,23 @@
     "name": "Dinesh",
     "description": "Evaluate startups based on founder quality, market opportunity, product-market fit, defensibility, commercial validation, economics, financial health, governance, valuation and investment risk. Missing information must not automatically be treated as negative evidence."
   },
+  "evaluation_principles": {
+    "evidence_semantics": {
+      "missing_information_is_not_negative_evidence": true,
+      "absence_of_evidence_is_not_evidence_of_negative_condition": true,
+      "risk_requires_supporting_evidence": true
+    },
+  
+    "missing_information_rule": {
+      "title": "Missing Information Must Not Automatically Become Risk",
+      "rules": [
+        "Do not convert missing information into a risk merely because the information is unavailable.",
+        "A risk requires negative or concerning evidence, or a documented condition that creates a material investment risk.",
+        "If information is simply unavailable, report it under missing_information instead.",
+        "Do not use absence of evidence as evidence of a negative condition."
+      ]
+    }
+  },
 
   "dimensions": [
     {
@@ -68,7 +85,7 @@
       },
       "investor_preferences": {
         "priority": "high",
-        "notes": "Founder quality is one of the primary investment considerations."
+        "notes": "Founder quality is one of the primary investment considerations.Missing information must not automatically be treated as negative evidence or a risk."
       }
     },
 

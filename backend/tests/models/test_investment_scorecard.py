@@ -17,6 +17,12 @@ from app.models.investment_scorecard import (
     RiskSeverity,
 )
 
+from app.models.investment_scorecard import (
+    InvestmentScorecard,
+    DimensionEvaluation,
+    MultiDimensionEvaluation,
+)
+
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
@@ -27,6 +33,17 @@ RESTOMART_SCORECARD = (
     / "restomart"
     / "investment_scorecard.json"
 )
+
+
+@pytest.fixture
+def scorecard() -> InvestmentScorecard:
+    data = json.loads(
+        RESTOMART_SCORECARD.read_text(
+            encoding="utf-8"
+        )
+    )
+
+    return InvestmentScorecard.model_validate(data)
 
 
 def load_restomart_scorecard() -> InvestmentScorecard:
@@ -664,3 +681,410 @@ def test_score_and_confidence_are_independent() -> None:
 
     assert evaluation.score == Decimal("90")
     assert evaluation.confidence == Decimal("40")
+
+def test_dimension_evidence_extra_fields_are_rejected() -> None:
+    with pytest.raises(ValidationError):
+        DimensionEvidence(
+            evidence_ref="financials_2025",
+            observation="Revenue was INR 2.68 crore.",
+            source_type="financial_document",
+            score=80,
+        )
+
+def test_dimension_risk_extra_fields_are_rejected() -> None:
+    with pytest.raises(ValidationError):
+        DimensionRisk(
+            risk="Customer concentration",
+            severity=RiskSeverity.MEDIUM,
+            impact="Potential revenue volatility.",
+            risk_score=80,
+        )
+
+def test_dimension_risk_blank_evidence_reference_rejected() -> None:
+    with pytest.raises(ValidationError):
+        DimensionRisk(
+            risk="Customer concentration",
+            severity=RiskSeverity.MEDIUM,
+            impact="Potential revenue volatility.",
+            evidence_refs=["   "],
+        )
+
+def test_llm_evaluation_does_not_contain_recommendation() -> None:
+    evaluation = DimensionEvaluation(
+        dimension_id="commercial_traction",
+        score=Decimal("72"),
+        confidence=Decimal("82"),
+        reasoning="Revenue traction is demonstrated.",
+    )
+
+    dumped = evaluation.model_dump()
+
+    assert "recommendation" not in dumped
+    assert "investment_recommendation" not in dumped
+
+def test_llm_evaluation_does_not_contain_overall_score() -> None:
+    evaluation = DimensionEvaluation(
+        dimension_id="commercial_traction",
+        score=Decimal("72"),
+        confidence=Decimal("82"),
+        reasoning="Revenue traction is demonstrated.",
+    )
+
+    dumped = evaluation.model_dump()
+
+    assert "overall_score" not in dumped
+    assert "weighted_score" not in dumped
+
+def test_risk_and_missing_information_are_separate() -> None:
+    evaluation = DimensionEvaluation(
+        dimension_id="commercial_traction",
+        score=Decimal("72"),
+        confidence=Decimal("65"),
+        evidence=[
+            DimensionEvidence(
+                evidence_ref="financials_2025",
+                observation="Revenue was INR 2.68 crore.",
+                source_type="financial_document",
+            )
+        ],
+        risk_observations=[
+            DimensionRisk(
+                risk="Customer concentration",
+                severity=RiskSeverity.HIGH,
+                impact="Revenue may be exposed to a concentrated customer base.",
+                evidence_refs=["financials_2025"],
+            )
+        ],
+        missing_information=[
+            "Customer retention metrics",
+            "Customer acquisition cost",
+        ],
+        reasoning=(
+            "Commercial traction is demonstrated, "
+            "but concentration risk exists and retention "
+            "information remains incomplete."
+        ),
+    )
+
+    assert len(evaluation.risk_observations) == 1
+    assert len(evaluation.missing_information) == 2
+
+    assert evaluation.score == Decimal("72")
+    assert evaluation.confidence == Decimal("65")
+
+def test_high_confidence_does_not_imply_high_score() -> None:
+    evaluation = DimensionEvaluation(
+        dimension_id="governance_cap_table",
+        score=Decimal("35"),
+        confidence=Decimal("95"),
+        reasoning=(
+            "Available governance evidence clearly indicates "
+            "significant governance concerns."
+        ),
+    )
+
+    assert evaluation.score == Decimal("35")
+    assert evaluation.confidence == Decimal("95")
+
+
+def test_dimension_scorecard_result_zero_weight() -> None:
+    result = DimensionScorecardResult(
+        dimension_id="financial_health",
+        score=Decimal("90"),
+        confidence=Decimal("90"),
+        weight=Decimal("0"),
+        weighted_score=Decimal("0"),
+    )
+
+    assert result.weighted_score == Decimal("0")
+
+
+def test_dimension_scorecard_result_full_weight() -> None:
+    result = DimensionScorecardResult(
+        dimension_id="financial_health",
+        score=Decimal("90"),
+        confidence=Decimal("90"),
+        weight=Decimal("100"),
+        weighted_score=Decimal("90"),
+    )
+
+    assert result.weighted_score == Decimal("90")
+
+def test_dimension_scorecard_result_uses_percentage_weight() -> None:
+    result = DimensionScorecardResult(
+        dimension_id="commercial_traction",
+        score=Decimal("80"),
+        confidence=Decimal("90"),
+        weight=Decimal("15"),
+        weighted_score=Decimal("12"),
+    )
+
+    assert result.weighted_score == (
+        result.score * result.weight / Decimal("100")
+    )
+
+
+def test_scorecard_contains_evaluation_principles(
+    scorecard,
+):
+    principles = scorecard.evaluation_principles
+
+    assert (
+        principles
+        .evidence_semantics
+        .missing_information_is_not_negative_evidence
+        is True
+    )
+
+    assert (
+        principles
+        .evidence_semantics
+        .absence_of_evidence_is_not_evidence_of_negative_condition
+        is True
+    )
+
+    assert (
+        principles
+        .evidence_semantics
+        .risk_requires_supporting_evidence
+        is True
+    )
+
+    assert len(
+        principles
+        .missing_information_rule
+        .rules
+    ) >= 4
+
+def test_multi_dimension_evaluation_accepts_unique_dimensions():
+    evaluations = [
+        DimensionEvaluation(
+            dimension_id="founder_team",
+            score=80,
+            confidence=90,
+            evidence=[],
+            positive_observations=[
+                "Experienced founding team."
+            ],
+            risk_observations=[],
+            missing_information=[],
+            reasoning="Strong founder evidence.",
+        ),
+        DimensionEvaluation(
+            dimension_id="market_tam",
+            score=70,
+            confidence=75,
+            evidence=[],
+            positive_observations=[
+                "Large addressable market."
+            ],
+            risk_observations=[],
+            missing_information=[],
+            reasoning="Market opportunity appears meaningful.",
+        ),
+    ]
+
+    result = MultiDimensionEvaluation(
+        scorecard_version=1,
+        startup_name="RestoMart",
+        evaluations=evaluations,
+    )
+
+    assert result.scorecard_version == 1
+    assert result.startup_name == "RestoMart"
+    assert len(result.evaluations) == 2
+
+    assert [
+        evaluation.dimension_id
+        for evaluation in result.evaluations
+    ] == [
+        "founder_team",
+        "market_tam",
+    ]
+
+def test_multi_dimension_evaluation_rejects_duplicate_dimensions():
+    evaluation = DimensionEvaluation(
+        dimension_id="commercial_traction",
+        score=60,
+        confidence=70,
+        evidence=[],
+        positive_observations=[
+            "Meaningful revenue."
+        ],
+        risk_observations=[],
+        missing_information=[
+            "Customer retention",
+        ],
+        reasoning=(
+            "Revenue is available but retention "
+            "information is missing."
+        ),
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="duplicate dimension evaluations",
+    ):
+        MultiDimensionEvaluation(
+            scorecard_version=1,
+            startup_name="RestoMart",
+            evaluations=[
+                evaluation,
+                evaluation,
+            ],
+        )
+
+def test_multi_dimension_evaluation_contains_only_evaluations():
+    result = MultiDimensionEvaluation(
+        scorecard_version=1,
+        startup_name="RestoMart",
+        evaluations=[],
+    )
+
+    payload = result.model_dump()
+
+    assert "score" not in payload
+    assert "overall_score" not in payload
+    assert "weighted_score" not in payload
+    assert "recommendation" not in payload
+
+def test_multi_dimension_evaluation_preserves_dimension_details():
+    evaluation = DimensionEvaluation(
+        dimension_id="commercial_traction",
+        score=60,
+        confidence=70,
+        evidence=[
+            {
+                "evidence_ref": "financials_2025",
+                "observation": "Revenue is INR 2.68 crore.",
+                "source_type": "financial_document",
+            }
+        ],
+        positive_observations=[
+            "Meaningful revenue."
+        ],
+        risk_observations=[],
+        missing_information=[
+            "Customer retention",
+        ],
+        reasoning=(
+            "Revenue provides evidence of commercial traction."
+        ),
+    )
+
+    result = MultiDimensionEvaluation(
+        scorecard_version=1,
+        startup_name="RestoMart",
+        evaluations=[evaluation],
+    )
+
+    stored = result.evaluations[0]
+
+    assert stored.dimension_id == "commercial_traction"
+    assert stored.score == 60
+    assert stored.confidence == 70
+    assert len(stored.evidence) == 1
+    assert len(stored.missing_information) == 1
+    assert stored.missing_information[0].item == (
+        "Customer retention"
+    )
+    assert stored.missing_information[0].reason == ""
+
+    assert stored.risk_observations == []
+
+def test_missing_information_accepts_structured_items():
+    evaluation = DimensionEvaluation(
+        dimension_id="founder_team",
+        score=70,
+        confidence=80,
+        evidence=[],
+        positive_observations=[],
+        risk_observations=[],
+        missing_information=[
+            {
+                "item": "Founder ownership",
+                "reason": (
+                    "Needed to assess founder alignment."
+                ),
+            }
+        ],
+        reasoning="Founder evidence is incomplete.",
+    )
+
+    assert len(evaluation.missing_information) == 1
+
+    item = evaluation.missing_information[0]
+
+    assert item.item == "Founder ownership"
+    assert item.reason == (
+        "Needed to assess founder alignment."
+    )
+
+
+def test_missing_information_accepts_legacy_strings():
+    evaluation = DimensionEvaluation(
+        dimension_id="commercial_traction",
+        score=60,
+        confidence=70,
+        evidence=[],
+        positive_observations=[],
+        risk_observations=[],
+        missing_information=[
+            "Customer retention",
+            "Revenue growth",
+        ],
+        reasoning="Commercial evidence is incomplete.",
+    )
+
+    assert [
+        item.item
+        for item in evaluation.missing_information
+    ] == [
+        "Customer retention",
+        "Revenue growth",
+    ]
+
+    assert [
+        item.reason
+        for item in evaluation.missing_information
+    ] == [
+        "",
+        "",
+    ]
+
+
+def test_missing_information_accepts_mixed_items():
+    evaluation = DimensionEvaluation(
+        dimension_id="commercial_traction",
+        score=60,
+        confidence=70,
+        evidence=[],
+        positive_observations=[],
+        risk_observations=[],
+        missing_information=[
+            "Customer retention",
+            {
+                "item": "Customer concentration",
+                "reason": (
+                    "Needed to assess revenue concentration."
+                ),
+            },
+        ],
+        reasoning="Commercial evidence is incomplete.",
+    )
+
+    assert evaluation.missing_information[0].item == (
+        "Customer retention"
+    )
+
+    assert evaluation.missing_information[0].reason == ""
+
+    assert evaluation.missing_information[1].item == (
+        "Customer concentration"
+    )
+
+    assert evaluation.missing_information[1].reason == (
+        "Needed to assess revenue concentration."
+    )
+
+

@@ -2,9 +2,14 @@ from __future__ import annotations
 
 from decimal import Decimal
 from enum import Enum
-from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    field_validator,
+    model_validator,
+)
 
 
 class ScorecardMetadata(BaseModel):
@@ -44,17 +49,11 @@ class EvaluationSpec(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     objective: str = Field(min_length=1)
-
     evaluate: tuple[str, ...] = Field(min_length=1)
-
     evidence_required: tuple[str, ...] = Field(min_length=1)
-
     positive_signals: tuple[str, ...] = Field(min_length=1)
-
     negative_signals: tuple[str, ...] = Field(min_length=1)
-
     do_not_assume: tuple[str, ...] = Field(min_length=1)
-
     scoring_guidance: ScoringGuidance
 
 
@@ -76,10 +75,12 @@ class InvestmentDimension(BaseModel):
     name: str = Field(min_length=1)
 
     # Percentage representation, e.g. 15 means 15%.
-    weight: Decimal = Field(ge=Decimal("0"), le=Decimal("100"))
+    weight: Decimal = Field(
+        ge=Decimal("0"),
+        le=Decimal("100"),
+    )
 
     evaluation_spec: EvaluationSpec
-
     investor_preferences: InvestorPreferences
 
 
@@ -89,12 +90,14 @@ class InvestmentScorecard(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     schema_version: str = Field(min_length=1)
-
     scorecard: ScorecardMetadata
-
     investor_profile: InvestorProfile
 
-    dimensions: tuple[InvestmentDimension, ...] = Field(min_length=10, max_length=10)
+    dimensions: tuple[InvestmentDimension, ...] = Field(
+        min_length=10,
+        max_length=10,
+    )
+    evaluation_principles: EvaluationPrinciples
 
     @field_validator("dimensions")
     @classmethod
@@ -105,7 +108,9 @@ class InvestmentScorecard(BaseModel):
         ids = [dimension.id for dimension in dimensions]
 
         if len(ids) != len(set(ids)):
-            raise ValueError("Investment dimension IDs must be unique.")
+            raise ValueError(
+                "Investment dimension IDs must be unique."
+            )
 
         return dimensions
 
@@ -123,6 +128,7 @@ class InvestmentScorecard(BaseModel):
 
         return self
 
+
 class RiskSeverity(str, Enum):
     LOW = "low"
     MEDIUM = "medium"
@@ -134,7 +140,7 @@ class DimensionEvidence(BaseModel):
     """
     Evidence supporting a dimension evaluation.
 
-    The reference must point back to preserved Investment OS evidence.
+    evidence_ref must point to preserved Investment OS evidence.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -144,23 +150,62 @@ class DimensionEvidence(BaseModel):
     source_type: str = Field(min_length=1)
 
 
+class MultiDimensionEvaluation(BaseModel):
+    """
+    Structured evaluation containing one evaluation for each
+    investment scorecard dimension.
+
+    This model represents the collected LLM evaluations only.
+
+    It does NOT contain:
+        - weighted score
+        - overall investment score
+        - investment recommendation
+        - final investor decision
+    """
+
+    scorecard_version: int
+    startup_name: str
+    evaluations: list[DimensionEvaluation]
+
+    @model_validator(mode="after")
+    def validate_evaluations(self) -> "MultiDimensionEvaluation":
+        dimension_ids = [
+            evaluation.dimension_id
+            for evaluation in self.evaluations
+        ]
+
+        if len(dimension_ids) != len(set(dimension_ids)):
+            raise ValueError(
+                "MultiDimensionEvaluation must not contain "
+                "duplicate dimension evaluations."
+            )
+
+        return self
+
 class DimensionRisk(BaseModel):
-    """
-    Specific investment risk identified for a dimension.
-    """
+    """Specific investment risk identified for a dimension."""
 
     model_config = ConfigDict(extra="forbid")
 
     risk: str = Field(min_length=1)
     severity: RiskSeverity
     impact: str = Field(min_length=1)
-    evidence_refs: list[str] = Field(default_factory=list)
+    evidence_refs: list[str] = Field(
+        default_factory=list,
+    )
 
     @field_validator("evidence_refs")
     @classmethod
-    def validate_evidence_refs(cls, value: list[str]) -> list[str]:
+    def validate_evidence_refs(
+        cls,
+        value: list[str],
+    ) -> list[str]:
         if any(not ref.strip() for ref in value):
-            raise ValueError("evidence_refs cannot contain blank values")
+            raise ValueError(
+                "evidence_refs cannot contain blank values"
+            )
+
         return value
 
 
@@ -169,6 +214,20 @@ class DimensionEvaluation(BaseModel):
     AI-generated evaluation of one investment dimension.
 
     This is an evaluation artifact, not the final investment scorecard.
+
+    The LLM controls:
+        - dimension score
+        - confidence
+        - evidence interpretation
+        - observations
+        - risks
+        - missing information
+
+    The LLM does NOT control:
+        - weight
+        - weighted score
+        - overall investment score
+        - investment recommendation
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -197,15 +256,52 @@ class DimensionEvaluation(BaseModel):
         default_factory=list,
     )
 
-    missing_information: list[str] = Field(
-        default_factory=list,
+    missing_information: list[MissingInformation] = Field(
+        default_factory=list
     )
+
 
     reasoning: str = Field(min_length=1)
 
+
+    @field_validator(
+        "missing_information",
+        mode="before",
+    )
+    @classmethod
+    def normalize_missing_information(
+        cls,
+        value,
+    ):
+        if value is None:
+            return []
+    
+        normalized = []
+    
+        for item in value:
+            if isinstance(item, str):
+                normalized.append(
+                    {
+                        "item": item,
+                        "reason": "",
+                    }
+                )
+            elif isinstance(item, dict):
+                normalized.append(item)
+            elif isinstance(item, MissingInformation):
+                normalized.append(item)
+            else:
+                raise TypeError(
+                    "missing_information entries must be "
+                    "strings or objects."
+                )
+    
+        return normalized
+
+
     @field_validator(
         "positive_observations",
-        "missing_information",
+        mode="after",
     )
     @classmethod
     def validate_text_lists(
@@ -213,11 +309,17 @@ class DimensionEvaluation(BaseModel):
         value: list[str],
     ) -> list[str]:
         if any(not item.strip() for item in value):
-            raise ValueError("List values cannot be blank")
+            raise ValueError(
+                "Text list entries must not be empty."
+            )
+    
         return value
 
+
     @model_validator(mode="after")
-    def validate_dimension_evaluation(self) -> "DimensionEvaluation":
+    def validate_dimension_evaluation(
+        self,
+    ) -> "DimensionEvaluation":
         evidence_refs = {
             evidence.evidence_ref
             for evidence in self.evidence
@@ -233,19 +335,33 @@ class DimensionEvaluation(BaseModel):
 
         if unknown_refs:
             raise ValueError(
-                "Risk evidence_refs must reference evidence in the "
-                f"same evaluation: {sorted(unknown_refs)}"
+                "Risk evidence_refs must reference evidence "
+                "in the same evaluation: "
+                f"{sorted(unknown_refs)}"
             )
 
         return self
 
+class MissingInformation(BaseModel):
+    """
+    Information that is unavailable but relevant to evaluating
+    an investment dimension.
+
+    Missing information is not negative evidence and is not
+    itself an investment risk.
+    """
+
+    item: str
+    reason: str = ""
 
 class DimensionScorecardResult(BaseModel):
     """
-    Deterministic scorecard result for one investment dimension.
+    Deterministic result for one investment dimension.
 
-    Weight and weighted_score are deliberately outside DimensionEvaluation.
-    The LLM must not control the investment weighting.
+    This is produced AFTER DimensionEvaluation.
+
+    Weight and weighted_score are deliberately outside
+    DimensionEvaluation.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -273,14 +389,38 @@ class DimensionScorecardResult(BaseModel):
     )
 
     @model_validator(mode="after")
-    def validate_weighted_score(self) -> "DimensionScorecardResult":
+    def validate_weighted_score(
+        self,
+    ) -> "DimensionScorecardResult":
         expected = (
-            self.score * self.weight / Decimal("100")
+            self.score
+            * self.weight
+            / Decimal("100")
         )
 
-        if abs(self.weighted_score - expected) > Decimal("0.000001"):
+        if abs(
+            self.weighted_score - expected
+        ) > Decimal("0.000001"):
             raise ValueError(
-                "weighted_score must equal score × weight / 100"
+                "weighted_score must equal "
+                "score × weight / 100"
             )
 
         return self
+
+class EvidenceSemantics(BaseModel):
+    missing_information_is_not_negative_evidence: bool = True
+    absence_of_evidence_is_not_evidence_of_negative_condition: bool = True
+    risk_requires_supporting_evidence: bool = True
+
+
+class MissingInformationRule(BaseModel):
+    title: str
+    rules: list[str]
+
+
+class EvaluationPrinciples(BaseModel):
+    evidence_semantics: EvidenceSemantics
+    missing_information_rule: MissingInformationRule
+
+
