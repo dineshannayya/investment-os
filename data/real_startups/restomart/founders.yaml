@@ -3,11 +3,41 @@ founders:
     designation: CEO
     email: null
     linkedin_url: https://www.linkedin.com/in/chandramohan-r/
+    responsibilities:
+      - Strategy
+      - Finance
+    education:
+      - IIM Bangalore
+    prior_experience:
+      - Premji Invest
+      - Consark
+    professional_background: "Investment Professional"
+
   - full_name: "Tharun Kumar Rajkumar"
     designation: COO
     email: null
     linkedin_url: https://www.linkedin.com/in/tharun-kumar-r/
+    responsibilities:
+      - Operations
+      - GTM
+    education:
+      - IIM Kozhikode
+    prior_experience:
+      - Zinnov
+      - Amazon
+    professional_background: "Management Consultant"
+
   - full_name: "Rajendran Kathiravan"
     designation: CBO
     email: null
     linkedin_url: https://www.linkedin.com/in/kathiravan-rajendran/
+    responsibilities:
+      - Growth
+      - Partnerships
+      - Technology
+    education:
+      - IIM Kozhikode
+    prior_experience:
+      - PwC
+      - Novartis
+    professional_background: "Management Consultant"

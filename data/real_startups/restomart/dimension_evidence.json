@@ -5,14 +5,29 @@
     "founder_team": {
       "evidence": [
         {
-          "evidence_ref": "investor_brief_founders",
-          "observation": "The founding team consists of three founders. The CEO has previous experience at Premji Invest, the COO at Amazon and Zinnov, and the CBO at PwC and Novartis.",
-          "source_type": "investor_brief"
+          "evidence_ref": "founder_profile_team",
+          "observation": "RestoMart has three founders. Chandramohan R is CEO and leads Strategy & Finance; Tharun Kumar Rajkumar is COO and leads Operations & GTM; Rajendran Kathiravan is CBO and leads Growth, Partnerships & Technology.",
+          "source_type": "founder_profile"
         },
         {
-          "evidence_ref": "fundraise_founder_ownership",
-          "observation": "Founder ownership is represented as CEO 50%, COO 25%, and CBO 25%.",
-          "source_type": "fundraising_document"
+          "evidence_ref": "founder_profile_background",
+          "observation": "Chandramohan R has an IIM Bangalore background and prior experience at Premji Invest and Consark; Tharun Kumar Rajkumar has an IIM Kozhikode background and prior experience at Zinnov and Amazon; Rajendran Kathiravan has an IIM Kozhikode background and prior experience at PwC and Novartis.",
+          "source_type": "founder_profile"
+        },
+        {
+          "evidence_ref": "cap_table_2025_founder_ownership",
+          "observation": "A CA-certified shareholding certificate states that as of 28-May-2025, Chandramohan held 50%, Tharun Kumar Rajkumar held 25%, and Rajendran Kathiravan held 25% of the company.",
+          "source_type": "ca_certified_cap_table"
+        },
+        {
+          "evidence_ref": "sha_founder_commitment",
+          "observation": "The draft shareholders agreement states that the founders are employed full-time with the Company and devote substantially all of their business time to it.",
+          "source_type": "shareholders_agreement_draft"
+        },
+        {
+          "evidence_ref": "sha_founder_vesting",
+          "observation": "The draft shareholders agreement provides for founder share lock-in for five years, with 5% vesting at Closing, 20% within the first anniversary, and the remaining 75% in quarterly instalments over the following four years.",
+          "source_type": "shareholders_agreement_draft"
         }
       ]
     },
@@ -20,14 +35,19 @@
     "market_tam": {
       "evidence": [
         {
-          "evidence_ref": "business_model_customer",
-          "observation": "RestoMart is a B2B food-supply and restaurant procurement company serving restaurants rather than individual consumers.",
-          "source_type": "business_model_document"
+          "evidence_ref": "investment_note_market_size",
+          "observation": "The Investment Note states that India's food service industry is a $50B+ market and describes the market as highly fragmented.",
+          "source_type": "investment_note"
         },
         {
-          "evidence_ref": "investor_brief_market",
-          "observation": "The company focuses on simplifying procurement for restaurants through a curated procurement marketplace combined with supply-chain and fulfillment operations.",
-          "source_type": "investor_brief"
+          "evidence_ref": "investment_note_chennai_market",
+          "observation": "The Investment Note states that Chennai has an F&B market of approximately INR 15,600 crore.",
+          "source_type": "investment_note"
+        },
+        {
+          "evidence_ref": "product_tech_chennai_target",
+          "observation": "The Product and Technology document describes a Chennai high-density belt targeting 2,500+ restaurants.",
+          "source_type": "product_technology"
         }
       ]
     },
@@ -35,19 +55,29 @@
     "product_pmf": {
       "evidence": [
         {
-          "evidence_ref": "investor_brief_product",
-          "observation": "RestoMart provides restaurants with a curated selection of food-supply products and procurement services intended to improve procurement reliability, availability, delivery speed and operating efficiency.",
-          "source_type": "investor_brief"
+          "evidence_ref": "product_tech_4_hour_engine",
+          "observation": "RestoMart describes a cluster-based 4-Hour Engine using a curated high-velocity SKU catalogue, 5–6 km geographic density and one micro-fulfillment center per cluster.",
+          "source_type": "product_technology"
         },
         {
-          "evidence_ref": "investor_brief_repeat_usage",
-          "observation": "The company has demonstrated repeat usage from restaurant customers.",
-          "source_type": "investor_brief"
+          "evidence_ref": "mis_customer_growth",
+          "observation": "The MIS reports active customers increasing from 32 in Apr-2024 to 165 in Mar-2026.",
+          "source_type": "mis"
         },
         {
-          "evidence_ref": "financials_customer_base",
-          "observation": "RestoMart reports more than 165 restaurant customers.",
-          "source_type": "financial_document"
+          "evidence_ref": "mis_order_growth",
+          "observation": "Monthly orders increased from 173 in Apr-2024 to 313 in Mar-2026.",
+          "source_type": "mis"
+        },
+        {
+          "evidence_ref": "mis_aov",
+          "observation": "Average order value was approximately INR 6,055 in Apr-2024 and approximately INR 7,217 in Mar-2026.",
+          "source_type": "mis"
+        },
+        {
+          "evidence_ref": "mis_fill_rate",
+          "observation": "The MIS reports an order fill rate of approximately 86% in Mar-2026.",
+          "source_type": "mis"
         }
       ]
     },
@@ -55,19 +85,24 @@
     "technology_ip_moat": {
       "evidence": [
         {
-          "evidence_ref": "business_model_operating_model",
-          "observation": "The operating model uses curated SKUs, restaurant-density clusters, micro-fulfillment centers, rapid delivery and supply-chain coordination.",
-          "source_type": "business_model_document"
+          "evidence_ref": "product_tech_current_build",
+          "observation": "The Product and Technology document describes a current technology build of v1.2.4 with a Restaurant App, Field Agent App and Operations Dashboard.",
+          "source_type": "product_technology"
         },
         {
-          "evidence_ref": "business_model_cluster_strategy",
-          "observation": "Higher restaurant density within geographic clusters is intended to improve delivery, fulfillment, inventory positioning, customer service and route-planning economics.",
-          "source_type": "business_model_document"
+          "evidence_ref": "product_tech_operational_capabilities",
+          "observation": "Current capabilities described include geofencing inventory, 10-second reorder, favourite SKUs, four-hour slot selection, restaurant onboarding/KYC, kitchen SKU mapping, order nudges, price visibility, fill-rate monitoring, cluster SLA tracking, SKU velocity analysis and wastage reporting.",
+          "source_type": "product_technology"
         },
         {
-          "evidence_ref": "business_model_micro_fulfillment",
-          "observation": "RestoMart uses micro-fulfillment centers to support localized inventory and rapid fulfillment, with a target delivery proposition of approximately four hours.",
-          "source_type": "business_model_document"
+          "evidence_ref": "product_tech_spend",
+          "observation": "The Product and Technology document states ₹25 lakh of technology spend.",
+          "source_type": "product_technology"
+        },
+        {
+          "evidence_ref": "product_tech_roadmap",
+          "observation": "The technology roadmap includes future capabilities such as procurement automation, CRM account health and churn signals, Restomart OS modules, AI agents, demand forecasting, dynamic pricing, POS integrations and multi-city orchestration.",
+          "source_type": "product_technology"
         }
       ]
     },
@@ -75,24 +110,39 @@
     "commercial_traction": {
       "evidence": [
         {
-          "evidence_ref": "financials_revenue",
-          "observation": "Reported revenue is approximately INR 2.68 crore.",
-          "source_type": "financial_document"
+          "evidence_ref": "mis_fy25_net_sales",
+          "observation": "MIS net sales for FY2024-25 total approximately INR 1.43 crore.",
+          "source_type": "mis"
         },
         {
-          "evidence_ref": "financials_customer_base",
-          "observation": "RestoMart reports more than 165 restaurant customers.",
-          "source_type": "financial_document"
+          "evidence_ref": "mis_fy26_net_sales",
+          "observation": "MIS net sales for FY2025-26 total approximately INR 2.50 crore.",
+          "source_type": "mis"
         },
         {
-          "evidence_ref": "investor_brief_repeat_usage",
-          "observation": "The company has demonstrated repeat usage from restaurant customers.",
-          "source_type": "investor_brief"
+          "evidence_ref": "mis_active_customers",
+          "observation": "Active customers increased from 32 in Apr-2024 to 165 in Mar-2026.",
+          "source_type": "mis"
         },
         {
-          "evidence_ref": "financials_fulfillment",
-          "observation": "Reported fulfillment reliability is approximately 95%.",
-          "source_type": "financial_document"
+          "evidence_ref": "mis_customer_churn",
+          "observation": "The MIS provides monthly customer churn and churn percentage. In Mar-2026, churn was 19 customers and churn percentage was approximately 11.52%.",
+          "source_type": "mis"
+        },
+        {
+          "evidence_ref": "mis_revenue_concentration",
+          "observation": "Top-10 accounts represented approximately 54.84% of revenue in Mar-2026. During FY2025-26, the monthly Top-10 share ranged approximately from 41.74% to 57.26%.",
+          "source_type": "mis"
+        },
+        {
+          "evidence_ref": "mis_orders_aov",
+          "observation": "Monthly orders were 313 and average order value was approximately INR 7,217 in Mar-2026.",
+          "source_type": "mis"
+        },
+        {
+          "evidence_ref": "mis_fill_rate",
+          "observation": "Order fill rate was approximately 86% in Mar-2026.",
+          "source_type": "mis"
         }
       ]
     },
@@ -100,19 +150,34 @@
     "unit_economics_margins": {
       "evidence": [
         {
-          "evidence_ref": "financials_gross_margin",
-          "observation": "Gross margin reportedly improved from approximately 3.1% to approximately 12%.",
-          "source_type": "financial_document"
+          "evidence_ref": "mis_gross_margin",
+          "observation": "MIS gross margin for FY2025-26 was approximately INR 28.65 lakh on approximately INR 2.50 crore of net sales, corresponding to approximately 11.46% based on the MIS totals.",
+          "source_type": "mis"
         },
         {
-          "evidence_ref": "business_model_unit_economics",
-          "observation": "Important unit-economic variables include restaurant acquisition cost, average order value, orders per restaurant, gross margin per order, delivery cost per order, fulfillment cost, inventory carrying cost, wastage, restaurant retention and contribution margin.",
-          "source_type": "business_model_document"
+          "evidence_ref": "mis_cac",
+          "observation": "The MIS provides monthly customer acquisition cost. FY2025-26 monthly CAC ranged approximately from INR 339 to INR 1,416 per user, and was approximately INR 768 in Mar-2026.",
+          "source_type": "mis"
         },
         {
-          "evidence_ref": "business_model_scalability",
-          "observation": "A central operating question is whether the cluster-density and micro-fulfillment model becomes increasingly efficient as restaurant density increases.",
-          "source_type": "business_model_document"
+          "evidence_ref": "mis_contribution_margin",
+          "observation": "Contribution margin per order was approximately INR 852 in Mar-2026. Contribution profit per order was approximately INR 63 in Mar-2026.",
+          "source_type": "mis"
+        },
+        {
+          "evidence_ref": "mis_contribution_profit_volatility",
+          "observation": "Contribution profit per order varied materially during FY2025-26, including negative monthly values, with Mar-2026 at approximately INR 63 per order.",
+          "source_type": "mis"
+        },
+        {
+          "evidence_ref": "sku_margin_h2fy26",
+          "observation": "The H2 FY2026 SKU and category analytics report aggregate sales of approximately INR 96.93 lakh and gross margin of approximately INR 18.17 lakh across the listed subcategories, implying approximately 18.74% gross margin for that dataset.",
+          "source_type": "mis_sku_margin"
+        },
+        {
+          "evidence_ref": "product_tech_dark_store_model",
+          "observation": "The Product and Technology document presents a modeled dark-store economics case of INR 1 crore monthly revenue, INR 5,000 AOV, 2,000 monthly orders, 15% gross margin and CM2 of INR 0.2 lakh at the stated assumptions.",
+          "source_type": "product_technology_model"
         }
       ]
     },
@@ -120,19 +185,29 @@
     "financial_health": {
       "evidence": [
         {
-          "evidence_ref": "financials_revenue",
-          "observation": "Reported revenue is approximately INR 2.68 crore.",
-          "source_type": "financial_document"
+          "evidence_ref": "mis_fy26_net_sales",
+          "observation": "MIS net sales for FY2025-26 total approximately INR 2.50 crore.",
+          "source_type": "mis"
         },
         {
-          "evidence_ref": "financials_profitability",
-          "observation": "The company is reported as profitable and bootstrapped.",
-          "source_type": "financial_document"
+          "evidence_ref": "mis_fy26_gross_sales",
+          "observation": "MIS gross sales for FY2025-26 total approximately INR 2.68 crore.",
+          "source_type": "mis"
         },
         {
-          "evidence_ref": "financials_gross_margin",
-          "observation": "Gross margin reportedly improved from approximately 3.1% to approximately 12%.",
-          "source_type": "financial_document"
+          "evidence_ref": "mis_fy26_ebitda",
+          "observation": "MIS monthly EBITDA values sum to approximately INR 3.37 lakh for FY2025-26, with positive and negative monthly EBITDA during the year.",
+          "source_type": "mis"
+        },
+        {
+          "evidence_ref": "mis_fy26_ebitda_margin",
+          "observation": "MIS EBITDA margin was approximately 0.87% in Mar-2026, and the FY2025-26 monthly series includes both positive and negative EBITDA margins.",
+          "source_type": "mis"
+        },
+        {
+          "evidence_ref": "mis_operating_expenses",
+          "observation": "MIS operating expenses increased over the monthly period, reaching approximately INR 2.47 lakh in Mar-2026.",
+          "source_type": "mis"
         }
       ]
     },
@@ -140,14 +215,34 @@
     "governance_cap_table": {
       "evidence": [
         {
-          "evidence_ref": "fundraise_founder_ownership",
-          "observation": "Founder ownership is represented as CEO 50%, COO 25%, and CBO 25%.",
-          "source_type": "fundraising_document"
+          "evidence_ref": "cap_table_certified_2025",
+          "observation": "A Chartered Accountant certificate states that as of 28-May-2025 the shareholding was Chandramohan 50%, Tharun Kumar Rajkumar 25%, and Rajendran Kathiravan 25%.",
+          "source_type": "ca_certified_cap_table"
         },
         {
-          "evidence_ref": "founders_2025",
-          "observation": "Three founders are identified with CEO, COO and CBO roles.",
-          "source_type": "startup_database"
+          "evidence_ref": "sha_investor_observer",
+          "observation": "The draft shareholders agreement provides investors with the right to appoint one non-voting Board observer who may receive Board notices, attend and speak at meetings, and receive agendas and minutes.",
+          "source_type": "shareholders_agreement_draft"
+        },
+        {
+          "evidence_ref": "sha_reserved_matters",
+          "observation": "The draft shareholders agreement requires prior affirmative written consent or approval of the Investor Representative for specified Reserved Matters.",
+          "source_type": "shareholders_agreement_draft"
+        },
+        {
+          "evidence_ref": "sha_information_rights",
+          "observation": "The draft shareholders agreement provides information and inspection rights to investors holding at least 2.5%, including annual audited financial statements, quarterly reports, material statutory notices and inspection of relevant books and records.",
+          "source_type": "shareholders_agreement_draft"
+        },
+        {
+          "evidence_ref": "sha_esop",
+          "observation": "The draft shareholders agreement provides for creation or reconstitution of a 10% ESOP pool before Completion.",
+          "source_type": "shareholders_agreement_draft"
+        },
+        {
+          "evidence_ref": "sha_cap_table_pending",
+          "observation": "The draft shareholders agreement refers to Execution Date and Completion Date fully diluted shareholding schedules, but investor names and the corresponding shareholding schedules are not populated in the supplied draft.",
+          "source_type": "shareholders_agreement_draft"
         }
       ]
     },
@@ -155,24 +250,34 @@
     "valuation_deal_terms": {
       "evidence": [
         {
-          "evidence_ref": "fundraise_valuation",
-          "observation": "Previously discussed valuation cap is INR 9.25 crore.",
-          "source_type": "fundraising_document"
+          "evidence_ref": "investment_note_round",
+          "observation": "The Investment Note states that the current Pre-Seed round size is INR 2.0 crore at a pre-money valuation of INR 9.25 crore, with an issue price of INR 8,149.78 per share and CCPS as the instrument.",
+          "source_type": "investment_note"
         },
         {
-          "evidence_ref": "fundraise_raise",
-          "observation": "The current fundraising amount is INR 2 crore.",
-          "source_type": "fundraising_document"
+          "evidence_ref": "investment_note_projection",
+          "observation": "The Investment Note reports FY2025-26 revenue of INR 250 lakh and projects INR 599 lakh in FY2026-27 and INR 2,011 lakh in FY2027-28; FY2025-26 is explicitly marked unaudited.",
+          "source_type": "investment_note"
         },
         {
-          "evidence_ref": "fundraise_minimum",
-          "observation": "The previously discussed minimum investment is INR 2 lakh.",
-          "source_type": "fundraising_document"
+          "evidence_ref": "sha_subscription",
+          "observation": "The draft shareholders agreement defines the Pre-Seed Series round as up to INR 2 crore and the Subscription Securities as Pre-Seed CCPS.",
+          "source_type": "shareholders_agreement_draft"
         },
         {
-          "evidence_ref": "financials_revenue",
-          "observation": "Reported revenue is approximately INR 2.68 crore.",
-          "source_type": "financial_document"
+          "evidence_ref": "sha_conversion",
+          "observation": "The draft shareholders agreement provides for Pre-Seed CCPS conversion on the contractual terms in Schedule II, including voting rights on an as-if-converted basis and contractual anti-dilution provisions.",
+          "source_type": "shareholders_agreement_draft"
+        },
+        {
+          "evidence_ref": "sha_liquidation_preference",
+          "observation": "The draft shareholders agreement provides investors with a liquidation preference equal to the higher of the relevant investment amount plus declared unpaid dividends or the investor's fully diluted pro-rata share of liquidation proceeds, subject to the agreement.",
+          "source_type": "shareholders_agreement_draft"
+        },
+        {
+          "evidence_ref": "sha_anti_dilution",
+          "observation": "The draft shareholders agreement provides broad-based weighted-average anti-dilution protection for qualifying dilutive issuances.",
+          "source_type": "shareholders_agreement_draft"
         }
       ]
     },
@@ -180,19 +285,34 @@
     "risk_exit_potential": {
       "evidence": [
         {
-          "evidence_ref": "fundraise_key_risks",
-          "observation": "Identified risks include low-margin food-supply operations, supply-chain execution risk, working-capital requirements, customer retention risk, customer concentration risk, competitive pressure and difficulty scaling micro-fulfillment economically.",
-          "source_type": "fundraising_document"
+          "evidence_ref": "mis_customer_concentration",
+          "observation": "Top-10 accounts represented approximately 54.84% of revenue in Mar-2026, with monthly FY2025-26 values ranging approximately from 41.74% to 57.26%.",
+          "source_type": "mis"
         },
         {
-          "evidence_ref": "business_model_scalability",
-          "observation": "A central operating question is whether the cluster-density and micro-fulfillment model becomes increasingly efficient as restaurant density increases.",
-          "source_type": "business_model_document"
+          "evidence_ref": "mis_churn",
+          "observation": "Customer churn is measurable in the MIS. Mar-2026 reported 19 churned customers and approximately 11.52% churn.",
+          "source_type": "mis"
         },
         {
-          "evidence_ref": "investor_brief_competition",
-          "observation": "Potential competitive pressure can come from traditional distributors, wholesale markets, restaurant procurement aggregators, digital B2B marketplaces, direct supplier relationships and large food-supply platforms.",
-          "source_type": "business_model_document"
+          "evidence_ref": "mis_contribution_profit",
+          "observation": "Contribution profit per order was approximately INR 63 in Mar-2026 and had negative monthly values during FY2025-26.",
+          "source_type": "mis"
+        },
+        {
+          "evidence_ref": "investment_note_operating_risk",
+          "observation": "The Investment Note identifies execution intensity and working-capital and margin risk associated with scaling procurement, warehousing and logistics.",
+          "source_type": "investment_note"
+        },
+        {
+          "evidence_ref": "sha_exit_rights",
+          "observation": "The draft shareholders agreement provides Company-Driven Exit mechanisms and Investor-Driven Exit mechanisms if a Company-Driven Exit is not provided within the contractual Exit Period.",
+          "source_type": "shareholders_agreement_draft"
+        },
+        {
+          "evidence_ref": "sha_tag_drag",
+          "observation": "The draft shareholders agreement provides investor tag-along and drag-along rights subject to the contractual conditions.",
+          "source_type": "shareholders_agreement_draft"
         }
       ]
     }

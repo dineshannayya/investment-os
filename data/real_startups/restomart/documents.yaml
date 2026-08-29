@@ -5,21 +5,69 @@ documents:
     description: >
       Consolidated company, product, market, traction, founder,
       and operating information for RestoMart.
+
   - filename: restomart_financials.txt
     title: "RestoMart Financial Summary"
     document_type: FINANCIAL_MODEL
     description: >
       Financial performance, revenue, profitability, gross margin,
       operating metrics, and unit-economic information.
+
   - filename: restomart_business_model.txt
     title: "RestoMart Business Model and Operations"
     document_type: BUSINESS_PLAN
     description: >
       Business model, restaurant procurement workflow, supply chain,
       fulfillment model, customer base, and operating economics.
+
   - filename: restomart_fundraise.txt
     title: "RestoMart Fundraising Information"
     document_type: OTHER
     description: >
       Fundraising terms, valuation, investment size, ownership,
       and investor-relevant transaction information.
+
+  - filename: sources/pdf/restomart_founder_profile.pdf
+    title: "RestoMart Founder Profile"
+    document_type: FOUNDER_PROFILE
+    description: >
+      Founder backgrounds, responsibilities, education,
+      prior professional experience, and LinkedIn references.
+
+  - filename: sources/pdf/restomart_product_tech_details.pdf
+    title: "RestoMart Product and Technology Details"
+    document_type: PRODUCT_TECHNOLOGY
+    description: >
+      Product strategy, operating model, technology capabilities,
+      current technology build, unit economics model, and roadmap.
+
+  - filename: sources/pdf/restomart_investment_note.pdf
+    title: "RestoMart Investment Note"
+    document_type: INVESTMENT_NOTE
+    description: >
+      Investment thesis, market context, financial performance,
+      projections, fundraising terms, risks, and prior investment
+      recommendation.
+
+  - filename: sources/pdf/restomart_cap_table.pdf
+    title: "RestoMart CA Certified Cap Table"
+    document_type: CAP_TABLE
+    description: >
+      Chartered Accountant certified shareholding pattern of
+      Foodcomm Technologies Private Limited as of 28-May-2025.
+
+  - filename: sources/xlsx/restomart_mis.xlsx
+    title: "RestoMart Management Information System"
+    document_type: MIS
+    description: >
+      Monthly operating, customer, revenue, order, P&L,
+      unit-economic, SKU-margin, category, and customer-segment data.
+
+  - filename: sources/docx/restomart_shareholders_agreement_draft.docx
+    title: "RestoMart Share Subscription Cum Shareholders' Agreement - Draft"
+    document_type: SHAREHOLDERS_AGREEMENT
+    description: >
+      Draft transaction and shareholders agreement covering
+      subscription terms, governance, investor rights, founder
+      lock-in and vesting, transfer rights, liquidation preference,
+      exit rights, ESOP, reserved matters, and anti-dilution.
