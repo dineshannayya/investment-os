@@ -20,6 +20,14 @@ from app.models.analysis import StartupAnalysis
 from app.models.user import User
 from app.models.user_role import UserRole
 
+from app.models.source_document import (
+    ExtractionStatus,
+    SourceAuthority,
+    SourceCategory,
+    SourceDocument,
+    SourceType,
+)
+
 __all__ = [
     # Base
     "Base",
@@ -43,4 +51,10 @@ __all__ = [
     "UserRole",
     # RolePermission
     "RolePermission",
+    #Source Document
+    "ExtractionStatus",
+    "SourceAuthority",
+    "SourceCategory",
+    "SourceDocument",
+    "SourceType",
 ]

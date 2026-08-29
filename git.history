@@ -1,3 +1,115 @@
+
+------- 29 th Aug 2026 ---------------
+┌────────────────────────────────────────────────────┐
+│          OCR FALLBACK CONTRACT                     │
+├────────────────────────────────────────────────────┤
+│ Input                                              │
+│   SourceDocument + native ExtractedContent        │
+│                                                    │
+│ Trigger                                            │
+│   ExtractionQuality indicates insufficient text    │
+│                                                    │
+│ Processing                                         │
+│   OCR processor extracts page-aware text           │
+│                                                    │
+│ Output                                             │
+│   Same ExtractedContent abstraction                │
+│                                                    │
+│ Provenance                                         │
+│   native / ocr / fallback metadata                 │
+│                                                    │
+│ Quality                                            │
+│   OCR result is independently re-evaluated         │
+│                                                    │
+│ Selection                                          │
+│   Best available extraction is selected            │
+│                                                    │
+│ Failure                                            │
+│   Source failure does not crash startup analysis   │
+│                                                    │
+│ Responsibility                                     │
+│   OCR extracts; downstream layers interpret        │
+└────────────────────────────────────────────────────┘
+
+                 RestoMart
+                    │
+                    ▼
+              sources/ (18)
+                    │
+                    ▼
+       ┌──────────────────────────┐
+       │ SourceDiscoveryService   │
+       └────────────┬─────────────┘
+                    │
+                    ▼
+             SourceDocument[]
+                    │
+          ┌─────────┴─────────┐
+          │                   │
+      source_id            SHA256
+      stable ID          content identity
+          │                   │
+          └─────────┬─────────┘
+                    ▼
+             NEXT STAGE
+                    │
+                    ▼
+       SourceExtractionService
+                    │
+                    ▼
+             ProcessorFactory
+                    │
+        ┌───────────┼───────────┐
+        ▼           ▼           ▼
+       PDF         DOCX        XLSX
+        │           │           │
+        └───────────┼───────────┘
+                    │
+                   HTML
+                    │
+                    ▼
+            DocumentContent[]
+
+| Requirement                     | Status |
+| ------------------------------- | -----: |
+| Recursive discovery             |      ✅ |
+| Supported file detection        |      ✅ |
+| PDF detection                   |      ✅ |
+| DOCX detection                  |      ✅ |
+| XLSX detection                  |      ✅ |
+| HTML detection                  |      ✅ |
+| Relative path                   |      ✅ |
+| MIME type                       |      ✅ |
+| File size                       |      ✅ |
+| SHA256                          |      ✅ |
+| Deterministic ordering          |      ✅ |
+| Nested directory classification |      ✅ |
+| Stable `source_id`              |      ✅ |
+| Conservative authority          |      ✅ |
+| No document extraction          |      ✅ |
+| No Qwen                         |      ✅ |
+| No investment interpretation    |      ✅ |
+| No dataset mutation             |      ✅ |
+| Repeat-run stability            |      ✅ |
+
+┌─────────────────────────────────────────────┐
+│ Day-2.4.5.1                                 │
+│ Source Discovery Contract & Data Model      │
+├─────────────────────────────────────────────┤
+│ SourceDocument                         PASS │
+│ SourceType                             PASS │
+│ SourceCategory                         PASS │
+│ SourceAuthority                        PASS │
+│ ExtractionStatus                       PASS │
+│ Source identity                        PASS │
+│ Source location                        PASS │
+│ MIME metadata                          PASS │
+│ File fingerprint support               PASS │
+│ Extraction state                       PASS │
+│ Processor provenance                   PASS │
+│ Strict schema                          PASS │
+└─────────────────────────────────────────────┘
+
 ------- 18 th Aug 2026 ---------------
 3.7.6.3.C.4 status
 1578 passed

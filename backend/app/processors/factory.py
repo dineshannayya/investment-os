@@ -10,7 +10,8 @@ from app.processors.base import DocumentProcessor
 from app.processors.docx import DocxProcessor
 from app.processors.pdf import PdfProcessor
 from app.processors.text import TextProcessor
-
+from app.processors.xlsx import XlsxProcessor
+from app.processors.html import HtmlProcessor
 
 class ProcessorFactory:
     """
@@ -109,6 +110,8 @@ def create_processor_factory() -> ProcessorFactory:
     factory.register(TextProcessor())
     factory.register(PdfProcessor())
     factory.register(DocxProcessor())
+    factory.register(XlsxProcessor())
+    factory.register(HtmlProcessor())
 
     return factory
 
