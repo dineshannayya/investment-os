@@ -1,28 +1,27 @@
-from __future__ import annotations
+"""
+Extraction quality service.
 
-from enum import Enum
+Evaluates extracted document content and classifies the result as
+PASS, REVIEW, or FAIL.
+
+This service is read-only.
+
+It does not:
+    - modify SourceDocument
+    - modify DocumentContent
+    - modify source files
+    - invoke OCR
+    - invoke LLMs
+    - perform investment analysis
+    - persist extraction results
+"""
+
+from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.models.extraction_quality import ExtractionQuality
 from app.models.source_document import SourceDocument
-
-
-class ExtractionQuality(str, Enum):
-    """
-    Quality classification of extracted document content.
-
-    This is intentionally separate from ExtractionStatus.
-
-    ExtractionStatus answers:
-        "Did extraction execute?"
-
-    ExtractionQuality answers:
-        "Is the extracted result sufficiently usable?"
-    """
-
-    PASS = "pass"
-    REVIEW = "review"
-    FAIL = "fail"
 
 
 class ExtractionQualityReport(BaseModel):
@@ -46,7 +45,9 @@ class ExtractionQualityReport(BaseModel):
 
     processor_name: str | None = None
 
-    warnings: list[str] = Field(default_factory=list)
+    warnings: list[str] = Field(
+        default_factory=list,
+    )
 
 
 class ExtractionQualityService:

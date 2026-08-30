@@ -141,6 +141,7 @@ shell:
 # make alembic_revision MSG="add_user_roles_table"
 # make alembic_revision MSG="add_role_permissions_table"
 # make alembic_revision MSG="add_cbo_founder_role"
+# make alembic_revision MSG="add_source_extractions_table"
 # 
 # 2. Review the generated migration
 # vim alembic/versions/*.py
@@ -184,6 +185,21 @@ alembic_check:
 # When ever there update docker-compose.yml
 docker_recreate:
 	docker compose up -d --force-recreate backend
+
+# ---------------------------------------
+# Startup Regression
+# --------------------------------------
+#Fast regression
+startup-analysis-regression:
+	docker compose exec -T backend \
+		python -u -m scripts.startup_analysis_regression
+
+#Full real-Qwen regression
+startup-analysis-regression-real:
+	docker compose exec -T backend \
+		python -u -m scripts.startup_analysis_regression \
+		--real-qwen
+
 
 # -------------------------------------
 # Tests

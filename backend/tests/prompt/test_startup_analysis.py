@@ -23,6 +23,7 @@ from app.prompt.startup_analysis import (
     build_startup_analysis_messages,
 )
 from app.schemas.analysis import (
+    AnalysisEvidence,
     BusinessModelAnalysis,
     CompanyAnalysis,
     FinancialAnalysis,
@@ -145,6 +146,139 @@ def extract_input_payload(user_prompt: str) -> dict:
     )[0]
 
     return json.loads(payload_text)
+
+
+# ---------------------------------------------------------------------------
+# Evidence projection / payload budget
+# ---------------------------------------------------------------------------
+
+
+def make_evidence(count: int = 65) -> list[AnalysisEvidence]:
+    """Create deterministic evidence records representative of enrichment."""
+
+    sections = (
+        "financials",
+        "fundraising",
+        "traction",
+        "market",
+        "business_models",
+        "founders",
+        "products",
+    )
+
+    return [
+        AnalysisEvidence(
+            document_id=uuid4(),
+            section=sections[index % len(sections)],
+            source_text=(
+                f"Evidence item {index}: RestoMart reported material "
+                f"information relevant to startup analysis. "
+                f"Additional detail {index}."
+            ),
+            confidence=Decimal("0.80"),
+        )
+        for index in range(count)
+    ]
+
+
+def test_evidence_projection_is_bounded_and_deterministic():
+    """Large canonical evidence sets must be reduced for LLM synthesis."""
+
+    analysis_input = make_analysis_input()
+    analysis_input.evidence = make_evidence(65)
+
+    messages_a = build_startup_analysis_messages(
+        analysis_input=analysis_input,
+        metrics=make_metrics(),
+    )
+    messages_b = build_startup_analysis_messages(
+        analysis_input=analysis_input,
+        metrics=make_metrics(),
+    )
+
+    payload_a = extract_input_payload(messages_a[1].content)
+    payload_b = extract_input_payload(messages_b[1].content)
+
+    evidence_a = payload_a["startup"]["evidence"]
+    evidence_b = payload_b["startup"]["evidence"]
+
+    assert len(evidence_a) <= 24
+    assert evidence_a == evidence_b
+    assert len(messages_a[1].content) > 0
+
+
+def test_canonical_evidence_is_not_mutated():
+    """Prompt projection must not modify canonical StartupAnalysisInput."""
+
+    analysis_input = make_analysis_input()
+    evidence = make_evidence(65)
+    analysis_input.evidence = evidence.copy()
+
+    original_count = len(analysis_input.evidence)
+    original_text = analysis_input.evidence[0].source_text
+
+    build_startup_analysis_messages(
+        analysis_input=analysis_input,
+        metrics=make_metrics(),
+    )
+
+    assert len(analysis_input.evidence) == original_count
+    assert analysis_input.evidence[0].source_text == original_text
+
+
+def test_long_evidence_items_are_compacted():
+    """Individual evidence records must be bounded before synthesis."""
+
+    analysis_input = make_analysis_input()
+    analysis_input.evidence = [
+        AnalysisEvidence(
+            document_id=uuid4(),
+            section="financials",
+            source_text="X" * 5000,
+            confidence=Decimal("0.9"),
+        )
+    ]
+
+    messages = build_startup_analysis_messages(
+        analysis_input=analysis_input,
+        metrics=make_metrics(),
+    )
+
+    payload = extract_input_payload(messages[1].content)
+    projected = payload["startup"]["evidence"]
+
+    assert len(projected) == 1
+    assert len(projected[0]["source_text"]) <= 601
+
+
+def test_payload_stays_within_configured_character_budget():
+    """The serialized startup synthesis payload must respect its hard limit."""
+
+    analysis_input = make_analysis_input()
+    analysis_input.evidence = make_evidence(65)
+
+    messages = build_startup_analysis_messages(
+        analysis_input=analysis_input,
+        metrics=make_metrics(),
+    )
+
+    payload = extract_input_payload(messages[1].content)
+    payload_text = json.dumps(
+        payload,
+        indent=2,
+        ensure_ascii=False,
+    )
+
+    assert len(payload_text) <= 18_000
+
+
+def test_user_prompt_does_not_contain_recalculate_instruction():
+    """Deterministic-metric instructions belong in the system contract."""
+
+    user_prompt = build_messages()[1].content.lower()
+
+    assert "recalculate" not in user_prompt
+
 
 
 # ---------------------------------------------------------------------------

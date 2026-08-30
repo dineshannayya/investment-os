@@ -19,6 +19,7 @@ from app.models.startup import Startup
 from app.models.analysis import StartupAnalysis
 from app.models.user import User
 from app.models.user_role import UserRole
+from app.models.source_extraction_orm import SourceExtractionORM
 
 from app.models.source_document import (
     ExtractionStatus,
@@ -57,4 +58,6 @@ __all__ = [
     "SourceCategory",
     "SourceDocument",
     "SourceType",
+    #source_extraction_orm
+    "SourceExtractionORM",
 ]

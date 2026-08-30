@@ -1,35 +1,28 @@
-from __future__ import annotations
+"""
+Extraction quality model.
+
+Defines the quality classification of extracted document content.
+
+This model belongs to the model layer so that services and persistence
+models can depend on it without introducing model -> service dependencies.
+"""
 
 from enum import Enum
 
-from pydantic import BaseModel, ConfigDict, Field
-
 
 class ExtractionQuality(str, Enum):
+    """
+    Quality classification of extracted document content.
+
+    This is intentionally separate from ExtractionStatus.
+
+    ExtractionStatus answers:
+        "Did extraction execute?"
+
+    ExtractionQuality answers:
+        "Is the extracted result sufficiently usable?"
+    """
+
     PASS = "pass"
     REVIEW = "review"
     FAIL = "fail"
-
-
-class ExtractionQualityReport(BaseModel):
-    """
-    Read-only quality assessment of extracted source content.
-
-    This model does not represent extraction execution status.
-    """
-
-    model_config = ConfigDict(extra="forbid")
-
-    source_id: str
-    relative_path: str
-    source_type: str
-    source_category: str
-
-    quality: ExtractionQuality
-
-    text_length: int = Field(ge=0)
-    segment_count: int = Field(ge=0)
-
-    processor_name: str | None = None
-
-    warnings: list[str] = Field(default_factory=list)

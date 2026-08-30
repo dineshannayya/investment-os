@@ -36,6 +36,7 @@ COPY . .
 
 # Make the virtual environment available
 ENV PATH="/opt/investment-os/.venv/bin:$PATH"
+ENV REAL_STARTUPS_ROOT=/opt/investment-os/data/real_startups
 
 EXPOSE 8000
 

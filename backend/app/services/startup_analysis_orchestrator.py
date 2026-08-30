@@ -1,6 +1,33 @@
+"""
+Startup analysis orchestration.
+
+Coordinates:
+
+    Startup
+        ↓
+    StartupAnalysisInputBuilder
+        ↓
+    Document Intelligence
+        ↓
+    Financial Metrics
+        ↓
+    Qualitative Startup Analysis
+        ↓
+    StartupAnalysisExecution
+
+Source extraction is intentionally not performed here.
+
+Persisted SourceExtractionRecord objects may be supplied by the
+upstream source-extraction workflow and are forwarded to the
+document-intelligence layer.
+"""
+
 from __future__ import annotations
 
+from collections.abc import Iterable
+
 from app.models.analysis import StartupAnalysisMode
+from app.models.source_extraction_record import SourceExtractionRecord
 from app.models.startup import Startup
 from app.services.financial_metrics import FinancialMetricsService
 from app.services.startup_analysis import StartupAnalysisService
@@ -44,29 +71,78 @@ class StartupAnalysisOrchestrator:
             analysis_service or StartupAnalysisService()
         )
 
+    # -------------------------------------------------------------------------
+    # Analysis
+    # -------------------------------------------------------------------------
+
     def analyze(
         self,
         startup: Startup,
         *,
         mode: StartupAnalysisMode = StartupAnalysisMode.STANDARD,
+        source_extractions: Iterable[
+            SourceExtractionRecord
+        ] = (),
     ) -> StartupAnalysisExecution:
-        """Execute the complete startup-analysis workflow."""
+        """
+        Execute the complete startup-analysis workflow.
 
-        analysis_input = self._input_builder.build(startup)
+        Parameters
+        ----------
+        startup:
+            Startup domain/ORM object used to construct the initial
+            StartupAnalysisInput.
+
+        mode:
+            Qualitative analysis mode.
+
+        source_extractions:
+            Already-persisted source extraction records.
+
+            These records are NOT discovered or extracted here.
+            They are simply forwarded to
+            StartupAnalysisDocumentIntelligenceService.
+
+        This keeps source extraction and startup analysis as two
+        separate production stages:
+
+            Source Discovery / Extraction
+                    ↓
+            persisted SourceExtractionRecord
+                    ↓
+            Startup Analysis
+        """
+
+        analysis_input = self._input_builder.build(
+            startup,
+        )
+
+        # ---------------------------------------------------------------------
+        # Document intelligence
+        # ---------------------------------------------------------------------
 
         if self._document_intelligence_service is not None:
             analysis_input = (
                 self._document_intelligence_service.enrich(
                     startup,
                     analysis_input,
+                    source_extractions=source_extractions,
                 )
             )
+
+        # ---------------------------------------------------------------------
+        # Deterministic financial metrics
+        # ---------------------------------------------------------------------
 
         metrics = self._financial_metrics_service.calculate(
             financials=analysis_input.financials,
             fundraising=analysis_input.fundraising,
             business_model=analysis_input.business_model,
         )
+
+        # ---------------------------------------------------------------------
+        # Qualitative startup analysis
+        # ---------------------------------------------------------------------
 
         result, config, response = (
             self._analysis_service.analyze_qualitative(
@@ -76,6 +152,10 @@ class StartupAnalysisOrchestrator:
             )
         )
 
+        # ---------------------------------------------------------------------
+        # Execution result
+        # ---------------------------------------------------------------------
+
         return StartupAnalysisExecution(
             input=analysis_input,
             metrics=metrics,
@@ -83,3 +163,8 @@ class StartupAnalysisOrchestrator:
             config=config,
             response=response,
         )
+
+
+__all__ = [
+    "StartupAnalysisOrchestrator",
+]

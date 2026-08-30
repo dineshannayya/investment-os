@@ -241,6 +241,9 @@ class Settings(BaseSettings):
     # ==================================================================
     # STARTUP ANALYSIS
     # ==================================================================
+
+    real_startups_root: str = Field( default="./data/real_startups",)
+
     startup_analysis_temperature: float = (
         DEFAULT_STARTUP_ANALYSIS_TEMPERATURE
     )
