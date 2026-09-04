@@ -190,6 +190,7 @@ docker_recreate:
 # Startup Regression
 # --------------------------------------
 #Fast regression
+# make startup-analysis     → actual production analysis
 startup-analysis-regression:
 	docker compose exec -T backend \
 		python -u -m scripts.startup_analysis_regression
@@ -224,6 +225,7 @@ test-all:
 	$(DOCKER) pytest tests -v --cov=app
 
 
+.PHONY: regression
 regression:
 	# Existing deterministic regression
 	$(DOCKER) pytest tests -v --cov=app --cov-report=term-missing
@@ -240,8 +242,46 @@ regression:
 	docker compose exec backend python -u \
 	    -m scripts.startup_analysis_qwen_benchmark
 
+.PHONY: sanity
 sanity:
 	docker compose exec -T backend     python -u -m scripts.startup_analysis_real_e2e
+
+
+# -----------------------------------------------
+# G.2-B verification/reference
+# make g2b                  
+# -----------------------------------------------
+.PHONY: g2b
+
+g2b:
+	docker compose -f docker-compose.yml exec -T backend \
+		env PYTHONPATH=/opt/investment-os \
+		python -u scripts/startup_analysis_g2b_reference.py
+
+# -----------------------------------------------
+# Analysis the Startup result
+# make analysis ID=17c182bc-f903-4db2-8429-548d63a67bdd OUT=analysis_report.txt
+# make analysis ID=17c182bc-f903-4db2-8429-548d63a67bdd
+# -----------------------------------------------
+
+.PHONY: analysis
+
+analysis:
+	@if [ -z "$(ID)" ]; then \
+		echo "Usage: make analysis ID=<analysis-id> [OUT=analysis_report.txt]"; \
+		exit 1; \
+	fi
+	@if [ -n "$(OUT)" ]; then \
+		docker compose -f docker-compose.yml exec -T backend \
+			env PYTHONPATH=/opt/investment-os \
+			python -u scripts/analyze_startup_analysis.py "$(ID)" \
+			| tee "$(OUT)"; \
+	else \
+		docker compose -f docker-compose.yml exec -T backend \
+			env PYTHONPATH=/opt/investment-os \
+			python -u scripts/analyze_startup_analysis.py "$(ID)"; \
+	fi
+
 # --------------------------------
 # Database
 # --------------------------------

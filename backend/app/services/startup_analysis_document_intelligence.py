@@ -134,27 +134,18 @@ class StartupAnalysisDocumentIntelligenceService:
 
         profiles: list[InvestmentProfile] = []
 
-        # ---------------------------------------------------------------------
-        # Existing Document path
-        # ---------------------------------------------------------------------
-
-        for document in documents:
-            profiles.append(
-                self._analyze_document(
-                    document.id,
+        if extractions:
+            # SourceExtractionRecords are authoritative.
+            for extraction in extractions:
+                profiles.append(
+                    self._analyze_source_extraction(extraction)
                 )
-            )
-
-        # ---------------------------------------------------------------------
-        # SourceExtractionRecord path
-        # ---------------------------------------------------------------------
-
-        for extraction in extractions:
-            profiles.append(
-                self._analyze_source_extraction(
-                    extraction,
+        else:
+            # Legacy fallback only when no source extractions exist.
+            for document in documents:
+                profiles.append(
+                    self._analyze_document(document.id)
                 )
-            )
 
         profile_tuple = tuple(profiles)
 

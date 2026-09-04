@@ -237,43 +237,49 @@ class StartupAnalysisApplicationService:
     ) -> tuple[SourceExtractionRecord, ...]:
         """
         Load persisted extractions matching the startup's current sources.
-    
+
         The lookup is deliberately source-version exact:
-    
+
             source_id + current sha256
-    
+
         This prevents an older extraction from being used when the
         underlying source file has changed.
-    
+
         Missing persisted extractions are skipped. Extraction itself is
         owned by the production source-extraction batch workflow.
+
+        Source identity is generated from the canonical Startup UUID.
+        The startup name is used only to resolve the filesystem source root.
         """
-    
-        startup_key = (
-            startup.name
-            .strip()
-            .lower()
-            .replace(" ", "_")
-        )
-    
+
+        # ------------------------------------------------------------------
+        # IMPORTANT:
+        #
+        # source_id is a logical identity and must be generated from the
+        # canonical Startup UUID. Do NOT use startup.name here.
+        #
+        # Filesystem layout continues to use startup.name through
+        # _source_root().
+        # ------------------------------------------------------------------
+
         source_root = self._source_root(
             startup.name,
         )
-    
+
         if not source_root.exists():
             return ()
-    
+
         sources = self._source_discovery.discover(
-            startup_id=startup_key,
+            startup_id=str(startup.id),
             source_root=source_root,
         )
-    
+
         records: list[SourceExtractionRecord] = []
-    
+
         for source in sources:
             if source.sha256 is None:
                 continue
-    
+
             record = (
                 self._source_extraction_persistence
                 .get_by_source_version(
@@ -281,14 +287,13 @@ class StartupAnalysisApplicationService:
                     source_sha256=source.sha256,
                 )
             )
-    
+
             if record is None:
                 continue
-    
-            records.append(record)
-    
-        return tuple(records)
 
+            records.append(record)
+
+        return tuple(records)
 
     # -------------------------------------------------------------------------
     # Source root
@@ -300,29 +305,29 @@ class StartupAnalysisApplicationService:
     ) -> Path:
         """
         Resolve the production source root for a startup.
-    
+
         Production layout:
-    
+
             <storage_root>/real_startups/<startup_key>/sources
-    
+
         Startup names are normalized to lowercase filesystem keys.
-    
+
         Example:
-    
+
             RestoMart
                 ↓
             restomart
                 ↓
             real_startups/restomart/sources
         """
-    
+
         startup_key = (
             startup_name
             .strip()
             .lower()
             .replace(" ", "_")
         )
-    
+
         return (
             Path(settings.real_startups_root)
             / startup_key

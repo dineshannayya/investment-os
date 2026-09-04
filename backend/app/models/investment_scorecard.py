@@ -97,6 +97,7 @@ class InvestmentScorecard(BaseModel):
         min_length=10,
         max_length=10,
     )
+
     evaluation_principles: EvaluationPrinciples
 
     @field_validator("dimensions")
@@ -183,6 +184,7 @@ class MultiDimensionEvaluation(BaseModel):
 
         return self
 
+
 class DimensionRisk(BaseModel):
     """Specific investment risk identified for a dimension."""
 
@@ -257,12 +259,10 @@ class DimensionEvaluation(BaseModel):
     )
 
     missing_information: list[MissingInformation] = Field(
-        default_factory=list
+        default_factory=list,
     )
 
-
     reasoning: str = Field(min_length=1)
-
 
     @field_validator(
         "missing_information",
@@ -275,9 +275,9 @@ class DimensionEvaluation(BaseModel):
     ):
         if value is None:
             return []
-    
+
         normalized = []
-    
+
         for item in value:
             if isinstance(item, str):
                 normalized.append(
@@ -295,9 +295,8 @@ class DimensionEvaluation(BaseModel):
                     "missing_information entries must be "
                     "strings or objects."
                 )
-    
-        return normalized
 
+        return normalized
 
     @field_validator(
         "positive_observations",
@@ -312,18 +311,54 @@ class DimensionEvaluation(BaseModel):
             raise ValueError(
                 "Text list entries must not be empty."
             )
-    
-        return value
 
+        return value
 
     @model_validator(mode="after")
     def validate_dimension_evaluation(
         self,
     ) -> "DimensionEvaluation":
-        evidence_refs = {
+        # ------------------------------------------------------------------
+        # Phase 1 evidence-integrity rule:
+        #
+        # A single DimensionEvaluation must not contain the same evidence
+        # reference more than once.
+        #
+        # Evidence references are identifiers, so silently deduplicating
+        # them would hide an LLM output defect. Reject instead.
+        # ------------------------------------------------------------------
+        evidence_refs_in_order = [
             evidence.evidence_ref
             for evidence in self.evidence
-        }
+        ]
+
+        if len(evidence_refs_in_order) != len(
+            set(evidence_refs_in_order)
+        ):
+            duplicates = sorted(
+                {
+                    ref
+                    for ref in evidence_refs_in_order
+                    if evidence_refs_in_order.count(ref) > 1
+                }
+            )
+
+            raise ValueError(
+                "DimensionEvaluation must not contain "
+                "duplicate evidence_ref values: "
+                f"{duplicates}"
+            )
+
+        # ------------------------------------------------------------------
+        # Existing invariant:
+        #
+        # Every risk evidence reference must point to evidence returned
+        # within the same DimensionEvaluation.
+        #
+        # This remains separate from the Phase 1 service-level check that
+        # verifies returned evidence refs belong to the supplied evidence.
+        # ------------------------------------------------------------------
+        evidence_refs = set(evidence_refs_in_order)
 
         risk_refs = {
             ref
@@ -342,6 +377,7 @@ class DimensionEvaluation(BaseModel):
 
         return self
 
+
 class MissingInformation(BaseModel):
     """
     Information that is unavailable but relevant to evaluating
@@ -353,6 +389,7 @@ class MissingInformation(BaseModel):
 
     item: str
     reason: str = ""
+
 
 class DimensionScorecardResult(BaseModel):
     """
@@ -408,6 +445,7 @@ class DimensionScorecardResult(BaseModel):
 
         return self
 
+
 class EvidenceSemantics(BaseModel):
     missing_information_is_not_negative_evidence: bool = True
     absence_of_evidence_is_not_evidence_of_negative_condition: bool = True
@@ -422,5 +460,3 @@ class MissingInformationRule(BaseModel):
 class EvaluationPrinciples(BaseModel):
     evidence_semantics: EvidenceSemantics
     missing_information_rule: MissingInformationRule
-
-
