@@ -580,7 +580,7 @@ def test_dimension_coverage_rejects_missing_dimension():
 
     with pytest.raises(
         ValueError,
-        match="Missing dimension evaluations",
+        match="Dimension evaluation coverage mismatch: missing=",
     ):
         InvestmentScorecardEvaluationService._validate_dimension_coverage(
             expected_dimension_ids=[
@@ -633,7 +633,7 @@ def test_dimension_coverage_rejects_unexpected_dimension():
 
     with pytest.raises(
         ValueError,
-        match="Unexpected dimension evaluations",
+        match="Dimension evaluation coverage mismatch: unexpected=",
     ):
         InvestmentScorecardEvaluationService._validate_dimension_coverage(
             expected_dimension_ids=[

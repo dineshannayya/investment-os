@@ -1,9 +1,11 @@
 from __future__ import annotations
 
-from typing import Any
-
 from app.llm.models import LLMMessage, LLMRequest
 from app.llm.providers.qwen import QwenProvider
+from app.models.dimension_evidence import (
+    DimensionEvidence,
+    DimensionEvidenceSet,
+)
 from app.models.investment_scorecard import (
     DimensionEvaluation,
     InvestmentScorecard,
@@ -12,6 +14,9 @@ from app.models.investment_scorecard import (
 from app.prompt.investment_scorecard import (
     build_dimension_evaluation_prompt,
 )
+from app.services.dimension_evidence_loader import (
+    DimensionEvidenceLoader,
+)
 from app.services.investment_scorecard_parser import (
     InvestmentScorecardParser,
 )
@@ -19,23 +24,8 @@ from app.services.investment_scorecard_parser import (
 
 class InvestmentScorecardEvaluationService:
     """
-    Orchestrate evaluation of all dimensions in an investment scorecard.
-
-    Responsibilities:
-        - iterate through scorecard dimensions
-        - build dimension prompts
-        - invoke the LLM
-        - parse structured dimension evaluations
-        - validate dimension identity
-        - validate returned evidence references
-        - validate complete dimension coverage
-
-    This service does NOT:
-        - calculate weighted scores
-        - calculate overall score
-        - generate investment recommendations
-        - modify startup evidence
-        - modify scorecard weights
+    Evaluate every InvestmentScorecard dimension using only the evidence
+    owned by that dimension.
     """
 
     def __init__(
@@ -50,59 +40,68 @@ class InvestmentScorecardEvaluationService:
         *,
         scorecard: InvestmentScorecard,
         startup_name: str,
-        startup_evidence: list[dict[str, Any]],
+        evidence_set: DimensionEvidenceSet,
         temperature: float = 0.0,
         max_tokens: int = 768,
         thinking_enabled: bool = False,
     ) -> MultiDimensionEvaluation:
         """
-        Evaluate every dimension in the scorecard.
+        Evaluate every scorecard dimension exactly once.
 
-        Evaluation is performed sequentially to keep the initial
-        implementation simple and predictable for local Qwen inference.
+        Evidence ownership is deterministic and established before
+        invoking the LLM.
 
-        Evidence integrity is enforced at two levels:
+        For dimension D:
 
-        1. DimensionEvaluation validates that evidence references are
-           unique and that risk references point to returned evidence.
+            supplied evidence =
+                evidence_set.dimensions[D]
 
-        2. This service validates that every evidence reference returned
-           by the LLM existed in the supplied startup evidence.
-
-        The current service contract receives a flat startup_evidence
-        collection. Therefore this method does not infer dimension
-        ownership from evidence metadata. A future DimensionEvidenceSet
-        contract can enforce cross-dimension ownership explicitly.
+        Qwen cannot cite evidence belonging to another dimension.
         """
+
+        self._validate_startup_identity(
+            startup_name=startup_name,
+            evidence_set=evidence_set,
+        )
+
+        # --------------------------------------------------------------
+        # Validate evidence namespace before calling Qwen.
+        #
+        # Unknown dimension IDs are configuration errors.
+        # Missing evidence for known dimensions is allowed.
+        # --------------------------------------------------------------
+        DimensionEvidenceLoader.validate_dimension_coverage(
+            scorecard=scorecard,
+            evidence_set=evidence_set,
+        )
 
         expected_dimension_ids = [
             dimension.id
             for dimension in scorecard.dimensions
         ]
 
-        # ------------------------------------------------------------------
-        # Phase 1:
-        #
-        # Build the authoritative set of evidence references supplied to
-        # the LLM. The LLM may select from this set, but it may not invent
-        # a new reference.
-        #
-        # Ignore malformed entries here only long enough to let the
-        # existing prompt/provider path operate as before; returned
-        # evidence refs are always checked strictly below.
-        # ------------------------------------------------------------------
-        allowed_evidence_refs = {
-            evidence_ref
-            for evidence_ref in (
-                self._extract_evidence_ref(item)
-                for item in startup_evidence
-            )
-            if evidence_ref is not None
-        }
-
         evaluations: list[DimensionEvaluation] = []
 
+        # --------------------------------------------------------------
+        # Scorecard ordering is authoritative.
+        # --------------------------------------------------------------
         for dimension in scorecard.dimensions:
+            owned_evidence = (
+                DimensionEvidenceLoader.get_dimension_evidence(
+                    evidence_set,
+                    dimension.id,
+                )
+            )
+
+            allowed_refs = self._get_evidence_refs(
+                dimension_id=dimension.id,
+                dimension_evidence=owned_evidence,
+            )
+
+            startup_evidence = self._build_prompt_evidence(
+                owned_evidence,
+            )
+
             prompt = build_dimension_evaluation_prompt(
                 scorecard=scorecard,
                 dimension_id=dimension.id,
@@ -119,7 +118,11 @@ class InvestmentScorecardEvaluationService:
                             "Return ONLY the structured JSON object "
                             "requested by the user prompt. "
                             "Do not use markdown fences. "
-                            "Follow the evidence semantics exactly."
+                            "Follow the evidence semantics exactly. "
+                            "Use only evidence supplied for this "
+                            "dimension. "
+                            "Do not introduce evidence references "
+                            "from another dimension."
                         ),
                     ),
                     LLMMessage(
@@ -133,30 +136,30 @@ class InvestmentScorecardEvaluationService:
                     "thinking_enabled": thinking_enabled,
                     "scorecard_dimension": dimension.id,
                     "startup_name": startup_name,
+                    "dimension_evidence_count": len(
+                        owned_evidence.evidence
+                    ),
                 },
             )
 
             response = self._provider.generate(request)
 
-            # --------------------------------------------------------------
-            # Reject truncated LLM responses.
-            # --------------------------------------------------------------
+            # ----------------------------------------------------------
+            # A structured JSON response must not be truncated.
+            # ----------------------------------------------------------
             if response.finish_reason == "length":
                 raise ValueError(
                     "Investment scorecard dimension evaluation "
                     f"was truncated: {dimension.id}"
                 )
 
-            # --------------------------------------------------------------
-            # Parse structured response.
-            # --------------------------------------------------------------
             evaluation = InvestmentScorecardParser.parse(
-                response.text
+                response.text,
             )
 
-            # --------------------------------------------------------------
-            # Validate that Qwen evaluated the requested dimension.
-            # --------------------------------------------------------------
+            # ----------------------------------------------------------
+            # The LLM must answer the dimension it was asked to answer.
+            # ----------------------------------------------------------
             if evaluation.dimension_id != dimension.id:
                 raise ValueError(
                     "LLM returned an unexpected dimension ID. "
@@ -164,34 +167,25 @@ class InvestmentScorecardEvaluationService:
                     f"received '{evaluation.dimension_id}'."
                 )
 
-            # --------------------------------------------------------------
-            # Phase 1 evidence-integrity validation.
-            #
-            # Every evidence_ref returned by Qwen must have existed in the
-            # evidence supplied to the evaluation service.
-            #
-            # Do not silently remove invalid references. A fabricated or
-            # altered evidence reference is a hard evaluation-contract
-            # violation and must fail the evaluation.
-            # --------------------------------------------------------------
-            self._validate_evidence_references(
+            # ----------------------------------------------------------
+            # Critical evidence ownership boundary.
+            # ----------------------------------------------------------
+            self._validate_evidence_ownership(
+                dimension_id=dimension.id,
+                allowed_evidence_refs=allowed_refs,
                 evaluation=evaluation,
-                allowed_evidence_refs=allowed_evidence_refs,
             )
 
             evaluations.append(evaluation)
 
-        # ------------------------------------------------------------------
-        # Validate complete dimension coverage.
-        # ------------------------------------------------------------------
+        # --------------------------------------------------------------
+        # Exactly one evaluation for every scorecard dimension.
+        # --------------------------------------------------------------
         self._validate_dimension_coverage(
             expected_dimension_ids=expected_dimension_ids,
             evaluations=evaluations,
         )
 
-        # ------------------------------------------------------------------
-        # Return structured multi-dimension evaluation.
-        # ------------------------------------------------------------------
         return MultiDimensionEvaluation(
             scorecard_version=scorecard.scorecard.version,
             startup_name=startup_name,
@@ -199,73 +193,134 @@ class InvestmentScorecardEvaluationService:
         )
 
     @staticmethod
-    def _extract_evidence_ref(
-        evidence: dict[str, Any],
-    ) -> str | None:
-        """
-        Extract an evidence_ref from one supplied evidence item.
-
-        The current service contract accepts generic dictionaries, so
-        malformed input is not assumed to have a particular structure.
-
-        Valid references are normalized only for presence checking;
-        the actual reference returned by the LLM is never modified.
-        """
-
-        if not isinstance(evidence, dict):
-            return None
-
-        value = evidence.get("evidence_ref")
-
-        if not isinstance(value, str):
-            return None
-
-        if not value.strip():
-            return None
-
-        return value
-
-    @staticmethod
-    def _validate_evidence_references(
+    def _validate_startup_identity(
         *,
-        evaluation: DimensionEvaluation,
-        allowed_evidence_refs: set[str],
+        startup_name: str,
+        evidence_set: DimensionEvidenceSet,
     ) -> None:
         """
-        Validate that every returned evidence_ref was supplied to the LLM.
-
-        This is a trust-boundary check between the LLM and Investment OS.
-
-        The LLM may:
-            - select supplied evidence
-            - interpret supplied evidence
-            - summarize supplied evidence
-
-        The LLM may not:
-            - invent evidence references
-            - rename evidence references
-            - fabricate evidence identifiers
-
-        Duplicate references are already rejected by DimensionEvaluation.
-        Risk references are also already required to reference evidence
-        contained in the same DimensionEvaluation.
+        Ensure evaluation and evidence refer to the same startup.
         """
 
-        returned_evidence_refs = {
+        if not startup_name.strip():
+            raise ValueError(
+                "startup_name must not be empty."
+            )
+
+        if evidence_set.startup != startup_name:
+            raise ValueError(
+                "Dimension evidence startup does not match "
+                "evaluation startup. "
+                f"Expected '{startup_name}', "
+                f"received '{evidence_set.startup}'."
+            )
+
+    @staticmethod
+    def _get_evidence_refs(
+        *,
+        dimension_id: str,
+        dimension_evidence: DimensionEvidence,
+    ) -> set[str]:
+        """
+        Establish the authoritative evidence_ref set for one dimension.
+
+        Duplicate references are rejected rather than silently removed.
+        """
+
+        refs = [
+            item.evidence_ref
+            for item in dimension_evidence.evidence
+        ]
+
+        if len(refs) != len(set(refs)):
+            duplicates = sorted(
+                {
+                    ref
+                    for ref in refs
+                    if refs.count(ref) > 1
+                }
+            )
+
+            raise ValueError(
+                "Dimension evidence contains duplicate "
+                f"evidence_ref values for dimension "
+                f"'{dimension_id}': {duplicates}"
+            )
+
+        return set(refs)
+
+    @staticmethod
+    def _build_prompt_evidence(
+        dimension_evidence: DimensionEvidence,
+    ) -> list[dict[str, str]]:
+        """
+        Convert dimension-owned evidence into the prompt representation.
+
+        This function performs no enrichment, inference, reassignment,
+        or filtering.
+        """
+
+        return [
+            {
+                "evidence_ref": item.evidence_ref,
+                "observation": item.observation,
+                "source_type": item.source_type,
+            }
+            for item in dimension_evidence.evidence
+        ]
+
+    @staticmethod
+    def _validate_evidence_ownership(
+        *,
+        dimension_id: str,
+        allowed_evidence_refs: set[str],
+        evaluation: DimensionEvaluation,
+    ) -> None:
+        """
+        Ensure every evidence reference returned by Qwen belongs to
+        the current dimension's input evidence bucket.
+        """
+
+        returned_refs = {
             evidence.evidence_ref
             for evidence in evaluation.evidence
         }
 
-        invalid_refs = (
-            returned_evidence_refs
-            - allowed_evidence_refs
+        unexpected_refs = (
+            returned_refs - allowed_evidence_refs
         )
 
-        if invalid_refs:
+        if unexpected_refs:
             raise ValueError(
-                "Dimension evaluation returned evidence_ref values "
-                "that were not present in the supplied evidence: "
-                f"{sorted(invalid_refs)}"
+                "Dimension evaluation returned evidence references "
+                f"not owned by dimension '{dimension_id}': "
+                f"{sorted(unexpected_refs)}"
+            )
+
+        # --------------------------------------------------------------
+        # Risk references are checked independently.
+        #
+        # DimensionEvaluation validates that risk references point to
+        # evidence included in that evaluation. This check additionally
+        # proves that the cited evidence originated in this dimension's
+        # input bucket.
+        # --------------------------------------------------------------
+        risk_refs = {
+            evidence_ref
+            for risk in evaluation.risk_observations
+            for evidence_ref in risk.evidence_refs
+        }
+
+        unexpected_risk_refs = (
+            risk_refs - allowed_evidence_refs
+        )
+
+        if unexpected_risk_refs:
+            raise ValueError(
+                "Dimension evaluation returned risk evidence "
+                f"references not owned by dimension "
+                f"'{dimension_id}': "
+                f"{sorted(unexpected_risk_refs)}"
             )
 
     @staticmethod
@@ -275,7 +330,7 @@ class InvestmentScorecardEvaluationService:
         evaluations: list[DimensionEvaluation],
     ) -> None:
         """
-        Validate that exactly the expected dimensions were evaluated.
+        Ensure exactly one evaluation exists for every scorecard dimension.
         """
 
         actual_dimension_ids = [

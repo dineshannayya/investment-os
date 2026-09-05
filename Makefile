@@ -246,6 +246,9 @@ regression:
 sanity:
 	docker compose exec -T backend     python -u -m scripts.startup_analysis_real_e2e
 
+.PHONY: restomart
+restomart:
+	docker compose -f docker-compose.yml exec -T backend   env PYTHONPATH=/opt/investment-os   python -u scripts/run_startup_investment_analysis.py   --startup restomart 
 
 # -----------------------------------------------
 # G.2-B verification/reference

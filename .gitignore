@@ -243,3 +243,6 @@ tempCodeRunnerFile.py
 
 # PyPI configuration file
 .pypirc
+
+# Startup Source ignore
+data/real_startups/*/sources/

@@ -342,18 +342,14 @@ def test_load_for_scorecard_rejects_unknown_dimension(
             scorecard=scorecard,
         )
 
-
 def test_restomart_dimension_routing():
-
     result = DimensionEvidenceLoader.load(
         RESTOMART_EVIDENCE_PATH,
     )
 
-    commercial = (
-        DimensionEvidenceLoader.get_dimension_evidence(
-            result,
-            "commercial_traction",
-        )
+    commercial = DimensionEvidenceLoader.get_dimension_evidence(
+        result,
+        "commercial_traction",
     )
 
     refs = {
@@ -361,15 +357,19 @@ def test_restomart_dimension_routing():
         for item in commercial.evidence
     }
 
-    assert "financials_revenue" in refs
-    assert "financials_customer_base" in refs
-    assert "investor_brief_repeat_usage" in refs
+    assert {
+        "mis_fy25_net_sales",
+        "mis_fy26_net_sales",
+        "mis_active_customers",
+        "mis_customer_churn",
+        "mis_revenue_concentration",
+        "mis_orders_aov",
+        "mis_fill_rate",
+    }.issubset(refs)
 
-    valuation = (
-        DimensionEvidenceLoader.get_dimension_evidence(
-            result,
-            "valuation_deal_terms",
-        )
+    valuation = DimensionEvidenceLoader.get_dimension_evidence(
+        result,
+        "valuation_deal_terms",
     )
 
     valuation_refs = {
@@ -377,5 +377,11 @@ def test_restomart_dimension_routing():
         for item in valuation.evidence
     }
 
-    assert "fundraise_valuation" in valuation_refs
-    assert "fundraise_raise" in valuation_refs
+    assert {
+        "investment_note_round",
+        "investment_note_projection",
+        "sha_subscription",
+        "sha_conversion",
+        "sha_liquidation_preference",
+        "sha_anti_dilution",
+    }.issubset(valuation_refs)
