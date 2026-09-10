@@ -27,6 +27,7 @@ class SignalRule:
     value: str
 
     keywords: tuple[str, ...]
+    context_keywords: tuple[str, ...] = ()
 
 
 class SignalExtractor(
@@ -80,6 +81,35 @@ class SignalExtractor(
             field="industry",
             value="healthcare",
             keywords=(
+                "healthcare company",
+                "healthcare platform",
+                "healthcare startup",
+                "healthcare product",
+                "healthcare solution",
+                "healthcare business",
+                "healthcare marketplace",
+                "healthcare services",
+                "healthcare technology",
+                "healthcare technology company",
+                "healthcare software",
+                "healthcare application",
+                "healthcare provider",
+                "healthcare delivery",
+                "healthtech",
+                "hospital platform",
+                "hospital management",
+                "clinic platform",
+                "clinic management",
+                "patient care platform",
+                "patient management platform",
+                "medical device",
+                "medical technology",
+                "medical platform",
+                "medical software",
+                "diagnostic platform",
+                "diagnostic device",
+            ),
+            context_keywords=(
                 "healthcare",
                 "hospital",
                 "clinic",
@@ -92,6 +122,28 @@ class SignalExtractor(
             field="industry",
             value="semiconductor",
             keywords=(
+                "semiconductor company",
+                "semiconductor startup",
+                "semiconductor product",
+                "semiconductor platform",
+                "semiconductor business",
+                "fabless semiconductor",
+                "fabless company",
+                "asic company",
+                "asic product",
+                "soc product",
+                "system-on-chip",
+                "integrated circuit company",
+                "microcontroller company",
+                "microprocessor company",
+                "chip company",
+                "chip startup",
+                "chip product",
+                "risc-v processor",
+                "risc-v microcontroller",
+                "silicon product",
+            ),
+            context_keywords=(
                 "semiconductor",
                 "soc",
                 "asic",
@@ -108,10 +160,28 @@ class SignalExtractor(
             field="industry",
             value="fintech",
             keywords=(
+                "fintech company",
+                "fintech startup",
+                "fintech platform",
+                "fintech product",
+                "fintech business",
+                "financial technology company",
+                "payments platform",
+                "payment platform",
+                "payment gateway",
+                "payment processor",
+                "digital payments platform",
+                "upi platform",
+                "banking platform",
+                "digital banking",
+                "neobank",
+            ),
+            context_keywords=(
                 "fintech",
-                "payment",
-                "bank",
-                "upi",
+                "payments",
+                "payment platform",
+                "banking platform",
+                "upi platform",
             ),
         ),
 
@@ -122,9 +192,23 @@ class SignalExtractor(
             field="business_models",
             value="saas",
             keywords=(
-                "subscription",
                 "saas",
+                "saas platform",
+                "saas product",
+                "saas business",
+                "software as a service",
+                "software-as-a-service",
                 "annual recurring revenue",
+                "monthly recurring revenue",
+                "recurring software revenue",
+                "cloud software platform",
+            ),
+            context_keywords=(
+                "saas",
+                "software as a service",
+                "software-as-a-service",
+                "annual recurring revenue",
+                "monthly recurring revenue",
             ),
         ),
         SignalRule(
@@ -365,7 +449,16 @@ class SignalExtractor(
         text: str,
         rule: SignalRule,
     ) -> bool:
-        """Match a rule with contextual protection for B2C/consumer."""
+        """
+        Match a rule using only explicitly approved phrases.
+
+        ``keywords`` are strong, semantically specific phrases.  The
+        optional ``context_keywords`` field documents the vocabulary that
+        belongs to the signal, but is deliberately not sufficient by itself
+        to create a signal.  This prevents generic words such as
+        "healthcare", "bank", "payment", or "subscription" from creating
+        false positives when they occur in unrelated document contexts.
+        """
         for keyword in rule.keywords:
             if not cls._contains_keyword(text, keyword):
                 continue

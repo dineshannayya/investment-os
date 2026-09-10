@@ -4,24 +4,32 @@ Production startup source extraction runner.
 Runs the normal cache-aware source extraction flow for every
 source discovered under a startup's source directory.
 
-Usage:
+The runner resolves the user-facing startup key/name to the
+canonical persisted Startup UUID before source discovery.
 
-    python scripts/extract_startup_sources.py \
-        --startup-id restomart \
-        --source-root /opt/investment-os/data/real_startups/restomart/sources
+Flow:
 
-The script intentionally uses:
-
+    CLI startup key/name
+        ->
+    StartupService
+        ->
+    canonical Startup.id
+        ->
     SourceDiscoveryService
         ->
-    SourceExtractionOrchestrator.extract()
+    SourceExtractionOrchestrator.extract_with_result()
+        ->
+    persisted SourceExtraction
+
+The runner intentionally uses the existing production
+SourceDiscoveryService and SourceExtractionOrchestrator.
 
 It does not directly invoke document processors or OCR.
 
 Exit codes:
 
-    0  All sources processed successfully.
-    1  One or more sources failed.
+    0  All discovered sources processed successfully.
+    1  One or more sources failed or batch is incomplete.
     2  Invalid command-line/configuration error.
 """
 
@@ -31,13 +39,16 @@ import argparse
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from uuid import UUID
 
+from app.core.config import settings
 from app.core.database.session import create_session
 from app.models.source_document import SourceDocument
 from app.services.source_discovery import SourceDiscoveryService
 from app.services.source_extraction_orchestrator import (
     SourceExtractionOrchestrator,
 )
+from app.services.startup import StartupService
 
 
 # =============================================================================
@@ -101,19 +112,174 @@ def build_argument_parser() -> argparse.ArgumentParser:
     )
 
     parser.add_argument(
+        "--startup",
         "--startup-id",
+        dest="startup",
         required=True,
-        help="Startup identifier, for example: restomart",
+        help=(
+            "Startup key, name, or UUID. "
+            "Example: restomart"
+        ),
     )
 
     parser.add_argument(
         "--source-root",
-        required=True,
+        required=False,
         type=Path,
-        help="Root directory containing startup source files.",
+        default=None,
+        help=(
+            "Optional root directory containing startup source files. "
+            "If omitted, it is derived from the configured "
+            "real_startups_root and the startup name."
+        ),
     )
 
     return parser
+
+
+# =============================================================================
+# Startup resolution
+# =============================================================================
+
+
+def _normalize_startup_key(value: str) -> str:
+    """
+    Normalize a user-facing startup key.
+
+    This normalization is intentionally limited to startup lookup.
+    It must NOT be used as the persisted source identity.
+    """
+
+    return (
+        value.strip()
+        .lower()
+        .replace("-", "_")
+        .replace(" ", "_")
+    )
+
+
+def resolve_startup(
+    *,
+    startup_service: StartupService,
+    startup_reference: str,
+):
+    """
+    Resolve a CLI startup reference to the persisted Startup.
+
+    Supported forms:
+
+        restomart
+        RestoMart
+        resto-mart
+        <startup UUID>
+
+    The returned Startup object is the authoritative source for:
+
+        startup.id
+        startup.name
+    """
+
+    reference = startup_reference.strip()
+
+    if not reference:
+        raise ValueError(
+            "--startup must not be empty."
+        )
+
+    # -------------------------------------------------------------------------
+    # Exact UUID lookup
+    # -------------------------------------------------------------------------
+
+    try:
+        startup_uuid = UUID(reference)
+    except ValueError:
+        startup_uuid = None
+
+    if startup_uuid is not None:
+        startup = startup_service.get_startup(startup_uuid)
+
+        if startup is None:
+            raise ValueError(
+                f"Startup not found for UUID: {startup_uuid}"
+            )
+
+        return startup
+
+    # -------------------------------------------------------------------------
+    # User-facing name/key lookup
+    # -------------------------------------------------------------------------
+
+    normalized_reference = _normalize_startup_key(reference)
+
+    startups = startup_service.list_startups()
+
+    matches = []
+
+    for startup in startups:
+        normalized_name = _normalize_startup_key(
+            startup.name
+        )
+
+        if normalized_name == normalized_reference:
+            matches.append(startup)
+
+    if not matches:
+        raise ValueError(
+            f"Startup not found: {startup_reference}"
+        )
+
+    if len(matches) > 1:
+        names = ", ".join(
+            f"{startup.name} ({startup.id})"
+            for startup in matches
+        )
+
+        raise ValueError(
+            "Startup reference is ambiguous: "
+            f"{startup_reference}. Matches: {names}"
+        )
+
+    return matches[0]
+
+
+# =============================================================================
+# Source-root resolution
+# =============================================================================
+
+
+def resolve_source_root(
+    *,
+    startup_name: str,
+    explicit_source_root: Path | None,
+) -> Path:
+    """
+    Resolve the source directory for the persisted startup.
+
+    An explicitly supplied source root is honored.
+
+    Otherwise:
+
+        settings.real_startups_root
+            /
+        normalized startup name
+            /
+        sources
+    """
+
+    if explicit_source_root is not None:
+        return explicit_source_root.resolve()
+
+    startup_key = _normalize_startup_key(
+        startup_name
+    )
+
+    root = (
+        Path(settings.real_startups_root)
+        / startup_key
+        / "sources"
+    )
+
+    return root.resolve()
 
 
 # =============================================================================
@@ -121,17 +287,11 @@ def build_argument_parser() -> argparse.ArgumentParser:
 # =============================================================================
 
 
-def validate_arguments(
+def validate_source_root(
     *,
-    startup_id: str,
     source_root: Path,
 ) -> None:
-    """Validate command-line inputs."""
-
-    if not startup_id.strip():
-        raise ValueError(
-            "--startup-id must not be empty."
-        )
+    """Validate the source directory."""
 
     if not source_root.exists():
         raise ValueError(
@@ -177,15 +337,15 @@ def extract_sources(
     print("=" * 100)
     print("PRODUCTION SOURCE EXTRACTION")
     print("=" * 100)
-    print("STARTUP     :", startup_id)
-    print("SOURCE ROOT :", source_root)
-    print("SOURCES     :", len(sources))
+    print("CANONICAL STARTUP UUID :", startup_id)
+    print("SOURCE ROOT            :", source_root)
+    print("SOURCES                :", len(sources))
     print()
 
     if not sources:
         print("No sources discovered.")
         print()
-        print("BATCH STATUS : PASS")
+        print("BATCH STATUS: PASS")
         return stats
 
     for index, source in enumerate(
@@ -232,6 +392,11 @@ def _process_source(
     )
 
     print(
+        f"[BATCH] source_id={source.source_id}",
+        flush=True,
+    )
+
+    print(
         f"[BATCH] sha256={source.sha256}",
         flush=True,
     )
@@ -242,8 +407,6 @@ def _process_source(
             source_root=source_root,
         )
 
-        # The orchestrator owns cache behavior and explicitly reports the
-        # request outcome. Do not infer cache state from persisted provenance.
         result = execution.record
         cached = execution.cached
         method = result.provenance.method.value
@@ -299,6 +462,7 @@ def _process_source(
             flush=True,
         )
 
+
 # =============================================================================
 # Summary
 # =============================================================================
@@ -306,6 +470,7 @@ def _process_source(
 
 def print_summary(
     *,
+    startup_name: str,
     startup_id: str,
     source_root: Path,
     stats: BatchStats,
@@ -317,18 +482,22 @@ def print_summary(
     print("PRODUCTION SOURCE EXTRACTION SUMMARY")
     print("=" * 100)
 
-    print("STARTUP     :", startup_id)
-    print("SOURCE ROOT :", source_root)
+    print("STARTUP NAME :", startup_name)
+    print("STARTUP UUID :", startup_id)
+    print("SOURCE ROOT  :", source_root)
     print()
-    print("TOTAL       :", stats.total)
-    print("SUCCESS     :", stats.success)
-    print("FAILED      :", stats.failed)
+
+    print("TOTAL        :", stats.total)
+    print("SUCCESS      :", stats.success)
+    print("FAILED       :", stats.failed)
     print()
-    print("CACHE HIT   :", stats.cache_hits)
-    print("EXTRACTED   :", stats.extracted)
+
+    print("CACHE HIT    :", stats.cache_hits)
+    print("EXTRACTED    :", stats.extracted)
     print()
-    print("NATIVE      :", stats.native)
-    print("OCR         :", stats.ocr)
+
+    print("NATIVE       :", stats.native)
+    print("OCR          :", stats.ocr)
 
     if stats.total:
         success_rate = (
@@ -338,16 +507,16 @@ def print_summary(
         success_rate = 100.0
 
     print(
-        f"SUCCESS RATE: {success_rate:.1f}%"
+        f"SUCCESS RATE : {success_rate:.1f}%"
     )
 
     print()
 
-    if stats.failed == 0:
-        print("BATCH STATUS: PASS")
+    if stats.failed == 0 and stats.success == stats.total:
+        print("BATCH STATUS : PASS")
     else:
         print(
-            "BATCH STATUS: "
+            "BATCH STATUS : "
             "COMPLETED_WITH_FAILURES"
         )
 
@@ -363,58 +532,144 @@ def main() -> int:
     parser = build_argument_parser()
     args = parser.parse_args()
 
-    startup_id = args.startup_id
-    source_root = args.source_root.resolve()
+    session = None
 
     try:
-        validate_arguments(
-            startup_id=startup_id,
+        # ---------------------------------------------------------------------
+        # Database
+        # ---------------------------------------------------------------------
+
+        session = create_session()
+
+        startup_service = StartupService(
+            session=session,
+        )
+
+        # ---------------------------------------------------------------------
+        # Resolve startup
+        # ---------------------------------------------------------------------
+
+        startup = resolve_startup(
+            startup_service=startup_service,
+            startup_reference=args.startup,
+        )
+
+        canonical_startup_id = str(startup.id)
+
+        # ---------------------------------------------------------------------
+        # Resolve source root
+        # ---------------------------------------------------------------------
+
+        source_root = resolve_source_root(
+            startup_name=startup.name,
+            explicit_source_root=args.source_root,
+        )
+
+        validate_source_root(
             source_root=source_root,
         )
 
-    except ValueError as exc:
+        # ---------------------------------------------------------------------
+        # Runtime identity
+        # ---------------------------------------------------------------------
+
+        print()
+        print("=" * 100)
+        print("SOURCE EXTRACTION RUN")
+        print("=" * 100)
+
         print(
-            f"ERROR: {exc}",
-            file=sys.stderr,
+            "STARTUP REFERENCE :",
+            args.startup,
         )
-        return 2
 
-    session = create_session()
+        print(
+            "PERSISTED STARTUP :",
+            startup.name,
+        )
 
-    try:
+        print(
+            "CANONICAL UUID    :",
+            canonical_startup_id,
+        )
+
+        print(
+            "SOURCE ROOT       :",
+            source_root,
+        )
+
+        print()
+
+        # ---------------------------------------------------------------------
+        # Production orchestrator
+        # ---------------------------------------------------------------------
+
         orchestrator = SourceExtractionOrchestrator(
             session=session,
         )
 
+        # ---------------------------------------------------------------------
+        # Extract all sources
+        # ---------------------------------------------------------------------
+
         stats = extract_sources(
-            startup_id=startup_id,
+            startup_id=canonical_startup_id,
             source_root=source_root,
             orchestrator=orchestrator,
         )
 
+        # ---------------------------------------------------------------------
+        # Summary
+        # ---------------------------------------------------------------------
+
         print_summary(
-            startup_id=startup_id,
+            startup_name=startup.name,
+            startup_id=canonical_startup_id,
             source_root=source_root,
             stats=stats,
         )
 
-        return 0 if stats.failed == 0 else 1
+        # ---------------------------------------------------------------------
+        # Transaction handling
+        # ---------------------------------------------------------------------
+
+        if stats.failed == 0:
+            session.commit()
+            return 0
+
+        session.rollback()
+        return 1
+
+    except ValueError as exc:
+        if session is not None:
+            session.rollback()
+
+        print(
+            f"ERROR: {exc}",
+            file=sys.stderr,
+        )
+
+        return 2
 
     except Exception as exc:
-        session.rollback()
+        if session is not None:
+            session.rollback()
 
         print(
             "=" * 100,
             file=sys.stderr,
         )
+
         print(
             "PRODUCTION SOURCE EXTRACTION FAILED",
             file=sys.stderr,
         )
+
         print(
             "=" * 100,
             file=sys.stderr,
         )
+
         print(
             f"{type(exc).__name__}: {exc}",
             file=sys.stderr,
@@ -423,7 +678,8 @@ def main() -> int:
         return 1
 
     finally:
-        session.close()
+        if session is not None:
+            session.close()
 
 
 if __name__ == "__main__":

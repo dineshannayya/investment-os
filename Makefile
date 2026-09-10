@@ -66,6 +66,21 @@ bootstrap:
 		bash -c "pip install -q uv && uv lock"
 	@echo "Bootstrap complete."
 
+
+# Install huggingface
+.PHONY: install_hf
+install_hf:
+	python3 -m pip install -U huggingface_hub
+
+# Install qwen2.5
+.PHONY: install_qwen2.5
+install_qwen2.5:
+install_qwen2.5:
+	hf download \
+		Qwen/Qwen2.5-1.5B-Instruct-GGUF \
+		qwen2.5-1.5b-instruct-q4_k_m.gguf \
+		--local-dir models/Qwen2.5-1.5B-Instruct
+
 sync:
 	$(UV) sync
 

@@ -303,20 +303,15 @@ class FinancialMetrics(AnalysisBase):
 
 class AnalysisEvidence(AnalysisBase):
     """Source evidence supporting an analysis fact."""
-
+    evidence_ref: str
     document_id: UUID | None = None
-
     page: int | None = Field(default=None, ge=1)
     section: str | None = None
-
+    field: str | None
     source_text: str | None = None
-
-    confidence: Decimal | None = Field(
-        default=None,
-        ge=0,
-        le=1,
-    )
-
+    confidence: Decimal | None = Field( default=None, ge=0, le=1,)
+    source_type: str | None
+    source_name: str | None
 
 # ---------------------------------------------------------------------------
 # Analysis Input

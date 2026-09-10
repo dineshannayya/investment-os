@@ -380,8 +380,11 @@ def test_restomart_dimension_routing():
     assert {
         "investment_note_round",
         "investment_note_projection",
-        "sha_subscription",
-        "sha_conversion",
+        "sha_round_size",
+        "sha_investor_subscriptions",
+        "sha_ccps_terms",
+        "sha_ccps_voting",
         "sha_liquidation_preference",
         "sha_anti_dilution",
+        "sha_valuation_condition",
     }.issubset(valuation_refs)

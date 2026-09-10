@@ -50,6 +50,10 @@ DATA_ROOT = Path(
     "/opt/investment-os/data/real_startups"
 )
 
+GENERATED_ROOT = Path(
+    "/opt/investment-os/generated"
+)
+
 BASE = DATA_ROOT / STARTUP_KEY
 
 SCORECARD_PATH = (
@@ -57,7 +61,9 @@ SCORECARD_PATH = (
 )
 
 EVIDENCE_PATH = (
-    BASE / "dimension_evidence.json"
+    GENERATED_ROOT
+    / STARTUP_KEY
+    / "dimension_evidence.json"
 )
 
 EXPECTED_SOURCES = 18

@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable, Iterable
 from decimal import Decimal
 from uuid import UUID
+import hashlib
 
 from app.adapters.source_extraction_document import (
     SourceExtractionDocumentAdapter,
@@ -174,30 +175,77 @@ class StartupAnalysisDocumentIntelligenceService:
     # Evidence
     # -------------------------------------------------------------------------
 
+
+    def _build_evidence_ref(
+        *,
+        document_id: UUID,
+        field: str | None,
+        page: int | None,
+        section: str | None,
+        source_text: str | None,
+    ) -> str:
+        payload = "|".join(
+            (
+                str(document_id),
+                field or "",
+                str(page or ""),
+                section or "",
+                source_text or "",
+            )
+        )
+    
+        return hashlib.sha256(
+            payload.encode("utf-8")
+        ).hexdigest()
+
+
     @staticmethod
     def _build_evidence(
         profiles: Iterable[InvestmentProfile],
     ) -> list[AnalysisEvidence]:
         evidence: list[AnalysisEvidence] = []
-
+    
         for profile in profiles:
+            confidence = Decimal(str(profile.confidence))
+    
             for item in profile.evidence:
-                evidence.append(
-                    AnalysisEvidence(
+                page = item.metadata.get("page")
+    
+                section = (
+                    item.metadata.get("section")
+                    or item.field_name
+                )
+    
+                field = item.field_name
+                source_text = item.text
+    
+                evidence_ref = (
+                    StartupAnalysisDocumentIntelligenceService
+                    ._build_evidence_ref(
                         document_id=profile.document_id,
-                        page=item.metadata.get("page"),
-                        section=(
-                            item.metadata.get("section")
-                            or item.field_name
-                        ),
-                        source_text=item.text,
-                        confidence=Decimal(
-                            str(profile.confidence)
-                        ),
+                        field=field,
+                        page=page,
+                        section=section,
+                        source_text=source_text,
                     )
                 )
-
+    
+                evidence.append(
+                    AnalysisEvidence(
+                        evidence_ref=evidence_ref,
+                        document_id=profile.document_id,
+                        page=page,
+                        section=section,
+                        field=field,
+                        source_text=source_text,
+                        confidence=confidence,
+                        source_type=profile.metadata.document_type,
+                        source_name=profile.metadata.title,
+                    )
+                )
+    
         return evidence
+
 
     # -------------------------------------------------------------------------
     # Existing Document analysis
