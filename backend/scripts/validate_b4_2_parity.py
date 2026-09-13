@@ -190,44 +190,44 @@ def candidate_from_b3_result(item: Mapping[str, Any]):
 def reference_escalated_ids(
     b42: Mapping[str, Any],
 ) -> set[str]:
-    # Support several frozen-artifact shapes so the harness remains a verifier,
-    # not a producer of reference data.
+    """Extract authoritative frozen B.4.2 escalation selections.
+
+    The frozen artifact stores selector decisions under:
+        results[].escalation.selected
+
+    The parity harness must consume that frozen decision directly rather
+    than infer escalation from candidate content.
+    """
+
     ids: set[str] = set()
 
-    for key in (
-        "escalated_candidate_ids",
-        "context_candidate_ids",
-        "selected_candidate_ids",
-    ):
-        value = b42.get(key)
-        if isinstance(value, list):
-            ids.update(str(x) for x in value)
-
-    selection = b42.get("selection")
-    if isinstance(selection, Mapping):
-        value = selection.get("candidate_ids")
-        if isinstance(value, list):
-            ids.update(str(x) for x in value)
-
     results = b42.get("results")
-    if isinstance(results, list):
-        for item in results:
-            if isinstance(item, Mapping):
-                if item.get("escalated") is True:
-                    if item.get("candidate_id"):
-                        ids.add(str(item["candidate_id"]))
-                b42_result = item.get("b4_2")
-                if isinstance(b42_result, Mapping) and b42_result.get("escalated") is True:
-                    if item.get("candidate_id"):
-                        ids.add(str(item["candidate_id"]))
+    if not isinstance(results, list):
+        raise RuntimeError(
+            "Frozen B.4.2 artifact does not contain results[]."
+        )
+
+    for item in results:
+        if not isinstance(item, Mapping):
+            continue
+
+        candidate_id_value = item.get("candidate_id")
+        escalation = item.get("escalation")
+
+        if (
+            candidate_id_value
+            and isinstance(escalation, Mapping)
+            and escalation.get("selected") is True
+        ):
+            ids.add(str(candidate_id_value))
 
     if not ids:
         raise RuntimeError(
-            "Frozen B.4.2 artifact does not expose escalated candidate IDs."
+            "Frozen B.4.2 artifact contains no "
+            "results[].escalation.selected=true entries."
         )
 
     return ids
-
 
 def reference_final_labels(
     b42: Mapping[str, Any],
