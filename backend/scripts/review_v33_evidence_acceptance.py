@@ -205,6 +205,8 @@ def build_review_items(
     accepted: dict[str, dict[str, Any]],
     clusters: dict[str, Any],
     inspection: dict[str, Any] | None,
+    *,
+    include_ambiguous: bool = False,
 ) -> list[dict[str, Any]]:
     by_candidate, _ = cluster_indexes(clusters)
 
@@ -221,11 +223,15 @@ def build_review_items(
             continue
 
         # The human-review worksheet covers unmatched and ambiguous records.
-        if classification not in {
+        allowed_classifications = {
             "NEW_EVIDENCE_CANDIDATE",
             "POSSIBLE_DUPLICATE",
-            "AMBIGUOUS",
-        }:
+        }
+
+        if include_ambiguous:
+            allowed_classifications.add("AMBIGUOUS")
+
+        if classification not in allowed_classifications:
             continue
 
         cluster = by_candidate.get(candidate_id, {})
@@ -346,31 +352,54 @@ def build_report(
         in {"NEW_EVIDENCE_CANDIDATE", "POSSIBLE_DUPLICATE"}
     }
 
-    review_items = build_review_items(
+    # The main proposition review population is the 96 unmatched
+    # candidates, which collapse to 90 proposition clusters. Ambiguous
+    # canonical matches are deliberately kept in a separate review queue.
+    proposition_review_items = build_review_items(
         analysis_records,
         accepted,
         clusters,
         inspection,
+        include_ambiguous=False,
     )
+
+    ambiguous_review_items = build_review_items(
+        analysis_records,
+        accepted,
+        clusters,
+        inspection,
+        include_ambiguous=True,
+    )
+    ambiguous_review_items = [
+        item
+        for item in ambiguous_review_items
+        if str(item.get("classification") or "") == "AMBIGUOUS"
+    ]
 
     by_candidate, by_cluster = cluster_indexes(clusters)
 
     cluster_summary = Counter(
-        item["cluster_classification"] for item in review_items
+        item["cluster_classification"]
+        for item in proposition_review_items
     )
 
     by_dimension_field: dict[str, Counter] = defaultdict(Counter)
 
-    for item in review_items:
+    for item in proposition_review_items:
         key = (
             f"{item.get('dimension', '')}|"
             f"{item.get('field', '')}"
         )
-        by_dimension_field[key]["review_items"] += 1
+        by_dimension_field[key]["propositions"] += 1
 
-    review_ids = {
+    proposition_review_ids = {
         str(item.get("candidate_id"))
-        for item in review_items
+        for item in proposition_review_items
+    }
+
+    ambiguous_review_ids = {
+        str(item.get("candidate_id"))
+        for item in ambiguous_review_items
     }
 
     accepted_partition = matched_ids | ambiguous_ids | unmatched_ids
@@ -388,8 +417,14 @@ def build_report(
         "no_duplicate_cluster_membership": (
             len(by_candidate) == len(set(by_candidate))
         ),
-        "review_population_complete": (
-            review_ids == (unmatched_ids | ambiguous_ids)
+        "proposition_review_population_complete": (
+            proposition_review_ids == unmatched_ids
+        ),
+        "ambiguous_review_population_complete": (
+            ambiguous_review_ids == ambiguous_ids
+        ),
+        "review_populations_disjoint": (
+            proposition_review_ids.isdisjoint(ambiguous_review_ids)
         ),
         "cluster_member_count_consistent": all(
             len(member_ids)
@@ -422,7 +457,12 @@ def build_report(
             "matched": len(matched_ids),
             "ambiguous": len(ambiguous_ids),
             "unmatched": len(unmatched_ids),
-            "review_items": len(review_items),
+            "proposition_review_items": len(proposition_review_items),
+            "ambiguous_review_items": len(ambiguous_review_items),
+            "total_review_items": (
+                len(proposition_review_items)
+                + len(ambiguous_review_items)
+            ),
             "cluster_count": len(by_cluster),
         },
         "review_order": [
@@ -433,13 +473,20 @@ def build_report(
             "SINGLETON",
         ],
         "review_categories": list(REVIEW_CATEGORIES),
+        "review_population_policy": {
+            "proposition_review": "96 unmatched candidates / 90 clusters",
+            "ambiguous_review": "2 ambiguous canonical matches kept separate",
+        },
         "cluster_summary": dict(cluster_summary),
         "by_dimension_field": {
             key: dict(value)
             for key, value in sorted(by_dimension_field.items())
         },
         "related_edges": extract_related_edges(inspection),
-        "review_items": review_items,
+        "proposition_review_items": proposition_review_items,
+        "ambiguous_review_items": ambiguous_review_items,
+        # Backward-compatible alias: main review population is propositions.
+        "review_items": proposition_review_items,
         "accounting_checks": checks,
     }
 
@@ -464,7 +511,9 @@ def render_text(report: dict[str, Any]) -> str:
         ("matched", "MATCHED"),
         ("ambiguous", "AMBIGUOUS"),
         ("unmatched", "UNMATCHED"),
-        ("review_items", "REVIEW ITEMS"),
+        ("proposition_review_items", "PROPOSITION REVIEW"),
+        ("ambiguous_review_items", "AMBIGUOUS REVIEW"),
+        ("total_review_items", "TOTAL REVIEW ITEMS"),
         ("cluster_count", "CLUSTERS"),
     ):
         lines.append(f"{label:<25}: {population[key]}")
@@ -496,12 +545,64 @@ def render_text(report: dict[str, Any]) -> str:
     lines.extend(
         [
             "",
+            "AMBIGUOUS CANONICAL MATCH REVIEW",
+            separator,
+        ]
+    )
+
+    for index, item in enumerate(report["ambiguous_review_items"], 1):
+        candidate = item["candidate"]
+        cluster = item.get("cluster") or {}
+
+        lines.extend(
+            [
+                "",
+                f"[AMBIGUOUS {index}]",
+                f"Candidate ID             : {candidate.get('candidate_id', '')}",
+                f"Dimension                : {candidate.get('dimension', '')}",
+                f"Field                    : {candidate.get('field', '')}",
+                f"Cluster                  : {cluster.get('cluster_id', '')}",
+                f"Canonical match          : {item.get('canonical_match_type', '')}",
+                "",
+                "TEXT",
+                "----",
+                str(candidate.get("text") or ""),
+                "",
+                "PROVENANCE",
+                "----------",
+                f"source_id                : {candidate.get('source_id', '')}",
+                f"source_sha256            : {candidate.get('source_sha256', '')}",
+                f"extraction_id            : {candidate.get('extraction_id', '')}",
+                f"segment_index            : {candidate.get('segment_index', '')}",
+                "",
+                "REVIEW CATEGORIES",
+                "-----------------",
+            ]
+        )
+
+        for category in report["review_categories"]:
+            lines.append(f"  [ ] {category}")
+
+        lines.extend(
+            [
+                "",
+                "REVIEW DECISION           : ",
+                "REVIEW NOTES              : ",
+                "REVIEWED BY               : ",
+                "REVIEWED AT               : ",
+                separator,
+            ]
+        )
+
+    lines.extend(
+        [
+            "",
             "PROPOSITION REVIEW WORKSHEET",
             separator,
         ]
     )
 
-    for index, item in enumerate(report["review_items"], 1):
+    for index, item in enumerate(report["proposition_review_items"], 1):
         candidate = item["candidate"]
         cluster = item.get("cluster") or {}
 
@@ -666,8 +767,16 @@ def main() -> int:
             f"{population['unmatched']}"
         )
         print(
-            f"REVIEW ITEMS           : "
-            f"{population['review_items']}"
+            f"PROPOSITION REVIEW     : "
+            f"{population['proposition_review_items']}"
+        )
+        print(
+            f"AMBIGUOUS REVIEW       : "
+            f"{population['ambiguous_review_items']}"
+        )
+        print(
+            f"TOTAL REVIEW ITEMS     : "
+            f"{population['total_review_items']}"
         )
         print(
             f"CLUSTERS               : "
